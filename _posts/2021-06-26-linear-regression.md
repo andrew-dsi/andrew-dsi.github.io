@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Predicting Loyalty Using Linear Regression
-image: "/posts/chart-image2.png"
+image: "/posts/TesterImagePortfolio1.png"
 tags: [Machine Learning, Linear Regression]
 ---
 
