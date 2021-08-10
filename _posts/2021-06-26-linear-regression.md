@@ -5,11 +5,7 @@ image: "/posts/linear-regression.jpg"
 tags: [Machine Learning, Linear Regression]
 ---
 
-# Introduction
-
----
-
-Firstly, I love Python so much, here is some code!
+In this project we will look to predict loyalty scores for customers that an agency could not tag.  The model is based upon the customers that do have loyalty scores assigned, and the relationship between that variable and various customer metrics.
 
 ```
 # Import required Python packages
