@@ -7,7 +7,7 @@ tags: [Machine Learning, Linear Regression]
 
 In this project we will look to predict loyalty scores for customers that an agency could not tag.  The model is based upon the customers that do have loyalty scores assigned, and the relationship between that variable and various customer metrics.
 
-```python
+```ruby
 # Import required Python packages
 
 from sklearn.linear_model import LinearRegression
@@ -44,7 +44,7 @@ r2_score(y_test, y_pred)
 
 ![alt text](/img/posts/linear-regression1.png "Straight Line Equation")
 
-```python
+```ruby
 # Import required Python packages
 
 from sklearn.linear_model import LinearRegression
