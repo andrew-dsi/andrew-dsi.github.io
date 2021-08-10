@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Predicting Loyalty Using Linear Regression
-image: "/posts/linear-regression.png"
+image: "/posts/chart-image2.png"
 tags: [Machine Learning, Linear Regression]
 ---
 
@@ -41,6 +41,7 @@ regressor.fit(X_train, y_train)
 y_pred = regressor.predict(X_test)
 r2_score(y_test, y_pred)
 ```
+![alt text](/img/posts/chart-image1.png "Straight Line Equation")
 
 Here is an **unordered list** showing some things I love about Python
 
@@ -71,3 +72,5 @@ A line break, like this one below - helps me make sense of what I'm reading, esp
 ---
 
 I could also add things to my project like links, tables, quotes, and HTML blocks - but I'm starting to get a cracking headache.  Must be coffee time.
+
+![alt text](/img/posts/chart-image.png "Straight Line Equation")
