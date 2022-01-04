@@ -33,8 +33,7 @@ The second paragraph text
 ---
 
 # Project Overview  <a name="overview-main"></a>
-<br>
-<br>
+
 ### Context <a name="overview-context"></a>
 
 Our client, a grocery retailer, hired a market research consultancy to append market level customer loyalty information to the database.  However, only around 50% of the client's customer base could be tagged, thus the other half did not have this information present.
@@ -81,7 +80,7 @@ While predictive accuracy was relatively high - other modelling approaches could
 From a data point of view, further variables could be collected, and further feature engineering could be undertaken to ensure that we have as much useful information available for predicting customer loyalty
 <br>
 <br>
-#### Key Definition  <a name="overview-definition"></a>
+### Key Definition  <a name="overview-definition"></a>
 
 *customer loyalty score* measures the % of grocery spend (market level) that each customer allocates to the client vs. all of the competitors.  
 
