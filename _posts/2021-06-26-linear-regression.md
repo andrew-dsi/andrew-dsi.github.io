@@ -38,14 +38,14 @@ The second paragraph text
 
 Our client, a grocery retailer, hired a market research consultancy to append market level customer loyalty information to the database.  However, only around 50% of the client's customer base could be tagged, thus the other half did not have this information present.
 
-The overall aim of this work is to accurately predict the *customer loyalty score* for those customers who could not be tagged, enabling our client a clear understanding of true customer loyalty, regardless of total spend volume - and allowing for more accurate and relevant customer tracking, targeting, and comms.
+The overall aim of this work is to accurately predict the *loyalty score* for those customers who could not be tagged, enabling our client a clear understanding of true customer loyalty, regardless of total spend volume - and allowing for more accurate and relevant customer tracking, targeting, and comms.
 
-To achieve this, we looked to build out a predictive model that will find relationships between customer metrics and *customer loyalty score* for those customers who were tagged, and use this to predict the loyalty score metric for those who were not.
+To achieve this, we looked to build out a predictive model that will find relationships between customer metrics and *loyalty score* for those customers who were tagged, and use this to predict the loyalty score metric for those who were not.
 <br>
 <br>
 ### Actions <a name="overview-actions"></a>
 
-We firstly needed to compile the necessary data from tables in the database, gathering key customer metrics that may help predict *customer loyalty score*, appending on the dependent variable, and separating out those who did and did not have this dependent variable present.
+We firstly needed to compile the necessary data from tables in the database, gathering key customer metrics that may help predict *loyalty score*, appending on the dependent variable, and separating out those who did and did not have this dependent variable present.
 
 As we are predicting a numeric output, we tested three regression modelling approaches, namely:
 
@@ -58,20 +58,20 @@ As we are predicting a numeric output, we tested three regression modelling appr
 ### Results <a name="overview-results"></a>
 
 Our testing found that the Random Forest had the highest predictive accuracy.  
-  
-#### Metric 1: Adjusted R-Squared (Test Set)
 <br>
+#### Metric 1: Adjusted R-Squared (Test Set)
+
 * Random Forest = 0.955
 * Decision Tree = 0.886
 * Linear Regression = 0.78
-
-#### Metric 2: R-Squared (K-Fold Cross Validation, k = 4)
 <br>
+#### Metric 2: R-Squared (K-Fold Cross Validation, k = 4)
+
 * Random Forest = 0.925
 * Decision Tree = 0.871
 * Linear Regression = 0.853
 
-As the most important outcome for this project was predictive accuracy, rather than explicitly understanding weighted drivers of prediction, we chose the Random Forest as the model to use for making predictions on the customers who were missing the *customer loyalty score* metric.
+As the most important outcome for this project was predictive accuracy, rather than explicitly understanding weighted drivers of prediction, we chose the Random Forest as the model to use for making predictions on the customers who were missing the *loyalty score* metric.
 <br>
 <br>
 ### Growth/Next Steps <a name="overview-growth"></a>
@@ -83,9 +83,9 @@ From a data point of view, further variables could be collected, and further fea
 <br>
 ### Key Definition  <a name="overview-definition"></a>
 
-*customer loyalty score* measures the % of grocery spend (market level) that each customer allocates to the client vs. all of the competitors.  
+The *loyalty score* metric measures the % of grocery spend (market level) that each customer allocates to the client vs. all of the competitors.  
 
-Example 1: Customer X has a total grocery spend of $100 and all of this is spent with our client. Customer X has a *customer loyalty score* of 1.0
+Example 1: Customer X has a total grocery spend of $100 and all of this is spent with our client. Customer X has a *loyalty score* of 1.0
 
 Example 2: Customer Y has a total grocery spend of $200 but only 20% is spent with our client.  The remaining 80% is spend with competitors.  Customer Y has a *customer loyalty score* of 0.2
 <br>
@@ -94,21 +94,8 @@ Example 2: Customer Y has a total grocery spend of $200 but only 20% is spent wi
 
 # Data Overview
 
-| **Variable Name**    | **Variable Type** | **Variable Origin**                                 | **Description**                                                                                          |
-|----------------------|-------------------|-----------------------------------------------------|----------------------------------------------------------------------------------------------------------|
-| loyalty_score        | Dependent         | grocery_db.loyalty_scores                           | The % of total grocery spend that each customer allocates to ABC Grocery vs. competitors                 |
-| distance_from_store  | Independent       | grocery_db.customer_details                         | "The distance in miles from the customers home address, and the store"                                   |
-| gender               | Independent       | grocery_db.customer_details                         | The gender provided by the customer                                                                      |
-| credit_score         | Independent       | grocery_db.customer_details                         | The customers most recent credit score                                                                   |
-| total_sales          | Independent       | grocery_db.transactions                             | Total spend by the customer in ABC Grocery within the latest 6 months                                    |
-| total_items          | Independent       | grocery_db.transactions                             | Total products purchased by the customer in ABC Grocery within the latest 6 months                       |
-| transaction_count    | Independent       | grocery_db.transactions                             | Total unique transactions made by the customer in ABC Grocery within the latest 6 months                 |
-| product_area_count   | Independent       | "grocery_db.product_areas, grocery_db.transactions" | The number of product areas within ABC Grocery the customers has shopped into within the latest 6 months |
-| average_basket_value | Independent       | grocery_db.transactions                             | The average spend per transaction for the customer in ABC Grocery within the latest 6 months             |
 
-
-
-| **Variable Name** | **Variable Type** | **Variable Origin** | **Description** |
+| **Variable Name** | **Type** | **Origin** | **Description** |
 |---|---|---|---|
 | loyalty_score | Dependent | grocery_db.loyalty_scores | The % of total grocery spend that each customer allocates to ABC Grocery vs. competitors |
 | distance_from_store | Independent | grocery_db.customer_details | "The distance in miles from the customers home address, and the store" |
