@@ -14,8 +14,10 @@ tags: [Customer Loyalty, Machine Learning, Linear Regression, Decision Tree, Ran
     - [Growth/Next Steps](#overview-growth)
     - [Key Definition](#overview-definition)
 <br>
+<br>
 - [Some paragraph](#paragraph1)
     - [Sub paragraph](#subparagraph1)
+<br>
 <br>
 - [Another paragraph](#paragraph2)
 
