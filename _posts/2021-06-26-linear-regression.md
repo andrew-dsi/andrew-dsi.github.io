@@ -33,8 +33,8 @@ The second paragraph text
 ---
 
 # Project Overview  <a name="overview-main"></a>
-
-
+  
+  
 ### Context <a name="overview-context"></a>
 
 Our client, a grocery retailer, hired a market research consultancy to append market level customer loyalty information to the database.  However, only around 50% of the client's customer base could be tagged, thus the other half did not have this information present.
@@ -42,9 +42,8 @@ Our client, a grocery retailer, hired a market research consultancy to append ma
 The overall aim of this work is to accurately predict the *customer loyalty score* for those customers who could not be tagged, enabling our client a clear understanding of true customer loyalty, regardless of total spend volume - and allowing for more accurate and relevant customer tracking, targeting, and comms.
 
 To achieve this, we looked to build out a predictive model that will find relationships between customer metrics and *customer loyalty score* for those customers who were tagged, and use this to predict the loyalty score metric for those who were not.
-
----
-
+  
+  
 ### Actions <a name="overview-actions"></a>
 
 We firstly needed to compile the necessary data from tables in the database, gathering key customer metrics that may help predict *customer loyalty score*, appending on the dependent variable, and separating out those who did and did not have this dependent variable present.
@@ -54,9 +53,8 @@ As we are predicting a numeric output, we tested three regression modelling appr
 * Linear Regression
 * Decision Tree
 * Random Forest
-
----
-
+  
+  
 ### Results <a name="overview-results"></a>
 
 Our testing found that the Random Forest had the highest predictive accuracy.
@@ -74,17 +72,15 @@ Our testing found that the Random Forest had the highest predictive accuracy.
 * Linear Regression = 0.853
 
 As the most important outcome for this project was predictive accuracy, rather than explicitly understanding weighted drivers of prediction, we chose the Random Forest as the model to use for making predictions on the customers who were missing the *customer loyalty score* metric.
-
----
-
+  
+  
 ### Growth/Next Steps <a name="overview-growth"></a>
 
 While predictive accuracy was relatively high - other modelling approaches could be tested, especially those somewhat similar to Random Forest, for example XGBoost, LightGBM to see if even more accuracy could be gained.
 
 From a data point of view, further variables could be collected, and further feature engineering could be undertaken to ensure that we have as much useful information available for predicting customer loyalty
-
----
-
+  
+  
 #### Key Definition  <a name="overview-definition"></a>
 
 *customer loyalty score* measures the % of grocery spend (market level) that each customer allocates to the client vs. all of the competitors.  
