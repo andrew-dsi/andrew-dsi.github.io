@@ -57,14 +57,14 @@ As we are predicting a numeric output, we tested three regression modelling appr
 
 ### Results <a name="overview-results"></a>
 
-Our testing found that the Random Forest had the highest predictive accuracy.
+Our testing found that the Random Forest had the highest predictive accuracy.  
 
 #### Adjusted R-Squared (Test Set)
 
 * Random Forest = 0.955
 * Decision Tree = 0.886
 * Linear Regression = 0.78
-
+  
 #### R-Squared (K-Fold Cross Validation, k = 4)
 
 * Random Forest = 0.925
