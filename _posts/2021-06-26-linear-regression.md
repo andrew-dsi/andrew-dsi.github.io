@@ -104,6 +104,7 @@ The key variables hypothesised to predict the missing loyalty scores will come f
 Using pandas in Python, we merged these tables together for all customers, creating a single dataset that we can use for modelling.
 
 ```ruby
+
 # import required packages
 import pandas as pd
 import pickle
@@ -143,10 +144,11 @@ regression_scoring.drop(["customer_loyalty_score"], axis = 1, inplace = True)
 # save our datasets for future use
 pickle.dump(regression_modelling, open("data/abc_regression_modelling.p", "wb"))
 pickle.dump(regression_scoring, open("data/abc_regression_scoring.p", "wb"))
+
 ```
-
+<br>
 After this data pre-processing in Python, we have a dataset for modelling that contains the following fields
-
+<br>
 #### loyalty_score (dependent)
 
 *The % of total grocery spend that each customer allocates to ABC Grocery vs. competitors*
