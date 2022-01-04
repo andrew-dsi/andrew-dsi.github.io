@@ -2,21 +2,22 @@
 layout: post
 title: Predicting Customer Loyalty Using Machine Learning
 image: "/posts/TesterImagePortfolio1.png"
-tags: [Machine Learning, Linear Regression, Decision Tree, Random Forest]
+tags: [Customer Loyalty, Machine Learning, Linear Regression, Decision Tree, Random Forest]
 ---
 
 # Table of contents
 
-1. [Project Overview](#overview-main)
+- [Project Overview](#overview-main)
     - [Context](#overview-context)
     - [Actions](#overview-actions)
     - [Results](#overview-results)
     - [Growth/Next Steps](#overview-growth)
     - [Key Definition](#overview-definition)
 <br>
-2. [Some paragraph](#paragraph1)
+- [Some paragraph](#paragraph1)
     - [Sub paragraph](#subparagraph1)
-4. [Another paragraph](#paragraph2)
+<br>
+- [Another paragraph](#paragraph2)
 
 ## This is the introduction <a name="introduction"></a>
 Some introduction text, formatted in heading 2 style
