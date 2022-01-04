@@ -157,17 +157,17 @@ After this data pre-processing in Python, we have a dataset for modelling that c
 
 *The distance in miles from the customers home address, and the store*
 
-| **Variable Name** | **Type** | **Origin** | **Description** |
-|---|---|---|---|
-| loyalty_score | Dependent | grocery_db.loyalty_scores | The % of total grocery spend that each customer allocates to ABC Grocery vs. competitors |
-| distance_from_store | Independent | grocery_db.customer_details | The distance in miles from the customers home address, and the store |
-| gender | Independent | grocery_db.customer_details | The gender provided by the customer |
-| credit_score | Independent | grocery_db.customer_details | The customers most recent credit score |
-| total_sales | Independent | grocery_db.transactions | Total spend by the customer in ABC Grocery within the latest 6 months |
-| total_items | Independent | grocery_db.transactions | Total products purchased by the customer in ABC Grocery within the latest 6 months |
-| transaction_count | Independent | grocery_db.transactions | Total unique transactions made by the customer in ABC Grocery within the latest 6 months |
-| product_area_count | Independent | "grocery_db.product_areas, grocery_db.transactions" | The number of product areas within ABC Grocery the customers has shopped into within the latest 6 months |
-| average_basket_value | Independent | grocery_db.transactions | The average spend per transaction for the customer in ABC Grocery within the latest 6 months |
+| **Variable Name** | **Variable Type** | **Description** |
+|---|---|---|
+| loyalty_score | Dependent | The % of total grocery spend that each customer allocates to ABC Grocery vs. competitors |
+| distance_from_store | Independent | "The distance in miles from the customers home address, and the store" |
+| gender | Independent | The gender provided by the customer |
+| credit_score | Independent | The customers most recent credit score |
+| total_sales | Independent | Total spend by the customer in ABC Grocery within the latest 6 months |
+| total_items | Independent | Total products purchased by the customer in ABC Grocery within the latest 6 months |
+| transaction_count | Independent | Total unique transactions made by the customer in ABC Grocery within the latest 6 months |
+| product_area_count | Independent | The number of product areas within ABC Grocery the customers has shopped into within the latest 6 months |
+| average_basket_value | Independent | The average spend per transaction for the customer in ABC Grocery within the latest 6 months |
 
 
 
