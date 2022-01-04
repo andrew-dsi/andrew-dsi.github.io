@@ -96,6 +96,47 @@ Example 2: Customer Y has a total grocery spend of $200 but only 20% is spent wi
 
 # Data Overview
 
+We will be predicting the *loyalty_score* metric.  This metric exists (for half of the customer base) in the *loyalty_scores* table of the client database.
+
+The key variables hypothesised to predict the missing loyalty scores will come from the client database, namely the *transactions* table, the *customer_details* table, and the *product_areas* table.
+
+Using pandas in Python, we merged these tables together for all customers, creating a single dataset that we can use for modelling.
+
+```ruby
+
+# merge loyalty score data and customer details data, at customer level
+data_for_regression = pd.merge(customer_details, loyalty_scores, how = "left", on = "customer_id")
+
+# aggregate sales data from transactions table
+sales_summary = transactions.groupby("customer_id").agg({"sales_cost" : "sum",
+                                                         "num_items" : "sum",
+                                                         "transaction_id" : "nunique",
+                                                         "product_area_id" : "nunique"}).reset_index()
+
+# rename columns for clarity
+sales_summary.columns = ["customer_id", "total_sales", "total_items", "transaction_count", "product_area_count"]
+
+# engineer an average basket value column for each customer
+sales_summary["average_basket_value"] = sales_summary["total_sales"] / sales_summary["transaction_count"]
+
+# merge the sales summary with the overall customer data
+data_for_regression = pd.merge(data_for_regression, sales_summary, how = "inner", on = "customer_id")
+
+# split out data for modelling (loyalty score is present)
+regression_modelling = data_for_regression.loc[data_for_regression["customer_loyalty_score"].notna()]
+
+# split out data for scoring post-modelling (loyalty score is missing)
+regression_scoring = data_for_regression.loc[data_for_regression["customer_loyalty_score"].isna()]
+
+# for scoring set, drop the loyalty score column (as it is blank/redundant)
+regression_scoring.drop(["customer_loyalty_score"], axis = 1, inplace = True)
+
+# save our datasets for future use
+pickle.dump(regression_modelling, open("data/abc_regression_modelling.p", "wb"))
+pickle.dump(regression_scoring, open("data/abc_regression_scoring.p", "wb"))
+
+```
+
 
 | **Variable Name** | **Type** | **Origin** | **Description** |
 |---|---|---|---|
