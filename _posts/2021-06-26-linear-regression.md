@@ -104,6 +104,14 @@ The key variables hypothesised to predict the missing loyalty scores will come f
 Using pandas in Python, we merged these tables together for all customers, creating a single dataset that we can use for modelling.
 
 ```ruby
+# import required packages
+import pandas as pd
+import pickle
+
+# import required data tables
+loyalty_scores = ...
+customer_details = ...
+transactions = ...
 
 # merge loyalty score data and customer details data, at customer level
 data_for_regression = pd.merge(customer_details, loyalty_scores, how = "left", on = "customer_id")
@@ -135,14 +143,22 @@ regression_scoring.drop(["customer_loyalty_score"], axis = 1, inplace = True)
 # save our datasets for future use
 pickle.dump(regression_modelling, open("data/abc_regression_modelling.p", "wb"))
 pickle.dump(regression_scoring, open("data/abc_regression_scoring.p", "wb"))
-
 ```
 
+After this data pre-processing in Python, we have a dataset for modelling that contains the following fields
+
+#### loyalty_score (dependent)
+
+*The % of total grocery spend that each customer allocates to ABC Grocery vs. competitors*
+
+#### distance_from_store (predictor)
+
+*The distance in miles from the customers home address, and the store*
 
 | **Variable Name** | **Type** | **Origin** | **Description** |
 |---|---|---|---|
 | loyalty_score | Dependent | grocery_db.loyalty_scores | The % of total grocery spend that each customer allocates to ABC Grocery vs. competitors |
-| distance_from_store | Independent | grocery_db.customer_details | "The distance in miles from the customers home address, and the store" |
+| distance_from_store | Independent | grocery_db.customer_details | The distance in miles from the customers home address, and the store |
 | gender | Independent | grocery_db.customer_details | The gender provided by the customer |
 | credit_score | Independent | grocery_db.customer_details | The customers most recent credit score |
 | total_sales | Independent | grocery_db.transactions | Total spend by the customer in ABC Grocery within the latest 6 months |
