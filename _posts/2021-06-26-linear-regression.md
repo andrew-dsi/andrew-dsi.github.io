@@ -11,7 +11,7 @@ tags: [Machine Learning, Linear Regression, Decision Tree, Random Forest]
 # Table of contents
 1. [Introduction](#introduction)
 2. [Some paragraph](#paragraph1)
-    1. [Sub paragraph](#subparagraph1)
+    - [Sub paragraph](#subparagraph1)
 3. [Another paragraph](#paragraph2)
 
 ## This is the introduction <a name="introduction"></a>
