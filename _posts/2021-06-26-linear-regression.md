@@ -255,6 +255,7 @@ The ability for a Linear Regression model to generalise well across *all* data c
 In this code section, we use **.describe()** from Pandas to investigate the spread of values for each of our predictors.  The results of this can be seen in the table below.
 
 <br>
+
 | **metric** | **distance_from_store** | **credit_score** | **total_sales** | **total_items** | **transaction_count** | **product_area_count** | **average_basket_value** |
 |---|---|---|---|---|---|---|---|
 | mean | 2.02 | 0.60 | 1846.50 | 278.30 | 44.93 | 4.31 | 36.78 |
