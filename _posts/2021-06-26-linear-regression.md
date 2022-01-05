@@ -144,8 +144,8 @@ regression_scoring = data_for_regression.loc[data_for_regression["customer_loyal
 regression_scoring.drop(["customer_loyalty_score"], axis = 1, inplace = True)
 
 # save our datasets for future use
-pickle.dump(regression_modelling, open("data/abc_regression_modelling.p", "wb"))
-pickle.dump(regression_scoring, open("data/abc_regression_scoring.p", "wb"))
+pickle.dump(regression_modelling, open("data/customer_loyalty_modelling.p", "wb"))
+pickle.dump(regression_scoring, open("data/customer_loyalty_scoring.p", "wb"))
 
 ```
 <br>
@@ -183,64 +183,69 @@ The code, details, and results can be found below.
 <br>
 # Linear Regression
 
-We will utlising scikit-learn within Python to model our data using Linear Regression
+We will utlising scikit-learn within Python to model our data using Linear Regression. The code sections below are broken up into 4 key sections:
 
-![alt text](/img/posts/linear-regression1.png "Straight Line Equation")
+* Data Import
+* Data Preprocessing
+* Model Training
+* Performance Assessment
+
+### Data Import <a name="linreg-import"></a>
+
+Since we saved our modelling data as a pickle file, we import it.  We ensure we remove the id column, and we also ensure our data is shuffled.
 
 ```ruby
-# Import required Python packages
+
+#########################################################################
+# import required packages
+#########################################################################
+
+import pandas as pd
+import pickle
+import matplotlib.pyplot as plt
 
 from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
+from sklearn.utils import shuffle
+from sklearn.model_selection import train_test_split, cross_val_score, KFold
 from sklearn.metrics import r2_score
-import pandas as pd
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.feature_selection import RFECV
 
-# Import sample data
+#########################################################################
+# import modelling data
+#########################################################################
 
-my_df = pd.read_csv("data/sample_data_regression.csv")
+# import
 
-# Split data into input and output objects
+data_for_model = pickle.load(open("data/customer_loyalty_modelling.p", "rb"))
 
-X = my_df.drop(["output"], axis = 1)
-y = my_df["output"]
+# drop uneccessary columns
 
-# Split data into training and test sets
+data_for_model.drop("customer_id", axis = 1, inplace = True)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42)
+# shuffle data
 
-# Instantiate our model object
+data_for_model = shuffle(data_for_model, random_state = 42)
 
-regressor = LinearRegression()
-
-# Train our model
-
-regressor.fit(X_train, y_train)
-
-# Assess model accuracy
-
-y_pred = regressor.predict(X_test)
-r2_score(y_test, y_pred)
 ```
+<br>
+### Data Preprocessing <a name="linreg-preprocessing"></a>
 
-Here is an **unordered list** showing some things I love about Python
+For Linear Regression we have certain data preprocessing steps that need to be addressed, including:
 
-* For my work
-    * Data Analysis
-    * Data Visualisation
-    * Machine Learning
-* For fun
-    * Deep Learning
-    * Computer Vision
-    * Projects about coffee
+* Missing values in the data
+* The effect of outliers
+* Encoding categorical variables to numeric form
+* Multicollinearity & Feature Selection
 
-Here is an _ordered list_ showing some things I love about coffee
+The code sections below are broken up into 
 
-1. The smell
-    1. Especially in the morning, but also at all times of the day!
-2. The taste
-3. The fact I can run the 100m in approx. 9 seconds after having 4 cups in quick succession
 
-I love Python & Coffee so much, here is that picture from the top of my project AGAIN, but this time, in the BODY of my project!
+
+
+
+
+![alt text](/img/posts/linear-regression1.png "Straight Line Equation")
 
 ![alt text](/img/posts/chart-image1.png "Image")
 
