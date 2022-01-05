@@ -250,9 +250,28 @@ data_for_model.dropna(how = "any", inplace = True)
 
 The ability for a Linear Regression model to generalise well across *all* data can be hampered if there are outliers present.  There is no right or wrong way to deal with outliers, but it is always something worth very careful consideration - just because a value is high or low, does not necessarily mean it should not be there!
 
-In this code section, we use **.describe()** from Pandas to investigate the spread of values for each of our predictors.
+In this code section, we use **.describe()** from Pandas to investigate the spread of values for each of our predictors.  The results of this can be seen in the table below.
 
-Based on this investigation, 
+| **metric** | **distance_from_store** | **credit_score** | **total_sales** | **total_items** | **transaction_count** | **product_area_count** | **average_basket_value** | **** |
+|---|---|---|---|---|---|---|---|---|
+| count | 394.00 | 394.00 | 394.00 | 394.00 | 394.00 | 394.00 | 394.00 |  |
+| mean | 2.02 | 0.60 | 1846.50 | 278.30 | 44.93 | 4.31 | 36.78 |  |
+| std | 2.57 | 0.10 | 1767.83 | 214.24 | 21.25 | 0.73 | 19.34 |  |
+| min | 0.00 | 0.26 | 45.95 | 10.00 | 4.00 | 2.00 | 9.34 |  |
+| 25% | 0.71 | 0.53 | 942.07 | 201.00 | 41.00 | 4.00 | 22.41 |  |
+| 50% | 1.65 | 0.59 | 1471.49 | 258.50 | 50.00 | 4.00 | 30.37 |  |
+| 75% | 2.91 | 0.66 | 2104.73 | 318.50 | 53.00 | 5.00 | 47.21 |  |
+| max | 44.37 | 0.88 | 9878.76 | 1187.00 | 109.00 | 5.00 | 102.34 |  |
+
+Based on this investigation, we see some *max* column values for several variables to be much higher than the *median* value.
+
+This is for columns *distance_from_store*, *total_sales*, and *total_items*
+
+For example, the median *distance_to_store* is 1.645 miles, but the maximum is over 44 miles!
+
+Because of this, we apply some outlier removal in order to facilitate generalisation across the full dataset.
+
+We do this using the "boxplot approach" where we remove any rows where the values within those columns are outside of the interquartile range multiplied by 2.
 
 ```ruby
 
@@ -276,6 +295,26 @@ for column in outlier_columns:
 
 ```
 
+##### Split Out Data For Modelling
+
+In the next code block we do two things, we firstly split our data into an **X** object which contains only the predictor variables, and a **y** object that contains only our dependent variable.
+
+Once we have done this, we split our data into training and test sets to ensure we can fairly validate the accuracy of the predictions on data that was not used in training.
+
+```ruby
+
+# split data into X and y objects for modelling
+X = data_for_model.drop(["customer_loyalty_score"], axis = 1)
+y = data_for_model["customer_loyalty_score"]
+
+# split out training & test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42)
+
+```
+
+##### Categorical Predictor Variables
+
+In the next code
 
 ![alt text](/img/posts/linear-regression1.png "Straight Line Equation")
 
