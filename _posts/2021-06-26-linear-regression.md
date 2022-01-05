@@ -183,7 +183,7 @@ The code, details, and results can be found below.
 <br>
 # Linear Regression
 
-We will utlising scikit-learn within Python to model our data using Linear Regression. The code sections below are broken up into 4 key sections:
+We utlise the scikit-learn library within Python to model our data using Linear Regression. The code sections below are broken up into 4 key sections:
 
 * Data Import
 * Data Preprocessing
@@ -203,7 +203,6 @@ Since we saved our modelling data as a pickle file, we import it.  We ensure we 
 import pandas as pd
 import pickle
 import matplotlib.pyplot as plt
-
 from sklearn.linear_model import LinearRegression
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split, cross_val_score, KFold
@@ -216,15 +215,12 @@ from sklearn.feature_selection import RFECV
 #########################################################################
 
 # import
-
 data_for_model = pickle.load(open("data/customer_loyalty_modelling.p", "rb"))
 
 # drop uneccessary columns
-
 data_for_model.drop("customer_id", axis = 1, inplace = True)
 
 # shuffle data
-
 data_for_model = shuffle(data_for_model, random_state = 42)
 
 ```
@@ -238,11 +234,47 @@ For Linear Regression we have certain data preprocessing steps that need to be a
 * Encoding categorical variables to numeric form
 * Multicollinearity & Feature Selection
 
-The code sections below are broken up into 
+##### Missing Values
 
+The number of missing values in the data was extremely low, so instead of applying any imputation (i.e. mean, most common value) we will just remove those rows
 
+```ruby
 
+# remove rows where values are missing
+data_for_model.isna().sum()
+data_for_model.dropna(how = "any", inplace = True)
 
+```
+
+##### Outliers
+
+The ability for a Linear Regression model to generalise well across *all* data can be hampered if there are outliers present.  There is no right or wrong way to deal with outliers, but it is always something worth very careful consideration - just because a value is high or low, does not necessarily mean it should not be there!
+
+In this code section, we use **.describe()** from Pandas to investigate the spread of values for each of our predictors.
+
+Based on this investigation, 
+
+```ruby
+
+outlier_investigation = data_for_model.describe()
+outlier_columns = ["distance_from_store", "total_sales", "total_items"]
+
+# boxplot approach
+for column in outlier_columns:
+    
+    lower_quartile = data_for_model[column].quantile(0.25)
+    upper_quartile = data_for_model[column].quantile(0.75)
+    iqr = upper_quartile - lower_quartile
+    iqr_extended = iqr * 2
+    min_border = lower_quartile - iqr_extended
+    max_border = upper_quartile + iqr_extended
+    
+    outliers = data_for_model[(data_for_model[column] < min_border) | (data_for_model[column] > max_border)].index
+    print(f"{len(outliers)} outliers detected in column {column}")
+    
+    data_for_model.drop(outliers, inplace = True)
+
+```
 
 
 ![alt text](/img/posts/linear-regression1.png "Straight Line Equation")
