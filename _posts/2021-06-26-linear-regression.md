@@ -274,6 +274,7 @@ Because of this, we apply some outlier removal in order to facilitate generalisa
 
 We do this using the "boxplot approach" where we remove any rows where the values within those columns are outside of the interquartile range multiplied by 2.
 
+
 ```ruby
 
 outlier_investigation = data_for_model.describe()
