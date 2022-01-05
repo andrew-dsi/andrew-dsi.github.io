@@ -307,6 +307,7 @@ In the next code block we do two things, we firstly split our data into an **X**
 
 Once we have done this, we split our data into training and test sets to ensure we can fairly validate the accuracy of the predictions on data that was not used in training.
 
+<br>
 ```ruby
 
 # split data into X and y objects for modelling
