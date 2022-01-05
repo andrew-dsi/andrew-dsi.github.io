@@ -254,6 +254,7 @@ The ability for a Linear Regression model to generalise well across *all* data c
 
 In this code section, we use **.describe()** from Pandas to investigate the spread of values for each of our predictors.  The results of this can be seen in the table below.
 
+<br>
 | **metric** | **distance_from_store** | **credit_score** | **total_sales** | **total_items** | **transaction_count** | **product_area_count** | **average_basket_value** |
 |---|---|---|---|---|---|---|---|
 | mean | 2.02 | 0.60 | 1846.50 | 278.30 | 44.93 | 4.31 | 36.78 |
@@ -264,6 +265,7 @@ In this code section, we use **.describe()** from Pandas to investigate the spre
 | 75% | 2.91 | 0.66 | 2104.73 | 318.50 | 53.00 | 5.00 | 47.21 |
 | max | 44.37 | 0.88 | 9878.76 | 1187.00 | 109.00 | 5.00 | 102.34 |
 
+<br>
 Based on this investigation, we see some *max* column values for several variables to be much higher than the *median* value.
 
 This is for columns *distance_from_store*, *total_sales*, and *total_items*
@@ -274,7 +276,7 @@ Because of this, we apply some outlier removal in order to facilitate generalisa
 
 We do this using the "boxplot approach" where we remove any rows where the values within those columns are outside of the interquartile range multiplied by 2.
 
-
+<br>
 ```ruby
 
 outlier_investigation = data_for_model.describe()
