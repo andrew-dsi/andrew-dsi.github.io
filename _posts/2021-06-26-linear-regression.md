@@ -63,14 +63,14 @@ As we are predicting a numeric output, we tested three regression modelling appr
 Our testing found that the Random Forest had the highest predictive accuracy.
 
 <br>
-#### Metric 1: Adjusted R-Squared (Test Set)
+##### Metric 1: Adjusted R-Squared (Test Set)
 
 * Random Forest = 0.955
 * Decision Tree = 0.886
 * Linear Regression = 0.78
 
 <br>
-#### Metric 2: R-Squared (K-Fold Cross Validation, k = 4)
+##### Metric 2: R-Squared (K-Fold Cross Validation, k = 4)
 
 * Random Forest = 0.925
 * Decision Tree = 0.871
@@ -151,13 +151,6 @@ pickle.dump(regression_scoring, open("data/abc_regression_scoring.p", "wb"))
 <br>
 After this data pre-processing in Python, we have a dataset for modelling that contains the following fields
 <br>
-#### loyalty_score (dependent)
-
-*The % of total grocery spend that each customer allocates to ABC Grocery vs. competitors*
-
-#### distance_from_store (predictor)
-
-*The distance in miles from the customers home address, and the store*
 
 | **Variable Name** | **Variable Type** | **Description** |
 |---|---|---|
@@ -173,43 +166,6 @@ After this data pre-processing in Python, we have a dataset for modelling that c
 
 
 
-
-In this project we will look to predict loyalty scores for customers that an agency could not tag.  The model is based upon the customers that do have loyalty scores assigned, and the relationship between that variable and various customer metrics.
-
-```ruby
-# Import required Python packages
-
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import r2_score
-import pandas as pd
-
-# Import sample data
-
-my_df = pd.read_csv("data/sample_data_regression.csv")
-
-# Split data into input and output objects
-
-X = my_df.drop(["output"], axis = 1)
-y = my_df["output"]
-
-# Split data into training and test sets
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42)
-
-# Instantiate our model object
-
-regressor = LinearRegression()
-
-# Train our model
-
-regressor.fit(X_train, y_train)
-
-# Assess model accuracy
-
-y_pred = regressor.predict(X_test)
-r2_score(y_test, y_pred)
-```
 
 ![alt text](/img/posts/linear-regression1.png "Straight Line Equation")
 
