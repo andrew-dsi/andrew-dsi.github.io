@@ -149,7 +149,7 @@ pickle.dump(regression_scoring, open("data/abc_regression_scoring.p", "wb"))
 
 ```
 <br>
-After this data pre-processing in Python, we have a dataset for modelling that contains the following fields
+After this data pre-processing in Python, we have a dataset for modelling that contains the following fields...
 <br>
 <br>
 | **Variable Name** | **Variable Type** | **Description** |
