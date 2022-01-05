@@ -233,6 +233,7 @@ For Linear Regression we have certain data preprocessing steps that need to be a
 * The effect of outliers
 * Encoding categorical variables to numeric form
 * Multicollinearity & Feature Selection
+
 <br>
 ##### Missing Values
 
@@ -245,6 +246,7 @@ data_for_model.isna().sum()
 data_for_model.dropna(how = "any", inplace = True)
 
 ```
+
 <br>
 ##### Outliers
 
@@ -294,6 +296,7 @@ for column in outlier_columns:
     data_for_model.drop(outliers, inplace = True)
 
 ```
+
 <br>
 ##### Split Out Data For Modelling
 
@@ -311,6 +314,7 @@ y = data_for_model["customer_loyalty_score"]
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42)
 
 ```
+
 <br>
 ##### Categorical Predictor Variables
 
