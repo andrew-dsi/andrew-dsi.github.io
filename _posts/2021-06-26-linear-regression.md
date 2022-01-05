@@ -189,7 +189,7 @@ We utlise the scikit-learn library within Python to model our data using Linear 
 * Data Preprocessing
 * Model Training
 * Performance Assessment
-
+<br>
 ### Data Import <a name="linreg-import"></a>
 
 Since we saved our modelling data as a pickle file, we import it.  We ensure we remove the id column, and we also ensure our data is shuffled.
@@ -233,7 +233,7 @@ For Linear Regression we have certain data preprocessing steps that need to be a
 * The effect of outliers
 * Encoding categorical variables to numeric form
 * Multicollinearity & Feature Selection
-
+<br>
 ##### Missing Values
 
 The number of missing values in the data was extremely low, so instead of applying any imputation (i.e. mean, most common value) we will just remove those rows
@@ -245,7 +245,7 @@ data_for_model.isna().sum()
 data_for_model.dropna(how = "any", inplace = True)
 
 ```
-
+<br>
 ##### Outliers
 
 The ability for a Linear Regression model to generalise well across *all* data can be hampered if there are outliers present.  There is no right or wrong way to deal with outliers, but it is always something worth very careful consideration - just because a value is high or low, does not necessarily mean it should not be there!
@@ -294,7 +294,7 @@ for column in outlier_columns:
     data_for_model.drop(outliers, inplace = True)
 
 ```
-
+<br>
 ##### Split Out Data For Modelling
 
 In the next code block we do two things, we firstly split our data into an **X** object which contains only the predictor variables, and a **y** object that contains only our dependent variable.
@@ -311,7 +311,7 @@ y = data_for_model["customer_loyalty_score"]
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42)
 
 ```
-
+<br>
 ##### Categorical Predictor Variables
 
 In the next code
