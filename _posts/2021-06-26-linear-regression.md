@@ -165,11 +165,25 @@ After this data pre-processing in Python, we have a dataset for modelling that c
 | product_area_count | Independent | The number of product areas within ABC Grocery the customers has shopped into within the latest 6 months |
 | average_basket_value | Independent | The average spend per transaction for the customer in ABC Grocery within the latest 6 months |
 
-
+<br>
 # Modelling Overview
 
-We will
+We will build a model that looks to accurately predict the “loyalty_score” metric for those customers that were able to be tagged, based upon the customer metrics listed above.
 
+If that can be achieved, we can use this model to predict the customer loyalty score for the customers that were unable to be tagged by the agency.
+
+As we are predicting a numeric output, we tested three regression modelling approaches, namely:
+
+* Linear Regression
+* Decision Tree
+* Random Forest
+
+The code, details, and results can be found below.
+
+<br>
+# Linear Regression
+
+We will utlising scikit-learn within Python to model our data using Linear Regression
 
 ![alt text](/img/posts/linear-regression1.png "Straight Line Equation")
 
