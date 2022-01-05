@@ -151,7 +151,7 @@ pickle.dump(regression_scoring, open("data/abc_regression_scoring.p", "wb"))
 <br>
 After this data pre-processing in Python, we have a dataset for modelling that contains the following fields
 <br>
-
+<br>
 | **Variable Name** | **Variable Type** | **Description** |
 |---|---|---|
 | loyalty_score | Dependent | The % of total grocery spend that each customer allocates to ABC Grocery vs. competitors |
@@ -164,7 +164,9 @@ After this data pre-processing in Python, we have a dataset for modelling that c
 | product_area_count | Independent | The number of product areas within ABC Grocery the customers has shopped into within the latest 6 months |
 | average_basket_value | Independent | The average spend per transaction for the customer in ABC Grocery within the latest 6 months |
 
+# Modelling Overview
 
+We will
 
 
 ![alt text](/img/posts/linear-regression1.png "Straight Line Equation")
