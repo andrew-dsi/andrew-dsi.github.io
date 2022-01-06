@@ -23,18 +23,6 @@ Our client, a grocery retailer, hired a market research consultancy to append ma
 <br>
 - [Another paragraph](#paragraph2)
 
-## This is the introduction <a name="introduction"></a>
-Some introduction text, formatted in heading 2 style
-
-## Some paragraph <a name="paragraph1"></a>
-The first paragraph text
-
-### Sub paragraph <a name="subparagraph1"></a>
-This is a sub paragraph, formatted in heading 3 style
-
-## Another paragraph <a name="paragraph2"></a>
-The second paragraph text
-
 ---
 
 # Project Overview  <a name="overview-main"></a>
@@ -180,8 +168,6 @@ As we are predicting a numeric output, we tested three regression modelling appr
 * Decision Tree
 * Random Forest
 
-The code, details, and results can be found below.
-
 <br>
 # Linear Regression
 
@@ -199,10 +185,7 @@ Since we saved our modelling data as a pickle file, we import it.  We ensure we 
 
 ```ruby
 
-#########################################################################
 # import required packages
-#########################################################################
-
 import pandas as pd
 import pickle
 import matplotlib.pyplot as plt
@@ -213,11 +196,7 @@ from sklearn.metrics import r2_score
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.feature_selection import RFECV
 
-#########################################################################
 # import modelling data
-#########################################################################
-
-# import
 data_for_model = pickle.load(open("data/customer_loyalty_modelling.p", "rb"))
 
 # drop uneccessary columns
@@ -308,7 +287,7 @@ for column in outlier_columns:
 
 In the next code block we do two things, we firstly split our data into an **X** object which contains only the predictor variables, and a **y** object that contains only our dependent variable.
 
-Once we have done this, we split our data into training and test sets to ensure we can fairly validate the accuracy of the predictions on data that was not used in training.
+Once we have done this, we split our data into training and test sets to ensure we can fairly validate the accuracy of the predictions on data that was not used in training.  In this case, we have allocated 80% of the data for training, and the remaining 20% for validation.
 
 <br>
 ```ruby
@@ -325,7 +304,61 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, rando
 <br>
 ##### Categorical Predictor Variables
 
-In the next code
+In our dataset, we have one categorical variable *gender* which has values of "M" for Male, "F" for Female, and "U" for Unknown.
+
+The Linear Regression algorithm can't deal with data in this format as it can't assign any numerical meaning to it when looking to assess the relationship between the variable and the dependent variable.
+
+As *gender* doesn't have any explicit *order* to it, in other words, Male isn't higher or lower than Female and vice versa - one appropriate approach is to apply One Hot Encoding to the categorical column.
+
+One Hot Encoding can be thought of as a way to represent categorical variables as binary vectors, in other words, a set of *new* columns for each categorical value with either a 1 or a 0 saying whether that value is true or not for that observation.  These new columns would go into our model as input variables, and the original column is discarded.
+
+We also drop one of the new columns using the parameter *drop = "first"*.  We do this to avoid the *dummy variable trap* where our newly created encoded columns perfectly predict each other - and we run the risk of breaking the assumption that there is no multicollinearity, a requirement or at least an important consideration for some models, Linear Regression being one of them! Multicollinearity occurs when two or more input variables are *highly* correlated with each other, it is a scenario we attempt to avoid as in short, while it won't neccessarily affect the predictive accuracy of our model, it can make it difficult to trust the statistics around how well the model is performing, and how much each input variable is truly having.
+
+In the code, we also make sure to apply *fit_transform* to the training set, but only *transform* to the test set.  This means the One Hot Encoding logic will *learn and apply* the "rules" from the training data, but only *apply* them to the test data.  This is important in order to avoid *data leakage* where the test set *learns* information about the training data, and means we can't fully trust model performance metrics!
+
+For ease, after we have applied One Hot Encoding, we turn our training and test objects back into Pandas Dataframes, with the column names applied.
+
+<br>
+```ruby
+
+# list of categorical variables that need encoding
+categorical_vars = ["gender"]
+
+# instantiate OHE class
+one_hot_encoder = OneHotEncoder(sparse=False, drop = "first")
+
+# apply OHE
+X_train_encoded = one_hot_encoder.fit_transform(X_train[categorical_vars])
+X_test_encoded = one_hot_encoder.transform(X_test[categorical_vars])
+
+# extract feature names for encoded columns
+encoder_feature_names = one_hot_encoder.get_feature_names(categorical_vars)
+
+# turn objects back to pandas dataframe
+X_train_encoded = pd.DataFrame(X_train_encoded, columns = encoder_feature_names)
+X_train = pd.concat([X_train.reset_index(drop=True), X_train_encoded.reset_index(drop=True)], axis = 1)
+X_train.drop(categorical_vars, axis = 1, inplace = True)
+
+X_test_encoded = pd.DataFrame(X_test_encoded, columns = encoder_feature_names)
+X_test = pd.concat([X_test.reset_index(drop=True), X_test_encoded.reset_index(drop=True)], axis = 1)
+X_test.drop(categorical_vars, axis = 1, inplace = True)
+
+```
+
+<br>
+##### Feature Selection
+
+Feature Selection is the process used to select the input variables that are most important to your Machine Learning task.  It can be a very important addition or at least, consideration, in certain scenarios.  The potential benefits of Feature Selection are:
+
+* **Improved Model Accuracy** - eliminating noise can help true relationships stand out
+* **Lower Computational Cost** - our model becomes faster to train, and faster to make predictions
+* **Explainability** - understanding & explaining outputs for stakeholder & customers becomes much easier
+
+There are many, many ways to apply Feature Selection.  These range from simple methods such as a *Correlation Matrix* showing variable relationships, to *Univariate Testing* which helps us understand statistical relationships between variables, and then to even more powerful approaches like *Recursive Feature Elimination (RFE)* which is an approach that starts with all input variables, and then iteratively removes those with the weakest relationships with the output variable.
+
+For our task we applied a variation of Reursive Feature Elimination called *Recursive Feature Elimination With Cross Validation (RFECV)* where we split the data into many "chunks" and iteratively trains & validates models on each "chunk" seperately.  This means that each time we assess different models with different variables included, or eliminated, the algorithm also knows how accurate each of those models was.  From the suite of model scenarios that are created, the algorithm can determine which provided the best accuracy, and thus can infer the best set of input variables to use!
+
+
 
 ![alt text](/img/posts/linear-regression1.png "Straight Line Equation")
 
