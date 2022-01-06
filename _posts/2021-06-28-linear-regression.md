@@ -379,9 +379,8 @@ X_test = X_test.loc[:, feature_selector.get_support()]
 ```
 
 <br>
-The below code creates a plot that visualises the cross-validated accuracy with each number of features
+The below code then produces a plot that visualises the cross-validated accuracy with each potential number of features
 
-<br>
 ```python
 
 plt.style.use('seaborn-poster')
