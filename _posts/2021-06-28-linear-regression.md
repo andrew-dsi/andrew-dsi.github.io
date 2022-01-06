@@ -5,6 +5,8 @@ image: "/posts/TesterImagePortfolio1.png"
 tags: [Customer Loyalty, Machine Learning, Regression, Python]
 ---
 
+Our client, a grocery retailer, hired a market research consultancy to append market level customer loyalty information to the database.  However, only around 50% of the client's customer base could be tagged, thus the other half did not have this information present.
+
 # Table of contents
 
 - [Project Overview](#overview-main)
