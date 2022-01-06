@@ -57,7 +57,7 @@ Our testing found that the Random Forest had the highest predictive accuracy.
 
 * Random Forest = 0.955
 * Decision Tree = 0.886
-* Linear Regression = 0.78
+* Linear Regression = 0.754
 
 <br>
 **Metric 2: R-Squared (K-Fold Cross Validation, k = 4)**
@@ -394,20 +394,118 @@ plt.show()
 ```
 
 <br>
-This creates the below plot, which shows us that the highest accuracy is actually when we include all eight of our original input variables
+This creates the below plot, which shows us that the highest cross-validated accuracy (0.8635) is actually when we include all eight of our original input variables.  This is marginally higher than 6 included variables, and 7 included variables.  We will continue on with all 8!
 
 ![alt text](/img/posts/lin-reg-feature-selection-plot.png "Linear Regression Feature Selection Plot")
 
 <br>
 ### Model Training <a name="linreg-model-training"></a>
 
-xxxxxx
+Instantiating and training our Linear Regression model is done using the below code
+
+```python
+
+# instantiate our model object
+regressor = LinearRegression()
+
+# fit our model using our training & test sets
+regressor.fit(X_train, y_train)
+
+```
 
 <br>
 ### Model Performance Assessment <a name="linreg-model-assessment"></a>
 
-xxxxxx
+##### Predict On The Test Set
 
+To assess how well our model is predicting on new data - we use the trained model object (here called *regressor*) and ask it to predict the *loyalty_score* variable for the test set
+
+```python
+
+# predict on the test set
+y_pred = regressor.predict(X_test)
+
+```
+
+<br>
+##### Calcuate R-Squared
+
+R-Squared is a metric that shows the percentage of variance in our output variable *y* that is being explained by our input variable(s) *x*.  It is a value that ranges between 0 and 1, with a higher value showing a higher level of explained variance.  Another way of explaining this would be to say that, if we had an r-squared score of 0.8 it would suggest that 80% of the variation of our output variable is being explained by our input variables - and something else, or some other variables must account for the other 20%
+
+To calculate r-squared, we use the following code where we pass in our *predicted* outputs for the test set (y_pred), as well as the *actual* outputs for the test set (y_test)
+
+```python
+
+# calculate r-squared for our test set predictions
+r_squared = r2_score(y_test, y_pred)
+print(r_squared)
+
+```
+
+The resulting r-squared score from this is **0.78**
+
+<br>
+##### Calcuate Cross Validated R-Squared
+
+An even more powerful and reliable way to assess model performance is to utilise Cross Validation.
+
+Instead of simply divided our data into a single training set, and a single test set, with Cross Validation we break our data into a number of "chunks" and then iteratively train the model on all but one of the "chunks", test the model on the remaining "chunk" until each has had a chance to be the test set.
+
+The result of this is that we are provided a number of test set validation results - and we can take the average of these to give a much more robust & reliable view of how our model will perform on new, un-seen data!
+
+In the code below, we put this into place.  We first specify that we want 4 "chunks" and then we pass in our regressor object, training set, and test set.  We also specify the metric we want to assess with, in this case, we stick with r-squared.
+
+Finally, we take a mean of all four test set results.
+
+```python
+
+# calculate the mean cross validated r-squared for our test set predictions
+# Cross Validation
+cv = KFold(n_splits = 4, shuffle = True, random_state = 42)
+cv_scores = cross_val_score(regressor, X_train, y_train, cv = cv, scoring = "r2")
+cv_scores.mean()
+
+```
+
+The mean cross-validated r-squared score from this is **0.853**
+
+<br>
+##### Calcuate Adjusted R-Squared
+
+xxx
+xxx
+
+```python
+
+# calculate adjusted r-squared for our test set predictions
+num_data_points, num_input_vars = X_test.shape
+adjusted_r_squared = 1 - (1 - r_squared) * (num_data_points - 1) / (num_data_points - num_input_vars - 1)
+print(adjusted_r_squared)
+
+```
+
+The resulting *adjusted* r-squared score from this is **0.754**
+
+<br>
+### Model Summary <a name="linreg-model-summary"></a>
+
+xxx
+xxx
+
+```python
+
+# Extract Model Coefficients
+
+coefficients = pd.DataFrame(regressor.coef_)
+input_variable_names = pd.DataFrame(X_train.columns)
+summary_stats = pd.concat([input_variable_names,coefficients], axis = 1)
+summary_stats.columns = ["input_variable", "coefficient"]
+
+# Extract Model Intercept
+
+regressor.intercept_
+
+```
 
 ![alt text](/img/posts/chart-image1.png "Image")
 
