@@ -332,7 +332,7 @@ X_train_encoded = one_hot_encoder.fit_transform(X_train[categorical_vars])
 X_test_encoded = one_hot_encoder.transform(X_test[categorical_vars])
 
 # extract feature names for encoded columns
-encoder_feature_names = one_hot_encoder.get_feature_names(categorical_vars)
+encoder_feature_names = one_hot_encoder.get_feature_names_out(categorical_vars)
 
 # turn objects back to pandas dataframe
 X_train_encoded = pd.DataFrame(X_train_encoded, columns = encoder_feature_names)
@@ -378,7 +378,37 @@ X_test = X_test.loc[:, feature_selector.get_support()]
 
 ```
 
-![alt text](/img/posts/linear-regression1.png "Straight Line Equation")
+<br>
+The below code creates a plot that visualises the cross-validated accuracy with each number of features
+
+<br>
+```python
+
+plt.style.use('seaborn-poster')
+plt.plot(range(1, len(fit.cv_results_['mean_test_score']) + 1), fit.cv_results_['mean_test_score'], marker = "o")
+plt.ylabel("Model Score")
+plt.xlabel("Number of Features")
+plt.title(f"Feature Selection using RFE \n Optimal number of features is {optimal_feature_count} (at score of {round(max(fit.cv_results_['mean_test_score']),4)})")
+plt.tight_layout()
+plt.show()
+
+```
+
+<br>
+This creates the below plot, which shows us that the highest accuracy is actually when we include all eight of our original input variables
+
+![alt text](/img/posts/lin-reg-feature-selection-plot.png "Linear Regression Feature Selection Plot")
+
+<br>
+### Model Training <a name="linreg-model-training"></a>
+
+xxxxxx
+
+<br>
+### Model Performance Assessment <a name="linreg-model-assessment"></a>
+
+xxxxxx
+
 
 ![alt text](/img/posts/chart-image1.png "Image")
 
