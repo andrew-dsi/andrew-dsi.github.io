@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Predicting Customer Loyalty Using Machine Learning
+title: Predicting Customer Loyalty Using ML
 image: "/posts/TesterImagePortfolio1.png"
 tags: [Customer Loyalty, Machine Learning, Linear Regression, Decision Tree, Random Forest]
 ---
