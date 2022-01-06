@@ -95,7 +95,7 @@ The key variables hypothesised to predict the missing loyalty scores will come f
 
 Using pandas in Python, we merged these tables together for all customers, creating a single dataset that we can use for modelling.
 
-```ruby
+```python
 
 # import required packages
 import pandas as pd
@@ -183,7 +183,7 @@ We utlise the scikit-learn library within Python to model our data using Linear 
 
 Since we saved our modelling data as a pickle file, we import it.  We ensure we remove the id column, and we also ensure our data is shuffled.
 
-```ruby
+```python
 
 # import required packages
 import pandas as pd
@@ -221,7 +221,7 @@ For Linear Regression we have certain data preprocessing steps that need to be a
 
 The number of missing values in the data was extremely low, so instead of applying any imputation (i.e. mean, most common value) we will just remove those rows
 
-```ruby
+```python
 
 # remove rows where values are missing
 data_for_model.isna().sum()
@@ -260,7 +260,7 @@ Because of this, we apply some outlier removal in order to facilitate generalisa
 We do this using the "boxplot approach" where we remove any rows where the values within those columns are outside of the interquartile range multiplied by 2.
 
 <br>
-```ruby
+```python
 
 outlier_investigation = data_for_model.describe()
 outlier_columns = ["distance_from_store", "total_sales", "total_items"]
@@ -290,7 +290,7 @@ In the next code block we do two things, we firstly split our data into an **X**
 Once we have done this, we split our data into training and test sets to ensure we can fairly validate the accuracy of the predictions on data that was not used in training.  In this case, we have allocated 80% of the data for training, and the remaining 20% for validation.
 
 <br>
-```ruby
+```python
 
 # split data into X and y objects for modelling
 X = data_for_model.drop(["customer_loyalty_score"], axis = 1)
