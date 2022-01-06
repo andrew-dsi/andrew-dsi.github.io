@@ -506,15 +506,3 @@ summary_stats.columns = ["input_variable", "coefficient"]
 regressor.intercept_
 
 ```
-
-![alt text](/img/posts/chart-image1.png "Image")
-
-The above image is just linked to the actual file in my Github, but I could also link to images online, using the URL!
-
-A line break, like this one below - helps me make sense of what I'm reading, especially when I've had so much coffee that my vision goes a little blurry
-
----
-
-I could also add things to my project like links, tables, quotes, and HTML blocks - but I'm starting to get a cracking headache.  Must be coffee time.
-
-![alt text](/img/posts/chart-image.png "Straight Line Equation")
