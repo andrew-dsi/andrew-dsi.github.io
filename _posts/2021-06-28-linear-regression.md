@@ -319,7 +319,7 @@ In the code, we also make sure to apply *fit_transform* to the training set, but
 For ease, after we have applied One Hot Encoding, we turn our training and test objects back into Pandas Dataframes, with the column names applied.
 
 <br>
-```ruby
+```python
 
 # list of categorical variables that need encoding
 categorical_vars = ["gender"]
@@ -358,7 +358,25 @@ There are many, many ways to apply Feature Selection.  These range from simple m
 
 For our task we applied a variation of Reursive Feature Elimination called *Recursive Feature Elimination With Cross Validation (RFECV)* where we split the data into many "chunks" and iteratively trains & validates models on each "chunk" seperately.  This means that each time we assess different models with different variables included, or eliminated, the algorithm also knows how accurate each of those models was.  From the suite of model scenarios that are created, the algorithm can determine which provided the best accuracy, and thus can infer the best set of input variables to use!
 
+<br>
+```python
 
+# instantiate RFECV & the model type to be utilised
+regressor = LinearRegression()
+feature_selector = RFECV(regressor)
+
+# fit RFECV onto our training & test data
+fit = feature_selector.fit(X_train,y_train)
+
+# extract & print the optimal number of features
+optimal_feature_count = feature_selector.n_features_
+print(f"Optimal number of features: {optimal_feature_count}")
+
+# limit our training & test sets to only include the selected variables
+X_train = X_train.loc[:, feature_selector.get_support()]
+X_test = X_test.loc[:, feature_selector.get_support()]
+
+```
 
 ![alt text](/img/posts/linear-regression1.png "Straight Line Equation")
 
