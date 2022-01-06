@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Effective Communication in Data Science
+title: Creating An Image Search Engine Using Deep Learning
 image: "/posts/TesterImagePortfolio2.png"
 tags: [Data Science, Soft Skills]
 ---
