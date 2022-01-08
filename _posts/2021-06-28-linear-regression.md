@@ -396,6 +396,7 @@ plt.show()
 <br>
 This creates the below plot, which shows us that the highest cross-validated accuracy (0.8635) is actually when we include all eight of our original input variables.  This is marginally higher than 6 included variables, and 7 included variables.  We will continue on with all 8!
 
+<br>
 ![alt text](/img/posts/lin-reg-feature-selection-plot.png "Linear Regression Feature Selection Plot")
 
 <br>
@@ -428,7 +429,7 @@ y_pred = regressor.predict(X_test)
 ```
 
 <br>
-##### Calcuate R-Squared
+##### Calculate R-Squared
 
 R-Squared is a metric that shows the percentage of variance in our output variable *y* that is being explained by our input variable(s) *x*.  It is a value that ranges between 0 and 1, with a higher value showing a higher level of explained variance.  Another way of explaining this would be to say that, if we had an r-squared score of 0.8 it would suggest that 80% of the variation of our output variable is being explained by our input variables - and something else, or some other variables must account for the other 20%
 
@@ -470,7 +471,7 @@ cv_scores.mean()
 The mean cross-validated r-squared score from this is **0.853**
 
 <br>
-##### Calcuate Adjusted R-Squared
+##### Calculate Adjusted R-Squared
 
 When applying Linear Regression with *multiple* input variables, the r-squared metric on it's own *can* end up being an overinflated view of goodness of fit.  This is because each input variable will have an *additive* effect on the overall r-squared score.  In other words, every input variable added to the model *increases* the r-squared value, and *never decreases* it, even if the relationship is by chance.  
 
@@ -488,27 +489,25 @@ print(adjusted_r_squared)
 The resulting *adjusted* r-squared score from this is **0.754** which as expected, is slightly lower than the score we got for r-squared on it's own.
 
 <br>
-### Model Summary <a name="linreg-model-summary"></a>
+### Model Summary Statistics <a name="linreg-model-summary"></a>
 
 Although our overall goal for this project is predictive accuracy, rather than an explcit understanding of the relationships of each of the input variables and the output variable, it is always interesting to look at the summary statistics for these.
-
+<br>
 ```python
 
-# Extract Model Coefficients
-
+# extract model coefficients
 coefficients = pd.DataFrame(regressor.coef_)
 input_variable_names = pd.DataFrame(X_train.columns)
 summary_stats = pd.concat([input_variable_names,coefficients], axis = 1)
 summary_stats.columns = ["input_variable", "coefficient"]
 
-# Extract Model Intercept
-
+# extract model intercept
 regressor.intercept_
 
 ```
-
+<br>
 The information from that code block can be found in the table below:
-
+<br>
 | **input_variable** | **coefficient** |
 |---|---|
 | intercept | 0.516 |
