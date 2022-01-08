@@ -508,6 +508,7 @@ regressor.intercept_
 <br>
 The information from that code block can be found in the table below:
 <br>
+
 | **input_variable** | **coefficient** |
 |---|---|
 | intercept | 0.516 |
