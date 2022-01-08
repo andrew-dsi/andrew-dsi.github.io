@@ -527,3 +527,221 @@ The coefficient value for each of the input variables, along with that of the in
 For each input variable, the coefficient value we see above tells us, with *everything else staying constant* how many units the output variable (loyalty score) would change with a *one unit change* in this particular input variable.
 
 To provide an example of this - in the table above, we can see that the *distance_from_store* input variable has a coefficient value of -0.201.  This is saying that *loyalty_score* decreases by 0.201 (or 20% as loyalty score is a percentage, or at least a decimal value between 0 and 1) for *every additional mile* that a customer lives from the store.  This makes intuitive sense, as customers who live a long way from this store, most likely live near *another* store where they might do some of their shopping as well, whereas customers who live near this store, probably do a greater proportion of their shopping at this store...and hence have a higher loyalty score!
+
+
+<br>
+# Decision Tree
+
+We will again utlise the scikit-learn library within Python to model our data using a Decision Tree. The code sections below are broken up into 4 key sections:
+
+* Data Import
+* Data Preprocessing
+* Model Training
+* Performance Assessment
+
+<br>
+### Data Import <a name="linreg-import"></a>
+
+Since we saved our modelling data as a pickle file, we import it.  We ensure we remove the id column, and we also ensure our data is shuffled.
+
+```python
+
+# import required packages
+import pandas as pd
+import pickle
+import matplotlib.pyplot as plt
+from sklearn.tree import DecisionTreeRegressor, plot_tree
+from sklearn.utils import shuffle
+from sklearn.model_selection import train_test_split, cross_val_score, KFold
+from sklearn.metrics import r2_score
+from sklearn.preprocessing import OneHotEncoder
+
+# import modelling data
+data_for_model = pickle.load(open("data/customer_loyalty_modelling.p", "rb"))
+
+# drop uneccessary columns
+data_for_model.drop("customer_id", axis = 1, inplace = True)
+
+# shuffle data
+data_for_model = shuffle(data_for_model, random_state = 42)
+
+```
+<br>
+### Data Preprocessing <a name="regtree-preprocessing"></a>
+
+While Linear Regression is susceptible to the effects of outliers, and highly correlated input variables - Decision Trees are not, so the required preprocessing here is lighter. We still however will put in place logic for:
+
+* Missing values in the data
+* Encoding categorical variables to numeric form
+
+<br>
+##### Missing Values
+
+The number of missing values in the data was extremely low, so instead of applying any imputation (i.e. mean, most common value) we will just remove those rows
+
+```python
+
+# remove rows where values are missing
+data_for_model.isna().sum()
+data_for_model.dropna(how = "any", inplace = True)
+
+```
+
+<br>
+##### Split Out Data For Modelling
+
+In exactly the same way we did for Linear Regression, in the next code block we do two things, we firstly split our data into an **X** object which contains only the predictor variables, and a **y** object that contains only our dependent variable.
+
+Once we have done this, we split our data into training and test sets to ensure we can fairly validate the accuracy of the predictions on data that was not used in training.  In this case, we have allocated 80% of the data for training, and the remaining 20% for validation.
+
+<br>
+```python
+
+# split data into X and y objects for modelling
+X = data_for_model.drop(["customer_loyalty_score"], axis = 1)
+y = data_for_model["customer_loyalty_score"]
+
+# split out training & test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42)
+
+```
+
+<br>
+##### Categorical Predictor Variables
+
+In our dataset, we have one categorical variable *gender* which has values of "M" for Male, "F" for Female, and "U" for Unknown.
+
+Just like the Linear Regression algorithm, the Decision Tree cannot deal with data in this format as it can't assign any numerical meaning to it when looking to assess the relationship between the variable and the dependent variable.
+
+As *gender* doesn't have any explicit *order* to it, in other words, Male isn't higher or lower than Female and vice versa - we would again apply One Hot Encoding to the categorical column.
+
+<br>
+```python
+
+# list of categorical variables that need encoding
+categorical_vars = ["gender"]
+
+# instantiate OHE class
+one_hot_encoder = OneHotEncoder(sparse=False, drop = "first")
+
+# apply OHE
+X_train_encoded = one_hot_encoder.fit_transform(X_train[categorical_vars])
+X_test_encoded = one_hot_encoder.transform(X_test[categorical_vars])
+
+# extract feature names for encoded columns
+encoder_feature_names = one_hot_encoder.get_feature_names_out(categorical_vars)
+
+# turn objects back to pandas dataframe
+X_train_encoded = pd.DataFrame(X_train_encoded, columns = encoder_feature_names)
+X_train = pd.concat([X_train.reset_index(drop=True), X_train_encoded.reset_index(drop=True)], axis = 1)
+X_train.drop(categorical_vars, axis = 1, inplace = True)
+
+X_test_encoded = pd.DataFrame(X_test_encoded, columns = encoder_feature_names)
+X_test = pd.concat([X_test.reset_index(drop=True), X_test_encoded.reset_index(drop=True)], axis = 1)
+X_test.drop(categorical_vars, axis = 1, inplace = True)
+
+```
+
+<br>
+### Model Training <a name="regtree-model-training"></a>
+
+Instantiating and training our Decision Tree model is done using the below code
+
+```python
+
+# instantiate our model object
+regressor = DecisionTreeRegressor(random_state = 42, max_depth = 4)
+
+# fit our model using our training & test sets
+regressor.fit(X_train, y_train)
+
+```
+
+<br>
+### Model Performance Assessment <a name="regtree-model-assessment"></a>
+
+##### Predict On The Test Set
+
+To assess how well our model is predicting on new data - we use the trained model object (here called *regressor*) and ask it to predict the *loyalty_score* variable for the test set
+
+```python
+
+# predict on the test set
+y_pred = regressor.predict(X_test)
+
+```
+
+<br>
+##### Calculate R-Squared
+
+R-Squared is a metric that shows the percentage of variance in our output variable *y* that is being explained by our input variable(s) *x*.  It is a value that ranges between 0 and 1, with a higher value showing a higher level of explained variance.  Another way of explaining this would be to say that, if we had an r-squared score of 0.8 it would suggest that 80% of the variation of our output variable is being explained by our input variables - and something else, or some other variables must account for the other 20%
+
+To calculate r-squared, we use the following code where we pass in our *predicted* outputs for the test set (y_pred), as well as the *actual* outputs for the test set (y_test)
+
+```python
+
+# calculate r-squared for our test set predictions
+r_squared = r2_score(y_test, y_pred)
+print(r_squared)
+
+```
+
+The resulting r-squared score from this is **0.78**
+
+<br>
+##### Calculate Cross Validated R-Squared
+
+An even more powerful and reliable way to assess model performance is to utilise Cross Validation.
+
+Instead of simply divided our data into a single training set, and a single test set, with Cross Validation we break our data into a number of "chunks" and then iteratively train the model on all but one of the "chunks", test the model on the remaining "chunk" until each has had a chance to be the test set.
+
+The result of this is that we are provided a number of test set validation results - and we can take the average of these to give a much more robust & reliable view of how our model will perform on new, un-seen data!
+
+In the code below, we put this into place.  We first specify that we want 4 "chunks" and then we pass in our regressor object, training set, and test set.  We also specify the metric we want to assess with, in this case, we stick with r-squared.
+
+Finally, we take a mean of all four test set results.
+
+```python
+
+# calculate the mean cross validated r-squared for our test set predictions
+# Cross Validation
+cv = KFold(n_splits = 4, shuffle = True, random_state = 42)
+cv_scores = cross_val_score(regressor, X_train, y_train, cv = cv, scoring = "r2")
+cv_scores.mean()
+
+```
+
+The mean cross-validated r-squared score from this is **0.853**
+
+<br>
+##### Calculate Adjusted R-Squared
+
+When applying Linear Regression with *multiple* input variables, the r-squared metric on it's own *can* end up being an overinflated view of goodness of fit.  This is because each input variable will have an *additive* effect on the overall r-squared score.  In other words, every input variable added to the model *increases* the r-squared value, and *never decreases* it, even if the relationship is by chance.  
+
+**Adjusted R-Squared** is a metric that compensates for the addition of input variables, and only increases if the variable improves the model above what would be obtained by probability.  It is best practice to use Adjusted R-Squared when assessing the results of a Linear Regression with multiple input variables, as it gives a fairer perception the fit of the data.
+
+```python
+
+# calculate adjusted r-squared for our test set predictions
+num_data_points, num_input_vars = X_test.shape
+adjusted_r_squared = 1 - (1 - r_squared) * (num_data_points - 1) / (num_data_points - num_input_vars - 1)
+print(adjusted_r_squared)
+
+```
+
+The resulting *adjusted* r-squared score from this is **0.754** which as expected, is slightly lower than the score we got for r-squared on it's own.
+
+<br>
+### Model Summary Statistics <a name="regtree-model-summary"></a>
+
+xxx
+<br>
+```python
+
+xxx
+
+```
+<br>
+xxxx
+
+
