@@ -445,7 +445,7 @@ print(r_squared)
 The resulting r-squared score from this is **0.78**
 
 <br>
-##### Calcuate Cross Validated R-Squared
+##### Calculate Cross Validated R-Squared
 
 An even more powerful and reliable way to assess model performance is to utilise Cross Validation.
 
@@ -472,8 +472,9 @@ The mean cross-validated r-squared score from this is **0.853**
 <br>
 ##### Calcuate Adjusted R-Squared
 
-xxx
-xxx
+When applying Linear Regression with *multiple* input variables, the r-squared metric on it's own *can* end up being an overinflated view of goodness of fit.  This is because each input variable will have an *additive* effect on the overall r-squared score.  In other words, every input variable added to the model *increases* the r-squared value, and *never decreases* it, even if the relationship is by chance.  
+
+**Adjusted R-Squared** is a metric that compensates for the addition of input variables, and only increases if the variable improves the model above what would be obtained by probability.  It is best practice to use Adjusted R-Squared when assessing the results of a Linear Regression with multiple input variables, as it gives a fairer perception the fit of the data.
 
 ```python
 
@@ -484,13 +485,12 @@ print(adjusted_r_squared)
 
 ```
 
-The resulting *adjusted* r-squared score from this is **0.754**
+The resulting *adjusted* r-squared score from this is **0.754** which as expected, is slightly lower than the score we got for r-squared on it's own.
 
 <br>
 ### Model Summary <a name="linreg-model-summary"></a>
 
-xxx
-xxx
+Although our overall goal for this project is predictive accuracy, rather than an explcit understanding of the relationships of each of the input variables and the output variable, it is always interesting to look at the summary statistics for these.
 
 ```python
 
@@ -506,3 +506,24 @@ summary_stats.columns = ["input_variable", "coefficient"]
 regressor.intercept_
 
 ```
+
+The information from that code block can be found in the table below:
+
+| **input_variable** | **coefficient** |
+|---|---|
+| intercept | 0.516 |
+| distance_from_store | -0.201 |
+| credit_score | -0.028 |
+| total_sales | 0.000 |
+| total_items | 0.001 |
+| transaction_count | -0.005 |
+| product_area_count | 0.062 |
+| average_basket_value | -0.004 |
+| gender_M | -0.013 |
+
+<br>
+The coefficient value for each of the input variables, along with that of the intercept would make up the equation for the line of best fit for this particular model (or more accurately, in this case it would be the plane of best fit, as we have multiple input variables).
+
+For each input variable, the coefficient value we see above tells us, with *everything else staying constant* how many units the output variable (loyalty score) would change with a *one unit change* in this particular input variable.
+
+To provide an example of this - in the table above, we can see that the *distance_from_store* input variable has a coefficient value of -0.201.  This is saying that *loyalty_score* decreases by 0.201 (or 20% as loyalty score is a percentage, or at least a decimal value between 0 and 1) for *every additional mile* that a customer lives from the store.  This makes intuitive sense, as customers who live a long way from this store, most likely live near *another* store where they might do some of their shopping as well, whereas customers who live near this store, probably do a greater proportion of their shopping at this store...and hence have a higher loyalty score!
