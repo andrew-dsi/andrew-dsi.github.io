@@ -450,7 +450,7 @@ The resulting r-squared score from this is **0.78**
 
 An even more powerful and reliable way to assess model performance is to utilise Cross Validation.
 
-Instead of simply divided our data into a single training set, and a single test set, with Cross Validation we break our data into a number of "chunks" and then iteratively train the model on all but one of the "chunks", test the model on the remaining "chunk" until each has had a chance to be the test set.
+Instead of simply dividing our data into a single training set, and a single test set, with Cross Validation we break our data into a number of "chunks" and then iteratively train the model on all but one of the "chunks", test the model on the remaining "chunk" until each has had a chance to be the test set.
 
 The result of this is that we are provided a number of test set validation results - and we can take the average of these to give a much more robust & reliable view of how our model will perform on new, un-seen data!
 
@@ -645,7 +645,7 @@ X_test.drop(categorical_vars, axis = 1, inplace = True)
 <br>
 ### Model Training <a name="regtree-model-training"></a>
 
-Instantiating and training our Decision Tree model is done using the below code
+Instantiating and training our Decision Tree model is done using the below code.  We use the *random_state* parameter to ensure we get reproducible results, and this helps us understand any improvements in performance with changes to model hyperparameters.
 
 ```python
 
@@ -674,8 +674,6 @@ y_pred = regressor.predict(X_test)
 <br>
 ##### Calculate R-Squared
 
-R-Squared is a metric that shows the percentage of variance in our output variable *y* that is being explained by our input variable(s) *x*.  It is a value that ranges between 0 and 1, with a higher value showing a higher level of explained variance.  Another way of explaining this would be to say that, if we had an r-squared score of 0.8 it would suggest that 80% of the variation of our output variable is being explained by our input variables - and something else, or some other variables must account for the other 20%
-
 To calculate r-squared, we use the following code where we pass in our *predicted* outputs for the test set (y_pred), as well as the *actual* outputs for the test set (y_test)
 
 ```python
@@ -686,18 +684,18 @@ print(r_squared)
 
 ```
 
-The resulting r-squared score from this is **0.78**
+The resulting r-squared score from this is **0.898**
 
 <br>
 ##### Calculate Cross Validated R-Squared
 
-An even more powerful and reliable way to assess model performance is to utilise Cross Validation.
+As we did when testing Linear Regression, we will again utilise Cross Validation.
 
-Instead of simply divided our data into a single training set, and a single test set, with Cross Validation we break our data into a number of "chunks" and then iteratively train the model on all but one of the "chunks", test the model on the remaining "chunk" until each has had a chance to be the test set.
+Instead of simply dividing our data into a single training set, and a single test set, with Cross Validation we break our data into a number of "chunks" and then iteratively train the model on all but one of the "chunks", test the model on the remaining "chunk" until each has had a chance to be the test set.
 
 The result of this is that we are provided a number of test set validation results - and we can take the average of these to give a much more robust & reliable view of how our model will perform on new, un-seen data!
 
-In the code below, we put this into place.  We first specify that we want 4 "chunks" and then we pass in our regressor object, training set, and test set.  We also specify the metric we want to assess with, in this case, we stick with r-squared.
+In the code below, we put this into place.  We again specify that we want 4 "chunks" and then we pass in our regressor object, training set, and test set.  We also specify the metric we want to assess with, in this case, we stick with r-squared.
 
 Finally, we take a mean of all four test set results.
 
@@ -711,14 +709,12 @@ cv_scores.mean()
 
 ```
 
-The mean cross-validated r-squared score from this is **0.853**
+The mean cross-validated r-squared score from this is **0.871** which is slighter higher than we saw for Linear Regression.
 
 <br>
 ##### Calculate Adjusted R-Squared
 
-When applying Linear Regression with *multiple* input variables, the r-squared metric on it's own *can* end up being an overinflated view of goodness of fit.  This is because each input variable will have an *additive* effect on the overall r-squared score.  In other words, every input variable added to the model *increases* the r-squared value, and *never decreases* it, even if the relationship is by chance.  
-
-**Adjusted R-Squared** is a metric that compensates for the addition of input variables, and only increases if the variable improves the model above what would be obtained by probability.  It is best practice to use Adjusted R-Squared when assessing the results of a Linear Regression with multiple input variables, as it gives a fairer perception the fit of the data.
+Just like we did with Linear Regression, we will also calculate the *Adjusted R-Squared* which compensates for the addition of input variables, and only increases if the variable improves the model above what would be obtained by probability.
 
 ```python
 
@@ -729,19 +725,371 @@ print(adjusted_r_squared)
 
 ```
 
-The resulting *adjusted* r-squared score from this is **0.754** which as expected, is slightly lower than the score we got for r-squared on it's own.
+The resulting *adjusted* r-squared score from this is **0.887** which as expected, is slightly lower than the score we got for r-squared on it's own.
 
 <br>
-### Model Summary Statistics <a name="regtree-model-summary"></a>
+### Decision Tree Regularisation <a name="regtree-model-regularisation"></a>
 
-xxx
+Decision Tree's can be prone to over-fitting, in other words, without any limits on their splitting, they will end up learning the training data perfectly.  We would much prefer our model to have a more *generalised* set of rules, as this will be more robust & reliable when making predictions on *new* data.
+
+One effective method of avoiding this over-fitting, is to apply a *max depth* to the Decision Tree, meaning we only allow it to split the data a certain number of times before it is required to stop.
+
+Unfortunately, we don't necessarily know the *best* number of splits to use for this - so below we will loop over a variety of values and assess which gives us the best predictive performance!
+
 <br>
 ```python
 
-xxx
+# finding the best max_depth
+
+# set up range for search, and empty list to append accuracy scores to
+max_depth_list = list(range(1,9))
+accuracy_scores = []
+
+# loop through each possible depth, train and validate model, append test set accuracy
+for depth in max_depth_list:
+    
+    regressor = DecisionTreeRegressor(max_depth = depth, random_state = 42)
+    regressor.fit(X_train,y_train)
+    y_pred = regressor.predict(X_test)
+    accuracy = r2_score(y_test,y_pred)
+    accuracy_scores.append(accuracy)
+    
+# store max accuracy, and optimal depth    
+max_accuracy = max(accuracy_scores)
+max_accuracy_idx = accuracy_scores.index(max_accuracy)
+optimal_depth = max_depth_list[max_accuracy_idx]
+
+# plot accuracy by max depth
+plt.plot(max_depth_list,accuracy_scores)
+plt.scatter(optimal_depth, max_accuracy, marker = "x", color = "red")
+plt.title(f"Accuracy by Max Depth \n Optimal Tree Depth: {optimal_depth} (Accuracy: {round(max_accuracy,4)})")
+plt.xlabel("Max Depth of Decision Tree")
+plt.ylabel("Accuracy")
+plt.tight_layout()
+plt.show()
 
 ```
 <br>
-xxxx
+That code gives us the below plot - which visualises the results!
+
+<br>
+![alt text](/img/posts/regression-tree-max-depth-plot.png "Decision Tree Max Depth Plot")
+
+<br>
+In the plot we can see that the *maximum* classification accuracy on the test set is found when applying a *max_depth* value of 7.  However, we lose very little accuracy back to a value of 4, but this would result in a simpler model, that generalised even better on new data.  We make the executive decision to re-train our Decision Tree with a maximum depth of 4!
+
+<br>
+##### Visualise Our Decision Tree
+
+To see the decisions that have been made in the (re-fitted) tree, we can use the plot_tree functionality that we imported from scikit-learn.  To do this, we use the below code:
+
+<br>
+```python
+
+# re-fit our model using max depth of 4
+regressor = DecisionTreeRegressor(random_state = 42, max_depth = 4)
+regressor.fit(X_train, y_train)
+
+# plot the nodes of the decision tree
+plt.figure(figsize=(25,15))
+tree = plot_tree(regressor,
+                 feature_names = X.columns,
+                 filled = True,
+                 rounded = True,
+                 fontsize = 16)
+
+```
+<br>
+That code gives us the below plot:
+
+<br>
+![alt text](/img/posts/regression-tree-nodes-plot.png "Decision Tree Max Depth Plot")
+
+<br>
+This is a very powerful visual, and one that can be shown to stakeholders in the business to ensure they understand exactly what is driving the predictions.
+
+One interesting thing to note is that the *very first split* appears to be using the variable *distance from store* so it would seem that this is a very important variable when it comes to predicting loyalty!
 
 
+
+<br>
+# Random Forest
+
+We will again utlise the scikit-learn library within Python to model our data using a Random Forest. The code sections below are broken up into 4 key sections:
+
+* Data Import
+* Data Preprocessing
+* Model Training
+* Performance Assessment
+
+<br>
+### Data Import <a name="rf-import"></a>
+
+Since we saved our modelling data as a pickle file, we import it.  We ensure we remove the id column, and we also ensure our data is shuffled.
+
+```python
+
+# import required packages
+import pandas as pd
+import pickle
+import matplotlib.pyplot as plt
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.utils import shuffle
+from sklearn.model_selection import train_test_split, cross_val_score, KFold
+from sklearn.metrics import r2_score
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.inspection import permutation_importance
+
+# import modelling data
+data_for_model = pickle.load(open("data/customer_loyalty_modelling.p", "rb"))
+
+# drop uneccessary columns
+data_for_model.drop("customer_id", axis = 1, inplace = True)
+
+# shuffle data
+data_for_model = shuffle(data_for_model, random_state = 42)
+
+```
+<br>
+### Data Preprocessing <a name="rf-preprocessing"></a>
+
+While Linear Regression is susceptible to the effects of outliers, and highly correlated input variables - Random Forests, just like Decision Trees, are not, so the required preprocessing here is lighter. We still however will put in place logic for:
+
+* Missing values in the data
+* Encoding categorical variables to numeric form
+
+<br>
+##### Missing Values
+
+The number of missing values in the data was extremely low, so instead of applying any imputation (i.e. mean, most common value) we will just remove those rows
+
+```python
+
+# remove rows where values are missing
+data_for_model.isna().sum()
+data_for_model.dropna(how = "any", inplace = True)
+
+```
+
+<br>
+##### Split Out Data For Modelling
+
+In exactly the same way we did for Linear Regression, in the next code block we do two things, we firstly split our data into an **X** object which contains only the predictor variables, and a **y** object that contains only our dependent variable.
+
+Once we have done this, we split our data into training and test sets to ensure we can fairly validate the accuracy of the predictions on data that was not used in training.  In this case, we have allocated 80% of the data for training, and the remaining 20% for validation.
+
+<br>
+```python
+
+# split data into X and y objects for modelling
+X = data_for_model.drop(["customer_loyalty_score"], axis = 1)
+y = data_for_model["customer_loyalty_score"]
+
+# split out training & test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42)
+
+```
+
+<br>
+##### Categorical Predictor Variables
+
+In our dataset, we have one categorical variable *gender* which has values of "M" for Male, "F" for Female, and "U" for Unknown.
+
+Just like the Linear Regression algorithm, the Decision Tree cannot deal with data in this format as it can't assign any numerical meaning to it when looking to assess the relationship between the variable and the dependent variable.
+
+As *gender* doesn't have any explicit *order* to it, in other words, Male isn't higher or lower than Female and vice versa - we would again apply One Hot Encoding to the categorical column.
+
+<br>
+```python
+
+# list of categorical variables that need encoding
+categorical_vars = ["gender"]
+
+# instantiate OHE class
+one_hot_encoder = OneHotEncoder(sparse=False, drop = "first")
+
+# apply OHE
+X_train_encoded = one_hot_encoder.fit_transform(X_train[categorical_vars])
+X_test_encoded = one_hot_encoder.transform(X_test[categorical_vars])
+
+# extract feature names for encoded columns
+encoder_feature_names = one_hot_encoder.get_feature_names_out(categorical_vars)
+
+# turn objects back to pandas dataframe
+X_train_encoded = pd.DataFrame(X_train_encoded, columns = encoder_feature_names)
+X_train = pd.concat([X_train.reset_index(drop=True), X_train_encoded.reset_index(drop=True)], axis = 1)
+X_train.drop(categorical_vars, axis = 1, inplace = True)
+
+X_test_encoded = pd.DataFrame(X_test_encoded, columns = encoder_feature_names)
+X_test = pd.concat([X_test.reset_index(drop=True), X_test_encoded.reset_index(drop=True)], axis = 1)
+X_test.drop(categorical_vars, axis = 1, inplace = True)
+
+```
+
+<br>
+### Model Training <a name="rf-model-training"></a>
+
+Instantiating and training our Decision Tree model is done using the below code.  We use the *random_state* parameter to ensure we get reproducible results, and this helps us understand any improvements in performance with changes to model hyperparameters.
+
+```python
+
+# instantiate our model object
+regressor = DecisionTreeRegressor(random_state = 42)
+
+# fit our model using our training & test sets
+regressor.fit(X_train, y_train)
+
+```
+
+<br>
+### Model Performance Assessment <a name="rf-model-assessment"></a>
+
+##### Predict On The Test Set
+
+To assess how well our model is predicting on new data - we use the trained model object (here called *regressor*) and ask it to predict the *loyalty_score* variable for the test set
+
+```python
+
+# predict on the test set
+y_pred = regressor.predict(X_test)
+
+```
+
+<br>
+##### Calculate R-Squared
+
+To calculate r-squared, we use the following code where we pass in our *predicted* outputs for the test set (y_pred), as well as the *actual* outputs for the test set (y_test)
+
+```python
+
+# calculate r-squared for our test set predictions
+r_squared = r2_score(y_test, y_pred)
+print(r_squared)
+
+```
+
+The resulting r-squared score from this is **0.898**
+
+<br>
+##### Calculate Cross Validated R-Squared
+
+As we did when testing Linear Regression, we will again utilise Cross Validation.
+
+Instead of simply dividing our data into a single training set, and a single test set, with Cross Validation we break our data into a number of "chunks" and then iteratively train the model on all but one of the "chunks", test the model on the remaining "chunk" until each has had a chance to be the test set.
+
+The result of this is that we are provided a number of test set validation results - and we can take the average of these to give a much more robust & reliable view of how our model will perform on new, un-seen data!
+
+In the code below, we put this into place.  We again specify that we want 4 "chunks" and then we pass in our regressor object, training set, and test set.  We also specify the metric we want to assess with, in this case, we stick with r-squared.
+
+Finally, we take a mean of all four test set results.
+
+```python
+
+# calculate the mean cross validated r-squared for our test set predictions
+# Cross Validation
+cv = KFold(n_splits = 4, shuffle = True, random_state = 42)
+cv_scores = cross_val_score(regressor, X_train, y_train, cv = cv, scoring = "r2")
+cv_scores.mean()
+
+```
+
+The mean cross-validated r-squared score from this is **0.871** which is slighter higher than we saw for Linear Regression.
+
+<br>
+##### Calculate Adjusted R-Squared
+
+Just like we did with Linear Regression, we will also calculate the *Adjusted R-Squared* which compensates for the addition of input variables, and only increases if the variable improves the model above what would be obtained by probability.
+
+```python
+
+# calculate adjusted r-squared for our test set predictions
+num_data_points, num_input_vars = X_test.shape
+adjusted_r_squared = 1 - (1 - r_squared) * (num_data_points - 1) / (num_data_points - num_input_vars - 1)
+print(adjusted_r_squared)
+
+```
+
+The resulting *adjusted* r-squared score from this is **0.887** which as expected, is slightly lower than the score we got for r-squared on it's own.
+
+<br>
+### Decision Tree Regularisation <a name="rf-model-regularisation"></a>
+
+Decision Tree's can be prone to over-fitting, in other words, without any limits on their splitting, they will end up learning the training data perfectly.  We would much prefer our model to have a more *generalised* set of rules, as this will be more robust & reliable when making predictions on *new* data.
+
+One effective method of avoiding this over-fitting, is to apply a *max depth* to the Decision Tree, meaning we only allow it to split the data a certain number of times before it is required to stop.
+
+Unfortunately, we don't necessarily know the *best* number of splits to use for this - so below we will loop over a variety of values and assess which gives us the best predictive performance!
+
+<br>
+```python
+
+# finding the best max_depth
+
+# set up range for search, and empty list to append accuracy scores to
+max_depth_list = list(range(1,9))
+accuracy_scores = []
+
+# loop through each possible depth, train and validate model, append test set accuracy
+for depth in max_depth_list:
+    
+    regressor = DecisionTreeRegressor(max_depth = depth, random_state = 42)
+    regressor.fit(X_train,y_train)
+    y_pred = regressor.predict(X_test)
+    accuracy = r2_score(y_test,y_pred)
+    accuracy_scores.append(accuracy)
+    
+# store max accuracy, and optimal depth    
+max_accuracy = max(accuracy_scores)
+max_accuracy_idx = accuracy_scores.index(max_accuracy)
+optimal_depth = max_depth_list[max_accuracy_idx]
+
+# plot accuracy by max depth
+plt.plot(max_depth_list,accuracy_scores)
+plt.scatter(optimal_depth, max_accuracy, marker = "x", color = "red")
+plt.title(f"Accuracy by Max Depth \n Optimal Tree Depth: {optimal_depth} (Accuracy: {round(max_accuracy,4)})")
+plt.xlabel("Max Depth of Decision Tree")
+plt.ylabel("Accuracy")
+plt.tight_layout()
+plt.show()
+
+```
+<br>
+That code gives us the below plot - which visualises the results!
+
+<br>
+![alt text](/img/posts/regression-tree-max-depth-plot.png "Decision Tree Max Depth Plot")
+
+<br>
+In the plot we can see that the *maximum* classification accuracy on the test set is found when applying a *max_depth* value of 7.  However, we lose very little accuracy back to a value of 4, but this would result in a simpler model, that generalised even better on new data.  We make the executive decision to re-train our Decision Tree with a maximum depth of 4!
+
+<br>
+##### Visualise Our Decision Tree
+
+To see the decisions that have been made in the (re-fitted) tree, we can use the plot_tree functionality that we imported from scikit-learn.  To do this, we use the below code:
+
+<br>
+```python
+
+# re-fit our model using max depth of 4
+regressor = DecisionTreeRegressor(random_state = 42, max_depth = 4)
+regressor.fit(X_train, y_train)
+
+# plot the nodes of the decision tree
+plt.figure(figsize=(25,15))
+tree = plot_tree(regressor,
+                 feature_names = X.columns,
+                 filled = True,
+                 rounded = True,
+                 fontsize = 16)
+
+```
+<br>
+That code gives us the below plot:
+
+<br>
+![alt text](/img/posts/regression-tree-nodes-plot.png "Decision Tree Max Depth Plot")
+
+<br>
+This is a very powerful visual, and one that can be shown to stakeholders in the business to ensure they understand exactly what is driving the predictions.
+
+One interesting thing to note is that the *very first split* appears to be using the variable *distance from store* so it would seem that this is a very important variable when it comes to predicting loyalty!
