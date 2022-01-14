@@ -650,7 +650,7 @@ Instantiating and training our Decision Tree model is done using the below code
 ```python
 
 # instantiate our model object
-regressor = DecisionTreeRegressor(random_state = 42, max_depth = 4)
+regressor = DecisionTreeRegressor(random_state = 42)
 
 # fit our model using our training & test sets
 regressor.fit(X_train, y_train)
