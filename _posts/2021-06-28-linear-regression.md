@@ -461,7 +461,6 @@ Finally, we take a mean of all four test set results.
 ```python
 
 # calculate the mean cross validated r-squared for our test set predictions
-# Cross Validation
 cv = KFold(n_splits = 4, shuffle = True, random_state = 42)
 cv_scores = cross_val_score(regressor, X_train, y_train, cv = cv, scoring = "r2")
 cv_scores.mean()
@@ -702,7 +701,6 @@ Finally, we take a mean of all four test set results.
 ```python
 
 # calculate the mean cross validated r-squared for our test set predictions
-# Cross Validation
 cv = KFold(n_splits = 4, shuffle = True, random_state = 42)
 cv_scores = cross_val_score(regressor, X_train, y_train, cv = cv, scoring = "r2")
 cv_scores.mean()
@@ -825,7 +823,7 @@ We will again utlise the scikit-learn library within Python to model our data us
 <br>
 ### Data Import <a name="rf-import"></a>
 
-Since we saved our modelling data as a pickle file, we import it.  We ensure we remove the id column, and we also ensure our data is shuffled.
+Again, since we saved our modelling data as a pickle file, we import it.  We ensure we remove the id column, and we also ensure our data is shuffled.
 
 ```python
 
@@ -895,7 +893,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, rando
 
 In our dataset, we have one categorical variable *gender* which has values of "M" for Male, "F" for Female, and "U" for Unknown.
 
-Just like the Linear Regression algorithm, the Decision Tree cannot deal with data in this format as it can't assign any numerical meaning to it when looking to assess the relationship between the variable and the dependent variable.
+Just like the Linear Regression algorithm, Random Forests cannot deal with data in this format as it can't assign any numerical meaning to it when looking to assess the relationship between the variable and the dependent variable.
 
 As *gender* doesn't have any explicit *order* to it, in other words, Male isn't higher or lower than Female and vice versa - we would again apply One Hot Encoding to the categorical column.
 
@@ -929,12 +927,14 @@ X_test.drop(categorical_vars, axis = 1, inplace = True)
 <br>
 ### Model Training <a name="rf-model-training"></a>
 
-Instantiating and training our Decision Tree model is done using the below code.  We use the *random_state* parameter to ensure we get reproducible results, and this helps us understand any improvements in performance with changes to model hyperparameters.
+Instantiating and training our Random Forest model is done using the below code.  We use the *random_state* parameter to ensure we get reproducible results, and this helps us understand any improvements in performance with changes to model hyperparameters.
+
+We leave the other parameters at their default values, meaning that we will just be building 100 Decision Trees in this Random Forest.
 
 ```python
 
 # instantiate our model object
-regressor = DecisionTreeRegressor(random_state = 42)
+regressor = RandomForestRegressor(random_state = 42)
 
 # fit our model using our training & test sets
 regressor.fit(X_train, y_train)
@@ -968,37 +968,28 @@ print(r_squared)
 
 ```
 
-The resulting r-squared score from this is **0.898**
+The resulting r-squared score from this is **0.957** - higher than both Linear Regression & the Decision Tree.
 
 <br>
 ##### Calculate Cross Validated R-Squared
 
-As we did when testing Linear Regression, we will again utilise Cross Validation.
-
-Instead of simply dividing our data into a single training set, and a single test set, with Cross Validation we break our data into a number of "chunks" and then iteratively train the model on all but one of the "chunks", test the model on the remaining "chunk" until each has had a chance to be the test set.
-
-The result of this is that we are provided a number of test set validation results - and we can take the average of these to give a much more robust & reliable view of how our model will perform on new, un-seen data!
-
-In the code below, we put this into place.  We again specify that we want 4 "chunks" and then we pass in our regressor object, training set, and test set.  We also specify the metric we want to assess with, in this case, we stick with r-squared.
-
-Finally, we take a mean of all four test set results.
+As we did when testing Linear Regression & our Decision Tree, we will again utilise Cross Validation (for more info on how this works, please refer to the Linear Regression section above)
 
 ```python
 
 # calculate the mean cross validated r-squared for our test set predictions
-# Cross Validation
 cv = KFold(n_splits = 4, shuffle = True, random_state = 42)
 cv_scores = cross_val_score(regressor, X_train, y_train, cv = cv, scoring = "r2")
 cv_scores.mean()
 
 ```
 
-The mean cross-validated r-squared score from this is **0.871** which is slighter higher than we saw for Linear Regression.
+The mean cross-validated r-squared score from this is **0.923** which agian is higher than we saw for both Linear Regression & our Decision Tree.
 
 <br>
 ##### Calculate Adjusted R-Squared
 
-Just like we did with Linear Regression, we will also calculate the *Adjusted R-Squared* which compensates for the addition of input variables, and only increases if the variable improves the model above what would be obtained by probability.
+Just like we did with Linear Regression & our Decision Tree, we will also calculate the *Adjusted R-Squared* which compensates for the addition of input variables, and only increases if the variable improves the model above what would be obtained by probability.
 
 ```python
 
@@ -1009,87 +1000,81 @@ print(adjusted_r_squared)
 
 ```
 
-The resulting *adjusted* r-squared score from this is **0.887** which as expected, is slightly lower than the score we got for r-squared on it's own.
+The resulting *adjusted* r-squared score from this is **0.955** which as expected, is slightly lower than the score we got for r-squared on it's own - but again higher than for our other models.
 
 <br>
-### Decision Tree Regularisation <a name="rf-model-regularisation"></a>
+### Feature Importance <a name="rf-model-feature-importance"></a>
 
-Decision Tree's can be prone to over-fitting, in other words, without any limits on their splitting, they will end up learning the training data perfectly.  We would much prefer our model to have a more *generalised* set of rules, as this will be more robust & reliable when making predictions on *new* data.
+In our Linear Regression model, to understand the relationships between input variables and our ouput variable, loyalty score, we examined the coefficients.  With our Decision Tree we looked at what the earlier splits were.  These allowed us some insight into which input variables were having the most impact.
 
-One effective method of avoiding this over-fitting, is to apply a *max depth* to the Decision Tree, meaning we only allow it to split the data a certain number of times before it is required to stop.
+Random Forests are an ensemble model, made up of many, many Decision Trees, each of which is different due to the randomness of the data being provided, and the random selection of input variables available at each potential split point.
 
-Unfortunately, we don't necessarily know the *best* number of splits to use for this - so below we will loop over a variety of values and assess which gives us the best predictive performance!
+Because of this, we end up with a powerful and robust model, but because of the random or different nature of all these Decision trees - the model gives us a unique insight into how important each of our input variables are to the overall model.  
+
+As we’re using random samples of data, and input variables for each Decision Tree - there are many scenarios where certain input variables are being held back and this enables us a way to compare how accurate the models predictions are if that variable is or isn’t present.
+
+So, at a high level, in a Random Forest we can measure *importance* by asking *How much would accuracy decrease if a specific input variable was removed or randomised?*
+
+If this decrease in performance, or accuracy, is large, then we’d deem that input variable to be quite important, and if we see only a small decrease in accuracy, then we’d conclude that the variable is of less importance.
+
+At a high level, there are two common ways to tackle this.  The first, often just called **Feature Importance** is where we find all nodes in the Decision Trees of the forest where a particular input variable is used to split the data and assess what the Mean Squared Error (for a Regression problem) was before the split was made, and compare this to the Mean Squared Error after the split was made.  We can take the *average* of these improvements across all Decision Trees in the Random Forest to get a score that tells us *how much better* we’re making the model by using that input variable.
+
+If we do this for *each* of our input variables, we can compare these scores and understand which is adding the most value to the predictive power of the model!
+
+The other approach, often called **Permutation Importance** cleverly uses some data that has gone *unused* at when random samples are selected for each Decision Tree (this stage is called "bootstrap sampling" or "bootstrapping")
+
+These observations that were not randomly selected for each Decision Tree are known as *Out of Bag* observations and these can be used for testing the accuracy of each particular Decision Tree.
+
+For each Decision Tree, all of the *Out of Bag* observations are gathered and then passed through.  Once all of these observations have been run through the Decision Tree, we obtain an accuracy score for these predictions, which in the case of a regression problem could be Mean Squared Error or r-squared.
+
+In order to understand the *importance*, we *randomise* the values within one of the input variables - a process that essentially destroys any relationship that might exist between that input variable and the output variable - and run that updated data through the Decision Tree again, obtaining a second accuracy score.  The difference between the original accuracy and the new accuracy gives us a view on how important that particular variable is for predicting the output.
+
+*Permutation Importance* is often preferred over *Feature Importance* which can at times inflate the importance of numerical features. Both are useful, and in most cases will give fairly similar results.
+
+Let's put them both in place, and plot the results...
 
 <br>
 ```python
 
-# finding the best max_depth
+# calculate feature importance
+feature_importance = pd.DataFrame(regressor.feature_importances_)
+feature_names = pd.DataFrame(X.columns)
+feature_importance_summary = pd.concat([feature_names,feature_importance], axis = 1)
+feature_importance_summary.columns = ["input_variable","feature_importance"]
+feature_importance_summary.sort_values(by = "feature_importance", inplace = True)
 
-# set up range for search, and empty list to append accuracy scores to
-max_depth_list = list(range(1,9))
-accuracy_scores = []
+# plot feature importance
+plt.barh(feature_importance_summary["input_variable"],feature_importance_summary["feature_importance"])
+plt.title("Feature Importance of Random Forest")
+plt.xlabel("Feature Importance")
+plt.tight_layout()
+plt.show()
 
-# loop through each possible depth, train and validate model, append test set accuracy
-for depth in max_depth_list:
-    
-    regressor = DecisionTreeRegressor(max_depth = depth, random_state = 42)
-    regressor.fit(X_train,y_train)
-    y_pred = regressor.predict(X_test)
-    accuracy = r2_score(y_test,y_pred)
-    accuracy_scores.append(accuracy)
-    
-# store max accuracy, and optimal depth    
-max_accuracy = max(accuracy_scores)
-max_accuracy_idx = accuracy_scores.index(max_accuracy)
-optimal_depth = max_depth_list[max_accuracy_idx]
+# calculate permutation importance
+result = permutation_importance(regressor, X_test, y_test, n_repeats = 10, random_state = 42)
+permutation_importance = pd.DataFrame(result["importances_mean"])
+feature_names = pd.DataFrame(X.columns)
+permutation_importance_summary = pd.concat([feature_names,permutation_importance], axis = 1)
+permutation_importance_summary.columns = ["input_variable","permutation_importance"]
+permutation_importance_summary.sort_values(by = "permutation_importance", inplace = True)
 
-# plot accuracy by max depth
-plt.plot(max_depth_list,accuracy_scores)
-plt.scatter(optimal_depth, max_accuracy, marker = "x", color = "red")
-plt.title(f"Accuracy by Max Depth \n Optimal Tree Depth: {optimal_depth} (Accuracy: {round(max_accuracy,4)})")
-plt.xlabel("Max Depth of Decision Tree")
-plt.ylabel("Accuracy")
+# plot permutation importance
+plt.barh(permutation_importance_summary["input_variable"],permutation_importance_summary["permutation_importance"])
+plt.title("Permutation Importance of Random Forest")
+plt.xlabel("Permutation Importance")
 plt.tight_layout()
 plt.show()
 
 ```
 <br>
-That code gives us the below plot - which visualises the results!
+That code gives us the below plots - the first being for *Feature Importance* and the second for *Permutation Importance*!
 
 <br>
-![alt text](/img/posts/regression-tree-max-depth-plot.png "Decision Tree Max Depth Plot")
+![alt text](/img/posts/rf-regression-feature-importance.png "Random Forest Feature Importance Plot")
+<br>
+![alt text](/img/posts/rf-regression-permutation-importance.png "Random Forest Permutation Importance Plot")
 
 <br>
-In the plot we can see that the *maximum* classification accuracy on the test set is found when applying a *max_depth* value of 7.  However, we lose very little accuracy back to a value of 4, but this would result in a simpler model, that generalised even better on new data.  We make the executive decision to re-train our Decision Tree with a maximum depth of 4!
+The overall story from both approaches is very similar, in that by far, the most important or impactful input variable is *distance_from_store* which is the same insights we derived when assessing our Linear Regression & Decision Tree models.
 
-<br>
-##### Visualise Our Decision Tree
-
-To see the decisions that have been made in the (re-fitted) tree, we can use the plot_tree functionality that we imported from scikit-learn.  To do this, we use the below code:
-
-<br>
-```python
-
-# re-fit our model using max depth of 4
-regressor = DecisionTreeRegressor(random_state = 42, max_depth = 4)
-regressor.fit(X_train, y_train)
-
-# plot the nodes of the decision tree
-plt.figure(figsize=(25,15))
-tree = plot_tree(regressor,
-                 feature_names = X.columns,
-                 filled = True,
-                 rounded = True,
-                 fontsize = 16)
-
-```
-<br>
-That code gives us the below plot:
-
-<br>
-![alt text](/img/posts/regression-tree-nodes-plot.png "Decision Tree Max Depth Plot")
-
-<br>
-This is a very powerful visual, and one that can be shown to stakeholders in the business to ensure they understand exactly what is driving the predictions.
-
-One interesting thing to note is that the *very first split* appears to be using the variable *distance from store* so it would seem that this is a very important variable when it comes to predicting loyalty!
+There are slight differences in the order or "importance" for the remaining variables but overall they have provided similar findings.
