@@ -1072,9 +1072,20 @@ That code gives us the below plots - the first being for *Feature Importance* an
 <br>
 ![alt text](/img/posts/rf-regression-feature-importance.png "Random Forest Feature Importance Plot")
 <br>
+<br>
 ![alt text](/img/posts/rf-regression-permutation-importance.png "Random Forest Permutation Importance Plot")
 
 <br>
 The overall story from both approaches is very similar, in that by far, the most important or impactful input variable is *distance_from_store* which is the same insights we derived when assessing our Linear Regression & Decision Tree models.
 
 There are slight differences in the order or "importance" for the remaining variables but overall they have provided similar findings.
+
+<br>
+# Modelling Summary  <a name="modelling-summary"></a>
+
+xxxx
+
+<br>
+# Predicting Missing Loyalty Scores <a name="modelling-summary"></a>
+
+xxx
