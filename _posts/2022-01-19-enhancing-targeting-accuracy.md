@@ -241,7 +241,7 @@ Based on this investigation, we see some *max* column values for several variabl
 
 This is for columns *distance_from_store*, *total_sales*, and *total_items*
 
-For example, the median *distance_to_store* is 1.645 miles, but the maximum is over 44 miles!
+For example, the median *distance_to_store* is 1.64 miles, but the maximum is over 400 miles!
 
 Because of this, we apply some outlier removal in order to facilitate generalisation across the full dataset.
 
@@ -275,17 +275,17 @@ for column in outlier_columns:
 
 In the next code block we do two things, we firstly split our data into an **X** object which contains only the predictor variables, and a **y** object that contains only our dependent variable.
 
-Once we have done this, we split our data into training and test sets to ensure we can fairly validate the accuracy of the predictions on data that was not used in training.  In this case, we have allocated 80% of the data for training, and the remaining 20% for validation.
+Once we have done this, we split our data into training and test sets to ensure we can fairly validate the accuracy of the predictions on data that was not used in training.  In this case, we have allocated 80% of the data for training, and the remaining 20% for validation.  We make sure to add in the *stratify* parameter to ensure that both our training and test sets have the same proportion of customers who did, and did not, sign up for the *delivery club* - meaning we can be more confident in our assessment of predictive performance.
 
 <br>
 ```python
 
 # split data into X and y objects for modelling
-X = data_for_model.drop(["customer_loyalty_score"], axis = 1)
-y = data_for_model["customer_loyalty_score"]
+X = data_for_model.drop(["signup_flag"], axis = 1)
+y = data_for_model["signup_flag"]
 
 # split out training & test sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42, stratify = y)
 
 ```
 
@@ -294,7 +294,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, rando
 
 In our dataset, we have one categorical variable *gender* which has values of "M" for Male, "F" for Female, and "U" for Unknown.
 
-The Linear Regression algorithm can't deal with data in this format as it can't assign any numerical meaning to it when looking to assess the relationship between the variable and the dependent variable.
+The Logistic Regression algorithm can't deal with data in this format as it can't assign any numerical meaning to it when looking to assess the relationship between the variable and the dependent variable.
 
 As *gender* doesn't have any explicit *order* to it, in other words, Male isn't higher or lower than Female and vice versa - one appropriate approach is to apply One Hot Encoding to the categorical column.
 
@@ -350,8 +350,8 @@ For our task we applied a variation of Reursive Feature Elimination called *Recu
 ```python
 
 # instantiate RFECV & the model type to be utilised
-regressor = LinearRegression()
-feature_selector = RFECV(regressor)
+clf = LogisticRegression(random_state = 42, max_iter = 1000)
+feature_selector = RFECV(clf)
 
 # fit RFECV onto our training & test data
 fit = feature_selector.fit(X_train,y_train)
@@ -367,52 +367,55 @@ X_test = X_test.loc[:, feature_selector.get_support()]
 ```
 
 <br>
-The below code then produces a plot that visualises the cross-validated accuracy with each potential number of features
+The below code then produces a plot that visualises the cross-validated classification accuracy with each potential number of features
 
 ```python
 
 plt.style.use('seaborn-poster')
 plt.plot(range(1, len(fit.cv_results_['mean_test_score']) + 1), fit.cv_results_['mean_test_score'], marker = "o")
-plt.ylabel("Model Score")
+plt.ylabel("Classification Accuracy")
 plt.xlabel("Number of Features")
-plt.title(f"Feature Selection using RFE \n Optimal number of features is {optimal_feature_count} (at score of {round(max(fit.cv_results_['mean_test_score']),4)})")
+plt.title(f"Feature Selection using RFECV \n Optimal number of features is {optimal_feature_count} (at score of {round(max(fit.cv_results_['mean_test_score']),4)})")
 plt.tight_layout()
 plt.show()
 
 ```
 
 <br>
-This creates the below plot, which shows us that the highest cross-validated accuracy (0.8635) is actually when we include all eight of our original input variables.  This is marginally higher than 6 included variables, and 7 included variables.  We will continue on with all 8!
+This creates the below plot, which shows us that the highest cross-validated classification accuracy (0.904) is when we include seven of our original input variables.  The variable that has been dropped is *total_sales* but from the chart we can see that the difference is negligible.  However, we will continue on with the selected seven!
 
 <br>
-![alt text](/img/posts/lin-reg-feature-selection-plot.png "Linear Regression Feature Selection Plot")
+![alt text](/img/posts/log-reg-feature-selection-plot.png "Logistic Regression Feature Selection Plot")
 
 <br>
-### Model Training <a name="linreg-model-training"></a>
+### Model Training <a name="logreg-model-training"></a>
 
-Instantiating and training our Linear Regression model is done using the below code
+Instantiating and training our Logistic Regression model is done using the below code.  We use the *random_state* parameter to ensure reproducible results, meaning any refinements can be compared to past results.  We also specify *max_iter = 1000* to allow the solver more attempts at finding an optimal regression line, as the default value of 100 was not enough.
 
 ```python
 
 # instantiate our model object
-regressor = LinearRegression()
+clf = LogisticRegression(random_state = 42, max_iter = 1000)
 
 # fit our model using our training & test sets
-regressor.fit(X_train, y_train)
+clf.fit(X_train, y_train)
 
 ```
 
 <br>
-### Model Performance Assessment <a name="linreg-model-assessment"></a>
+### Model Performance Assessment <a name="logreg-model-assessment"></a>
 
 ##### Predict On The Test Set
 
-To assess how well our model is predicting on new data - we use the trained model object (here called *regressor*) and ask it to predict the *loyalty_score* variable for the test set
+To assess how well our model is predicting on new data - we use the trained model object (here called *clf*) and ask it to predict the *signup_flag* variable for the test set.
+
+In the code below we create one object to hold the binary 1/0 predictions, and another to hold the actual prediction probabilities for the positive class.
 
 ```python
 
 # predict on the test set
-y_pred = regressor.predict(X_test)
+y_pred_class = clf.predict(X_test)
+y_pred_prob = clf.predict_proba(X_test)[:,1]
 
 ```
 
