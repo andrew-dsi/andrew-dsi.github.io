@@ -15,13 +15,29 @@ Our client, a grocery retailer, hired a market research consultancy to append ma
     - [Results](#overview-results)
     - [Growth/Next Steps](#overview-growth)
     - [Key Definition](#overview-definition)
-<br>
-<br>
-- [Some paragraph](#paragraph1)
-    - [Sub paragraph](#subparagraph1)
-<br>
-<br>
-- [Another paragraph](#paragraph2)
+- [Data Overview](#data-overview)
+- [Modelling Overview](#modelling-overview)
+- [Linear Regression](#linreg-title)
+    - [Data Import](#linreg-import)
+    - [Data Preprocessing](#linreg-preprocessing)
+    - [Model Training](#linreg-model-training)
+    - [Model Performance Assessment](#linreg-model-assessment)
+    - [Model Summary Statistics](#linreg-model-summary)
+- [Decision Tree](#regtree-title)
+    - [Data Import](#regtree-import)
+    - [Data Preprocessing](#regtree-preprocessing)
+    - [Model Training](#regtree-model-training)
+    - [Model Performance Assessment](#regtree-model-assessment)
+    - [Model Regularisation](#regtree-model-regularisation)
+    - [Model Visualisation](#regtree-visualise)
+- [Random Forest](#rf-title)
+    - [Data Import](#rf-import)
+    - [Data Preprocessing](#rf-preprocessing)
+    - [Model Training](#rf-model-training)
+    - [Model Performance Assessment](#rf-model-assessment)
+    - [Model Feature Importance](#rf-model-feature-importance)
+- [Modelling Summary](#modelling-summary)
+- [Predicting Missing Loyalty Scores](#modelling-predictions)
 
 ---
 
@@ -87,7 +103,7 @@ Example 2: Customer Y has a total grocery spend of $200 but only 20% is spent wi
 <br>
 ---
 
-# Data Overview
+# Data Overview  <a name="data-overview"></a>
 
 We will be predicting the *loyalty_score* metric.  This metric exists (for half of the customer base) in the *loyalty_scores* table of the client database.
 
@@ -169,7 +185,7 @@ As we are predicting a numeric output, we tested three regression modelling appr
 * Random Forest
 
 <br>
-# Linear Regression
+# Linear Regression <a name="linreg-title"></a>
 
 We utlise the scikit-learn library within Python to model our data using Linear Regression. The code sections below are broken up into 4 key sections:
 
@@ -529,7 +545,7 @@ To provide an example of this - in the table above, we can see that the *distanc
 
 
 <br>
-# Decision Tree
+# Decision Tree <a name="regree-title"></a>
 
 We will again utlise the scikit-learn library within Python to model our data using a Decision Tree. The code sections below are broken up into 4 key sections:
 
@@ -539,7 +555,7 @@ We will again utlise the scikit-learn library within Python to model our data us
 * Performance Assessment
 
 <br>
-### Data Import <a name="linreg-import"></a>
+### Data Import <a name="regree-import"></a>
 
 Since we saved our modelling data as a pickle file, we import it.  We ensure we remove the id column, and we also ensure our data is shuffled.
 
@@ -777,7 +793,7 @@ That code gives us the below plot - which visualises the results!
 In the plot we can see that the *maximum* classification accuracy on the test set is found when applying a *max_depth* value of 7.  However, we lose very little accuracy back to a value of 4, but this would result in a simpler model, that generalised even better on new data.  We make the executive decision to re-train our Decision Tree with a maximum depth of 4!
 
 <br>
-##### Visualise Our Decision Tree
+### Visualise Our Decision Tree <a name="regtree-visualise"></a>
 
 To see the decisions that have been made in the (re-fitted) tree, we can use the plot_tree functionality that we imported from scikit-learn.  To do this, we use the below code:
 
@@ -811,7 +827,7 @@ One interesting thing to note is that the *very first split* appears to be using
 
 
 <br>
-# Random Forest
+# Random Forest <a name="rf-title"></a>
 
 We will again utlise the scikit-learn library within Python to model our data using a Random Forest. The code sections below are broken up into 4 key sections:
 
@@ -1083,9 +1099,82 @@ There are slight differences in the order or "importance" for the remaining vari
 <br>
 # Modelling Summary  <a name="modelling-summary"></a>
 
-xxxx
+The most important outcome for this project was predictive accuracy, rather than explicitly understanding the drivers of prediction. Based upon this, we chose the model that performed the best when predicted on the test set - the Random Forest.
 
 <br>
-# Predicting Missing Loyalty Scores <a name="modelling-summary"></a>
+**Metric 1: Adjusted R-Squared (Test Set)**
 
-xxx
+* Random Forest = 0.955
+* Decision Tree = 0.886
+* Linear Regression = 0.754
+
+<br>
+**Metric 2: R-Squared (K-Fold Cross Validation, k = 4)**
+
+* Random Forest = 0.925
+* Decision Tree = 0.871
+* Linear Regression = 0.853
+
+<br>
+Even though we were not specifically interested in the drivers of prediction, it was interesting to see across all three modelling approaches, that the input variable with the biggest impact on the prediction was *distance_from_store* rather than variables such as *total sales*.  This is interesting information for the business, so discovering this as we went was worthwhile.
+
+<br>
+# Predicting Missing Loyalty Scores <a name="modelling-predictions"></a>
+
+We have selected the model to use (Random Forest) and now we need to make the *loyalty_score* predictions for those customers that the market research consultancy were unable to tag.
+
+We cannot just pass the data for these customers into the model, as is - we need to ensure the data is in exactly the same format as what was used when training the model.
+
+In the following code, we will
+
+* Import the required packages for preprocessing
+* Import the data for those customers who are missing a *loyalty_score* value
+* Import our model object & any preprocessing artifacts
+* Drop columns that were not used when training the model (customer_id)
+* Drop rows with missing values
+* Apply One Hot Encoding to the gender column (using transform)
+* Make the predictions using .predict()
+
+<br>
+```python
+
+# import required packages
+import pandas as pd
+import pickle
+
+# import customers for scoring
+to_be_scored = ...
+
+# import model and model objects
+regressor = ...
+one_hot_encoder = ...
+
+# drop unused columns
+to_be_scored.drop(["customer_id"], axis = 1, inplace = True)
+
+# drop missing values
+to_be_scored.dropna(how = "any", inplace = True)
+
+# apply one hot encoding (transform only)
+categorical_vars = ["gender"]
+encoder_vars_array = one_hot_encoder.transform(to_be_scored[categorical_vars])
+encoder_feature_names = one_hot_encoder.get_feature_names(categorical_vars)
+encoder_vars_df = pd.DataFrame(encoder_vars_array, columns = encoder_feature_names)
+to_be_scored = pd.concat([to_be_scored.reset_index(drop=True), encoder_vars_df.reset_index(drop=True)], axis = 1)
+to_be_scored.drop(categorical_vars, axis = 1, inplace = True)
+
+# make our predictions!
+loyalty_predictions = regressor.predict(to_be_scored)
+
+```
+<br>
+Just like that, we have made our *loyalty_score* predictions for these missing customers.  Due to the impressive metrics on the test set, we can be reasonably confident with these scores.  This extra customer information will ensure our client can undertake more accurate and relevant customer tracking, targeting, and comms.
+
+<br>
+# Growth & Next Steps <a name="growth-next-steps"></a>
+
+While predictive accuracy was relatively high - other modelling approaches could be tested, especially those somewhat similar to Random Forest, for example XGBoost, LightGBM to see if even more accuracy could be gained.
+
+We could even look to tune the hyperparameters of the Random Forest, notably regularisation parameters such as tree depth, as well as potentially training on a higher number of Decision Trees in the Random Forest.
+
+From a data point of view, further variables could be collected, and further feature engineering could be undertaken to ensure that we have as much useful information available for predicting customer loyalty
