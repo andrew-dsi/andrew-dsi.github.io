@@ -14,15 +14,14 @@ Our client, a grocery retailer, wants to utilise Machine Learning to reduce mail
     - [Actions](#overview-actions)
     - [Results](#overview-results)
     - [Growth/Next Steps](#overview-growth)
-    - [Key Definition](#overview-definition)
 - [01. Data Overview](#data-overview)
 - [02. Modelling Overview](#modelling-overview)
-- [03. Linear Regression](#linreg-title)
-    - [Data Import](#linreg-import)
-    - [Data Preprocessing](#linreg-preprocessing)
-    - [Model Training](#linreg-model-training)
-    - [Model Performance Assessment](#linreg-model-assessment)
-    - [Model Summary Statistics](#linreg-model-summary)
+- [03. Logistic Regression](#logreg-title)
+    - [Data Import](#logreg-import)
+    - [Data Preprocessing](#logreg-preprocessing)
+    - [Model Training](#logreg-model-training)
+    - [Model Performance Assessment](#logreg-model-assessment)
+    - [Optimal Threshold Analysis](#logreg-model-threshold)
 - [04. Decision Tree](#regtree-title)
     - [Data Import](#regtree-import)
     - [Data Preprocessing](#regtree-preprocessing)
@@ -56,7 +55,9 @@ Let's use Machine Learning to take on this task!
 <br>
 ### Actions <a name="overview-actions"></a>
 
-We firstly needed to compile the necessary data from tables in the database, gathering key customer metrics that may help predict *delivery club* membership, appending on the dependent variable, and separating out those who did and did not have this dependent variable present.
+We firstly needed to compile the necessary data from tables in the database, gathering key customer metrics that may help predict *delivery club* membership.
+
+Within our historical dataset from the last campaign, we found that 69% of customers did not sign up and 31% did.  This tells us that while the data isn't perfectly balanced at 50:50, it isn't *too* imbalanced either.  Even so, we make sure to not rely on classification accuracy alone when assessing results - also analysing Precision, Recall, and F1-Score.
 
 As we are predicting a binary output, we tested three classification modelling approaches, namely:
 
@@ -71,18 +72,30 @@ As we are predicting a binary output, we tested three classification modelling a
 Our testing found that the Random Forest had the highest predictive accuracy.
 
 <br>
-**Metric 1: Adjusted R-Squared (Test Set)**
+**Metric 1: Classification Accuracy (Test Set)**
 
-* Random Forest = 0.955
-* Decision Tree = 0.886
-* Linear Regression = 0.754
+* Random Forest = xxx
+* Decision Tree = xxx
+* Linear Regression = xxx
 
 <br>
-**Metric 2: R-Squared (K-Fold Cross Validation, k = 4)**
+**Metric 2: Precision**
 
-* Random Forest = 0.925
-* Decision Tree = 0.871
-* Linear Regression = 0.853
+* Random Forest = xxx
+* Decision Tree = xxx
+* Linear Regression = xxx
+
+**Metric 2: Recall**
+
+* Random Forest = xxx
+* Decision Tree = xxx
+* Linear Regression = xxx
+
+**Metric 2: F1 Score**
+
+* Random Forest = xxx
+* Decision Tree = xxx
+* Linear Regression = xxx
 
 As the most important outcome for this project was predictive accuracy, rather than explicitly understanding weighted drivers of prediction, we chose the Random Forest as the model to use for making predictions on the customers who were missing the *loyalty score* metric.
 <br>
@@ -94,112 +107,62 @@ While predictive accuracy was relatively high - other modelling approaches could
 From a data point of view, further variables could be collected, and further feature engineering could be undertaken to ensure that we have as much useful information available for predicting customer loyalty
 <br>
 <br>
-### Key Definition  <a name="overview-definition"></a>
-
-The *loyalty score* metric measures the % of grocery spend (market level) that each customer allocates to the client vs. all of the competitors.  
-
-Example 1: Customer X has a total grocery spend of $100 and all of this is spent with our client. Customer X has a *loyalty score* of 1.0
-
-Example 2: Customer Y has a total grocery spend of $200 but only 20% is spent with our client.  The remaining 80% is spend with competitors.  Customer Y has a *customer loyalty score* of 0.2
-<br>
-<br>
 ---
 
 # Data Overview  <a name="data-overview"></a>
 
-We will be predicting the *loyalty_score* metric.  This metric exists (for half of the customer base) in the *loyalty_scores* table of the client database.
+We will be predicting the binary *signup_flag* metric from the *campaign_data* table in the client database.
 
-The key variables hypothesised to predict the missing loyalty scores will come from the client database, namely the *transactions* table, the *customer_details* table, and the *product_areas* table.
+The key variables hypothesised to predict this will come from the client database, namely the *transactions* table, the *customer_details* table, and the *product_areas* table.
 
-Using pandas in Python, we merged these tables together for all customers, creating a single dataset that we can use for modelling.
+We aggregated up customer data from the 3 months prior to the last campaign.
 
-```python
-
-# import required packages
-import pandas as pd
-import pickle
-
-# import required data tables
-loyalty_scores = ...
-customer_details = ...
-transactions = ...
-
-# merge loyalty score data and customer details data, at customer level
-data_for_regression = pd.merge(customer_details, loyalty_scores, how = "left", on = "customer_id")
-
-# aggregate sales data from transactions table
-sales_summary = transactions.groupby("customer_id").agg({"sales_cost" : "sum",
-                                                         "num_items" : "sum",
-                                                         "transaction_id" : "nunique",
-                                                         "product_area_id" : "nunique"}).reset_index()
-
-# rename columns for clarity
-sales_summary.columns = ["customer_id", "total_sales", "total_items", "transaction_count", "product_area_count"]
-
-# engineer an average basket value column for each customer
-sales_summary["average_basket_value"] = sales_summary["total_sales"] / sales_summary["transaction_count"]
-
-# merge the sales summary with the overall customer data
-data_for_regression = pd.merge(data_for_regression, sales_summary, how = "inner", on = "customer_id")
-
-# split out data for modelling (loyalty score is present)
-regression_modelling = data_for_regression.loc[data_for_regression["customer_loyalty_score"].notna()]
-
-# split out data for scoring post-modelling (loyalty score is missing)
-regression_scoring = data_for_regression.loc[data_for_regression["customer_loyalty_score"].isna()]
-
-# for scoring set, drop the loyalty score column (as it is blank/redundant)
-regression_scoring.drop(["customer_loyalty_score"], axis = 1, inplace = True)
-
-# save our datasets for future use
-pickle.dump(regression_modelling, open("data/customer_loyalty_modelling.p", "wb"))
-pickle.dump(regression_scoring, open("data/customer_loyalty_scoring.p", "wb"))
-
-```
-<br>
 After this data pre-processing in Python, we have a dataset for modelling that contains the following fields...
 <br>
 <br>
 
 | **Variable Name** | **Variable Type** | **Description** |
 |---|---|---|
-| loyalty_score | Dependent | The % of total grocery spend that each customer allocates to ABC Grocery vs. competitors |
-| distance_from_store | Independent | "The distance in miles from the customers home address, and the store" |
+| signup_flag | Dependent | A binary variable showing if the customer signed up for the delivery club in the last campaign |
+| distance_from_store | Independent | The distance in miles from the customers home address, and the store |
 | gender | Independent | The gender provided by the customer |
 | credit_score | Independent | The customers most recent credit score |
-| total_sales | Independent | Total spend by the customer in ABC Grocery within the latest 6 months |
-| total_items | Independent | Total products purchased by the customer in ABC Grocery within the latest 6 months |
-| transaction_count | Independent | Total unique transactions made by the customer in ABC Grocery within the latest 6 months |
-| product_area_count | Independent | The number of product areas within ABC Grocery the customers has shopped into within the latest 6 months |
-| average_basket_value | Independent | The average spend per transaction for the customer in ABC Grocery within the latest 6 months |
+| total_sales | Independent | Total spend by the customer in ABC Grocery - 3 months pre campaign |
+| total_items | Independent | Total products purchased by the customer in ABC Grocery - 3 months pre campaign |
+| transaction_count | Independent | Total unique transactions made by the customer in ABC Grocery - 3 months pre campaign |
+| product_area_count | Independent | The number of product areas within ABC Grocery the customers has shopped into - 3 months pre campaign |
+| average_basket_value | Independent | The average spend per transaction for the customer in ABC Grocery - 3 months pre campaign |
 
 <br>
 # Modelling Overview
 
-We will build a model that looks to accurately predict the “loyalty_score” metric for those customers that were able to be tagged, based upon the customer metrics listed above.
+We will build a model that looks to accurately predict *signup_flag*, based upon the customer metrics listed above.
 
-If that can be achieved, we can use this model to predict the customer loyalty score for the customers that were unable to be tagged by the agency.
+If that can be achieved, we can use this model to predict signup & signup probability for future campaigns.  This information can be used to target those more likely to sign-up, reducing marketing costs and thus increasing ROI.
 
-As we are predicting a numeric output, we tested three regression modelling approaches, namely:
+As we are predicting a binary output, we tested three classification modelling approaches, namely:
 
-* Linear Regression
+* Logistic Regression
 * Decision Tree
 * Random Forest
 
 <br>
-# Linear Regression <a name="linreg-title"></a>
+# Logistic Regression <a name="logreg-title"></a>
 
-We utlise the scikit-learn library within Python to model our data using Linear Regression. The code sections below are broken up into 4 key sections:
+We utlise the scikit-learn library within Python to model our data using Logistic Regression. The code sections below are broken up into 5 key sections:
 
 * Data Import
 * Data Preprocessing
 * Model Training
 * Performance Assessment
+* Optimal Threshold Analysis
 
 <br>
-### Data Import <a name="linreg-import"></a>
+### Data Import <a name="logreg-import"></a>
 
 Since we saved our modelling data as a pickle file, we import it.  We ensure we remove the id column, and we also ensure our data is shuffled.
+
+We also investigate the class balance of our dependent variable - which is important when assessing classification accuracy.
 
 ```python
 
@@ -207,15 +170,16 @@ Since we saved our modelling data as a pickle file, we import it.  We ensure we 
 import pandas as pd
 import pickle
 import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression
+import numpy as np
+from sklearn.linear_model import LogisticRegression
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split, cross_val_score, KFold
-from sklearn.metrics import r2_score
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.feature_selection import RFECV
 
 # import modelling data
-data_for_model = pickle.load(open("data/customer_loyalty_modelling.p", "rb"))
+data_for_model = pickle.load(open("data/delivery_club_modelling.p", "rb"))
 
 # drop uneccessary columns
 data_for_model.drop("customer_id", axis = 1, inplace = True)
@@ -223,11 +187,17 @@ data_for_model.drop("customer_id", axis = 1, inplace = True)
 # shuffle data
 data_for_model = shuffle(data_for_model, random_state = 42)
 
+# assess class balance of dependent variable
+data_for_model["signup_flag"].value_counts(normalize = True)
+
 ```
 <br>
-### Data Preprocessing <a name="linreg-preprocessing"></a>
+From the last step in the above code, we see that **69% of customers did not sign up and 31% did**.  This tells us that while the data isn't perfectly balanced at 50:50, it isn't *too* imbalanced either.  Because of this, and as you will see, we make sure to not rely on classification accuracy alone when assessing results - also analysing Precision, Recall, and F1-Score.
 
-For Linear Regression we have certain data preprocessing steps that need to be addressed, including:
+<br>
+### Data Preprocessing <a name="logreg-preprocessing"></a>
+
+For Logistic Regression we have certain data preprocessing steps that need to be addressed, including:
 
 * Missing values in the data
 * The effect of outliers
@@ -250,7 +220,7 @@ data_for_model.dropna(how = "any", inplace = True)
 <br>
 ##### Outliers
 
-The ability for a Linear Regression model to generalise well across *all* data can be hampered if there are outliers present.  There is no right or wrong way to deal with outliers, but it is always something worth very careful consideration - just because a value is high or low, does not necessarily mean it should not be there!
+The ability for a Logistic Regression model to generalise well across *all* data can be hampered if there are outliers present.  There is no right or wrong way to deal with outliers, but it is always something worth very careful consideration - just because a value is high or low, does not necessarily mean it should not be there!
 
 In this code section, we use **.describe()** from Pandas to investigate the spread of values for each of our predictors.  The results of this can be seen in the table below.
 
@@ -258,13 +228,13 @@ In this code section, we use **.describe()** from Pandas to investigate the spre
 
 | **metric** | **distance_from_store** | **credit_score** | **total_sales** | **total_items** | **transaction_count** | **product_area_count** | **average_basket_value** |
 |---|---|---|---|---|---|---|---|
-| mean | 2.02 | 0.60 | 1846.50 | 278.30 | 44.93 | 4.31 | 36.78 |
-| std | 2.57 | 0.10 | 1767.83 | 214.24 | 21.25 | 0.73 | 19.34 |
-| min | 0.00 | 0.26 | 45.95 | 10.00 | 4.00 | 2.00 | 9.34 |
-| 25% | 0.71 | 0.53 | 942.07 | 201.00 | 41.00 | 4.00 | 22.41 |
-| 50% | 1.65 | 0.59 | 1471.49 | 258.50 | 50.00 | 4.00 | 30.37 |
-| 75% | 2.91 | 0.66 | 2104.73 | 318.50 | 53.00 | 5.00 | 47.21 |
-| max | 44.37 | 0.88 | 9878.76 | 1187.00 | 109.00 | 5.00 | 102.34 |
+| mean | 2.61 | 0.60 | 968.17 | 143.88 | 22.21 | 4.18 | 38.03  |
+| std | 14.40 | 0.10 | 1073.65 | 125.34 | 11.72 | 0.92 | 24.24  |
+| min | 0.00 | 0.26 | 2.09 | 1.00 | 1.00 | 1.00 | 2.09  |
+| 25% | 0.73 | 0.53 | 383.94 | 77.00 | 16.00 | 4.00 | 21.73  |
+| 50% | 1.64 | 0.59 | 691.64 | 123.00 | 23.00 | 4.00 | 31.07  |
+| 75% | 2.92 | 0.67 | 1121.53 | 170.50 | 28.00 | 5.00 | 46.43  |
+| max | 400.97 | 0.88 | 7372.06 | 910.00 | 75.00 | 5.00 | 141.05  |
 
 <br>
 Based on this investigation, we see some *max* column values for several variables to be much higher than the *median* value.
