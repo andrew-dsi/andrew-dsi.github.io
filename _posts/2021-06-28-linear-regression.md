@@ -545,7 +545,7 @@ To provide an example of this - in the table above, we can see that the *distanc
 
 
 <br>
-# Decision Tree <a name="regree-title"></a>
+# Decision Tree <a name="regtree-title"></a>
 
 We will again utlise the scikit-learn library within Python to model our data using a Decision Tree. The code sections below are broken up into 4 key sections:
 
@@ -555,7 +555,7 @@ We will again utlise the scikit-learn library within Python to model our data us
 * Performance Assessment
 
 <br>
-### Data Import <a name="regree-import"></a>
+### Data Import <a name="regtree-import"></a>
 
 Since we saved our modelling data as a pickle file, we import it.  We ensure we remove the id column, and we also ensure our data is shuffled.
 
