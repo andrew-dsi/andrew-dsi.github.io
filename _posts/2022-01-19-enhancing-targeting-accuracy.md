@@ -420,21 +420,37 @@ y_pred_prob = clf.predict_proba(X_test)[:,1]
 ```
 
 <br>
-##### Calculate R-Squared
+##### Confusion Matrix
 
-R-Squared is a metric that shows the percentage of variance in our output variable *y* that is being explained by our input variable(s) *x*.  It is a value that ranges between 0 and 1, with a higher value showing a higher level of explained variance.  Another way of explaining this would be to say that, if we had an r-squared score of 0.8 it would suggest that 80% of the variation of our output variable is being explained by our input variables - and something else, or some other variables must account for the other 20%
+A Confusion Matrix provides us a visual way to understand how our predictions match up against the actual values for those test set observations.
 
-To calculate r-squared, we use the following code where we pass in our *predicted* outputs for the test set (y_pred), as well as the *actual* outputs for the test set (y_test)
+The below code creates the Confusion Matrix using the *confusion_matrix* functionality from within scikit-learn and then plots it using matplotlib.
 
 ```python
 
-# calculate r-squared for our test set predictions
-r_squared = r2_score(y_test, y_pred)
-print(r_squared)
+# create the confusion matrix
+conf_matrix = confusion_matrix(y_test, y_pred_class)
+
+# plot the confusion matrix
+plt.style.use("seaborn-poster")
+plt.matshow(conf_matrix, cmap = "coolwarm")
+plt.gca().xaxis.tick_bottom()
+plt.title("Confusion Matrix")
+plt.ylabel("Actual Class")
+plt.xlabel("Predicted Class")
+for (i, j), corr_value in np.ndenumerate(conf_matrix):
+    plt.text(j, i, corr_value, ha = "center", va = "center", fontsize = 20)
+plt.show()
 
 ```
 
-The resulting r-squared score from this is **0.78**
+<br>
+![alt text](/img/posts/log-reg-confusion-matrix.png "Logistic Regression Confusion Matrix")
+
+<br>
+The aim is to have a high proportion of observations falling into the top left cell (predicted non-signup and actual non-signup) and the bottom right cell (predicted signup and actual signup).
+
+Since the proportion of signups in our data was around 30:70 we will next analyse not only Classification Accuracy, but also Precision, Recall, and F1-Score which will help us assess how well our model has performed in reality.
 
 <br>
 ##### Calculate Cross Validated R-Squared
