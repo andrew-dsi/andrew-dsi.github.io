@@ -462,6 +462,7 @@ Classification Accuracy is a metric that tells us *of all predicted observations
 An example of this could be a rare disease. A model with a 98% Classification Accuracy on might appear like a fantastic result, but if our data contained 98% of patients *without* the disease, and 2% *with* the disease - then a 98% Classification Accuracy could be obtained simply by predicting that *no one* has the disease - which wouldn't be a great model in the real world.  Luckily, there are other metrics which can help us!
 
 In this example of the rare disease, we could define Classification Accuracy as *of all predicted patients, what proportion did we correctly classify as either having the disease, or not having the disease*
+
 <br>
 **Precision & Recall**
 
@@ -477,6 +478,7 @@ The tricky thing about Precision & Recall is that it is impossible to optimise b
 
 So - there is one more metric we will discuss & calculate, which is actually a *combination* of both...
 
+<br>
 **F1 Score**
 
 F1-Score is a metric that essentially "combines" both Precision & Recall.  Technically speaking, it is the harmonic mean of these two metrics.  A good, or high, F1-Score comes when there is a balance between Precision & Recall, rather than a disparity between them.
@@ -485,6 +487,7 @@ Overall, optimising your model for F1-Score means that you'll get a model that i
 
 Using all of these metrics in combination gives a really good overview of the performance of a classification model, and gives us an understanding of the different scenarios & considerations!
 
+<br>
 In the code below, we utilise in-built functionality from scikit-learn to calculate these four metrics.
 
 ```python
