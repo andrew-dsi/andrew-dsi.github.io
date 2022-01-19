@@ -454,7 +454,7 @@ Since the proportion of signups in our data was around 30:70 we will next analys
 
 <br>
 ##### Classification Performance Metrics
-
+<br>
 **Classification Accuracy**
 
 Classification Accuracy is a metric that tells us *of all predicted observations, what proportion did we correctly classify*.  This is very intuitive, but when dealing with imbalanced classes, can be misleading.  
@@ -462,7 +462,7 @@ Classification Accuracy is a metric that tells us *of all predicted observations
 An example of this could be a rare disease. A model with a 98% Classification Accuracy on might appear like a fantastic result, but if our data contained 98% of patients *without* the disease, and 2% *with* the disease - then a 98% Classification Accuracy could be obtained simply by predicting that *no one* has the disease - which wouldn't be a great model in the real world.  Luckily, there are other metrics which can help us!
 
 In this example of the rare disease, we could define Classification Accuracy as *of all predicted patients, what proportion did we correctly classify as either having the disease, or not having the disease*
-
+<br>
 **Precision & Recall**
 
 Precision is a metric that tells us *of all observations that were predicted as positive, how many actually were positive*
@@ -471,81 +471,112 @@ Keeping with the rare disease example, Precision would tell us *of all patients 
 
 Recall is a metric that tells us *of all positive observations, how many did we predict as positive*
 
-Again, keeping with the rare disease example, Recall would tell us *of all patients who actually had the disease, how many did we correctly predict*
+Again, referring to the rare disease example, Recall would tell us *of all patients who actually had the disease, how many did we correctly predict*
 
-This would be a key metric in a real-world disease prediction model - it would tell us how often we will misdiagnose patients!
+The tricky thing about Precision & Recall is that it is impossible to optimise both - it's a zero-sum game.  If you try to increase Precision, Recall decreases, and vice versa.  Sometimes however it will make more sense to try and elevate one of them, in spite of the other.  In the case of our rare-disease prediction like we've used in our example, perhaps it would be more important to optimise for Recall as we want to classify as many positive cases as possible.  In saying this however, we don't want to just classify every patient as having the disease, as that isn't a great outcome either!
 
-The tricky thing about Precision & Recall is that it is impossible to optimise both - it's a zero-sum game.  If you try to increase Precision, then Recall decreases, and vice versa.  Sometimes however it will make more sense to try and elevate one of them, in spite of the other.  In the case of our rare-disease prediction like we've used in our example, perhaps it would be more important to optimise for Recall as we want to classify as many positive cases as possible.  In saying this however, we don't want to just classify every patient as having the disease, as that isn't a great outcome either!
-
-So - there is one more metric to cover, which is actually a *combination* of both Precision & Recall...
+So - there is one more metric we will discuss & calculate, which is actually a *combination* of both...
 
 **F1 Score**
 
-xxxx
+F1-Score is a metric that essentially "combines" both Precision & Recall.  Technically speaking, it is the harmonic mean of these two metrics.  A good, or high, F1-Score comes when there is a balance between Precision & Recall, rather than a disparity between them.
 
-In the code below, we xxxx
+Overall, optimising your model for F1-Score means that you'll get a model that is working well for both positive & negative classifications rather than skewed towards one or the other.  To return to the rare disease predictions, a high F1-Score would mean we've got a good balance between successfully predicting the disease when it's present, and not predicting cases where it's not present.
 
-```python
+Using all of these metrics in combination gives a really good overview of the performance of a classification model, and gives us an understanding of the different scenarios & considerations!
 
-# calculate the mean cross validated r-squared for our test set predictions
-cv = KFold(n_splits = 4, shuffle = True, random_state = 42)
-cv_scores = cross_val_score(regressor, X_train, y_train, cv = cv, scoring = "r2")
-cv_scores.mean()
-
-```
-
-The mean cross-validated r-squared score from this is **0.853**
-
-<br>
-##### Calculate Adjusted R-Squared
-
-When applying Linear Regression with *multiple* input variables, the r-squared metric on it's own *can* end up being an overinflated view of goodness of fit.  This is because each input variable will have an *additive* effect on the overall r-squared score.  In other words, every input variable added to the model *increases* the r-squared value, and *never decreases* it, even if the relationship is by chance.  
-
-**Adjusted R-Squared** is a metric that compensates for the addition of input variables, and only increases if the variable improves the model above what would be obtained by probability.  It is best practice to use Adjusted R-Squared when assessing the results of a Linear Regression with multiple input variables, as it gives a fairer perception the fit of the data.
+In the code below, we utilise in-built functionality from scikit-learn to calculate these four metrics.
 
 ```python
 
-# calculate adjusted r-squared for our test set predictions
-num_data_points, num_input_vars = X_test.shape
-adjusted_r_squared = 1 - (1 - r_squared) * (num_data_points - 1) / (num_data_points - num_input_vars - 1)
-print(adjusted_r_squared)
+# classification accuracy
+accuracy_score(y_test, y_pred_class)
+
+# precision
+precision_score(y_test, y_pred_class)
+
+# recall
+recall_score(y_test, y_pred_class)
+
+# f1-score
+f1_score(y_test, y_pred_class)
 
 ```
 
-The resulting *adjusted* r-squared score from this is **0.754** which as expected, is slightly lower than the score we got for r-squared on it's own.
+Running this code gives us:
 
-<br>
-### Model Summary Statistics <a name="linreg-model-summary"></a>
+* Classification Accuracy = **0.866** meaning we correctly predicted the class of 86.6% of test set observations
+* Precision = **0.784** meaning that for our *predicted* delivery club signups, we were correct 78.4% of the time
+* Recall = **0.69** meaning that of all *actual* delivery club signups, we predicted correctly 69% of the time
+* F1-Score = **0.734** 
 
-Although our overall goal for this project is predictive accuracy, rather than an explcit understanding of the relationships of each of the input variables and the output variable, it is always interesting to look at the summary statistics for these.
+Since our data is *somewhat* imbalanced, looking at these metrics rather than just Classification Accuracy on it's own - is a good idea, and gives us a much better understanding of what our predictions mean!  We will use these same metrics when applying other models for this task, and can compare how they stack up.
+
+### Finding The Optimal Classification Threshold <a name="linreg-model-summary"></a>
+
+By default, most pre-built classification models & algorithms will just use a 50% probability to discern between a positive class prediction (delivery club signup) and a negative class prediction (delivery club non-signup).
+
+Just because 50% is the default threshold *does not mean* it is the best one for our task.
+
+Here, we will test many potential classification thresholds, and plot the Precision, Recall & F1-Score, and find an optimal solution!
+
 <br>
 ```python
 
-# extract model coefficients
-coefficients = pd.DataFrame(regressor.coef_)
-input_variable_names = pd.DataFrame(X_train.columns)
-summary_stats = pd.concat([input_variable_names,coefficients], axis = 1)
-summary_stats.columns = ["input_variable", "coefficient"]
+# set up the list of thresholds to loop through
+thresholds = np.arange(0, 1, 0.01)
 
-# extract model intercept
-regressor.intercept_
+# create empty lists to append the results to
+precision_scores = []
+recall_scores = []
+f1_scores = []
+
+# loop through each threshold - fit the model - append the results
+for threshold in thresholds:
+    
+    pred_class = (y_pred_prob >= threshold) * 1
+    
+    precision = precision_score(y_test, pred_class, zero_division = 0)
+    precision_scores.append(precision)
+    
+    recall = recall_score(y_test, pred_class)
+    recall_scores.append(recall)
+    
+    f1 = f1_score(y_test, pred_class)
+    f1_scores.append(f1)
+    
+# extract the optimal f1-score (and it's index)
+max_f1 = max(f1_scores)
+max_f1_idx = f1_scores.index(max_f1)
 
 ```
 <br>
-The information from that code block can be found in the table below:
-<br>
 
-| **input_variable** | **coefficient** |
-|---|---|
-| intercept | 0.516 |
-| distance_from_store | -0.201 |
-| credit_score | -0.028 |
-| total_sales | 0.000 |
-| total_items | 0.001 |
-| transaction_count | -0.005 |
-| product_area_count | 0.062 |
-| average_basket_value | -0.004 |
-| gender_M | -0.013 |
+Now we have run this, we can use the below code to plot the results!
+
+<br>
+```python
+
+# plot the results
+plt.style.use("seaborn-poster")
+plt.plot(thresholds, precision_scores, label = "Precision", linestyle = "--")
+plt.plot(thresholds, recall_scores, label = "Recall", linestyle = "--")
+plt.plot(thresholds, f1_scores, label = "F1", linewidth = 5)
+plt.title(f"Finding the Optimal Threshold for Classification Model \n Max F1: {round(max_f1,2)} (Threshold = {round(thresholds[max_f1_idx],2)})")
+plt.xlabel("Threshold")
+plt.ylabel("Assessment Score")
+plt.legend(loc = "lower left")
+plt.tight_layout()
+plt.show()
+
+```
+<br>
+![alt text](/img/posts/log-reg-optimal-threshold-plot.png "Logistic Regression Optimal Threshold Plot")
+
+<br>
+As you can see at the top of the plot, the optimal F1-Score for this model 0.78 and this is obtained at a classification threshold of 0.44.
+
+
 
 <br>
 The coefficient value for each of the input variables, along with that of the intercept would make up the equation for the line of best fit for this particular model (or more accurately, in this case it would be the plane of best fit, as we have multiple input variables).
