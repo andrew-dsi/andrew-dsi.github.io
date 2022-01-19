@@ -513,7 +513,7 @@ Running this code gives us:
 Since our data is *somewhat* imbalanced, looking at these metrics rather than just Classification Accuracy on it's own - is a good idea, and gives us a much better understanding of what our predictions mean!  We will use these same metrics when applying other models for this task, and can compare how they stack up.
 
 <br>
-### Finding The Optimal Classification Threshold <a name="logreg-model-summary"></a>
+### Finding The Optimal Classification Threshold <a name="logreg-opt-threshold"></a>
 
 By default, most pre-built classification models & algorithms will just use a 50% probability to discern between a positive class prediction (delivery club signup) and a negative class prediction (delivery club non-signup).
 
@@ -708,7 +708,7 @@ Instantiating and training our Decision Tree model is done using the below code.
 ```python
 
 # instantiate our model object
-clf = DecisionTreeClassifier(random_state = 42)
+clf = DecisionTreeClassifier(random_state = 42, max_depth = 5)
 
 # fit our model using our training & test sets
 clf.fit(X_train, y_train)
@@ -716,140 +716,101 @@ clf.fit(X_train, y_train)
 ```
 
 <br>
-### Model Performance Assessment <a name="regtree-model-assessment"></a>
+### Model Performance Assessment <a name="clftree-model-assessment"></a>
 
 ##### Predict On The Test Set
 
-To assess how well our model is predicting on new data - we use the trained model object (here called *regressor*) and ask it to predict the *loyalty_score* variable for the test set
+Just like we did with Logistic Regression, to assess how well our model is predicting on new data - we use the trained model object (here called *clf*) and ask it to predict the *signup_flag* variable for the test set.
+
+In the code below we create one object to hold the binary 1/0 predictions, and another to hold the actual prediction probabilities for the positive class.
 
 ```python
 
 # predict on the test set
-y_pred = regressor.predict(X_test)
+y_pred_class = clf.predict(X_test)
+y_pred_prob = clf.predict_proba(X_test)[:,1]
 
 ```
 
 <br>
-##### Calculate R-Squared
+##### Confusion Matrix
 
-To calculate r-squared, we use the following code where we pass in our *predicted* outputs for the test set (y_pred), as well as the *actual* outputs for the test set (y_test)
+As we discussed in the above section applying Logistic Regression - a Confusion Matrix provides us a visual way to understand how our predictions match up against the actual values for those test set observations.
 
-```python
-
-# calculate r-squared for our test set predictions
-r_squared = r2_score(y_test, y_pred)
-print(r_squared)
-
-```
-
-The resulting r-squared score from this is **0.898**
-
-<br>
-##### Calculate Cross Validated R-Squared
-
-As we did when testing Linear Regression, we will again utilise Cross Validation.
-
-Instead of simply dividing our data into a single training set, and a single test set, with Cross Validation we break our data into a number of "chunks" and then iteratively train the model on all but one of the "chunks", test the model on the remaining "chunk" until each has had a chance to be the test set.
-
-The result of this is that we are provided a number of test set validation results - and we can take the average of these to give a much more robust & reliable view of how our model will perform on new, un-seen data!
-
-In the code below, we put this into place.  We again specify that we want 4 "chunks" and then we pass in our regressor object, training set, and test set.  We also specify the metric we want to assess with, in this case, we stick with r-squared.
-
-Finally, we take a mean of all four test set results.
+The below code creates the Confusion Matrix using the *confusion_matrix* functionality from within scikit-learn and then plots it using matplotlib.
 
 ```python
 
-# calculate the mean cross validated r-squared for our test set predictions
-cv = KFold(n_splits = 4, shuffle = True, random_state = 42)
-cv_scores = cross_val_score(regressor, X_train, y_train, cv = cv, scoring = "r2")
-cv_scores.mean()
+# create the confusion matrix
+conf_matrix = confusion_matrix(y_test, y_pred_class)
 
-```
-
-The mean cross-validated r-squared score from this is **0.871** which is slighter higher than we saw for Linear Regression.
-
-<br>
-##### Calculate Adjusted R-Squared
-
-Just like we did with Linear Regression, we will also calculate the *Adjusted R-Squared* which compensates for the addition of input variables, and only increases if the variable improves the model above what would be obtained by probability.
-
-```python
-
-# calculate adjusted r-squared for our test set predictions
-num_data_points, num_input_vars = X_test.shape
-adjusted_r_squared = 1 - (1 - r_squared) * (num_data_points - 1) / (num_data_points - num_input_vars - 1)
-print(adjusted_r_squared)
-
-```
-
-The resulting *adjusted* r-squared score from this is **0.887** which as expected, is slightly lower than the score we got for r-squared on it's own.
-
-<br>
-### Decision Tree Regularisation <a name="regtree-model-regularisation"></a>
-
-Decision Tree's can be prone to over-fitting, in other words, without any limits on their splitting, they will end up learning the training data perfectly.  We would much prefer our model to have a more *generalised* set of rules, as this will be more robust & reliable when making predictions on *new* data.
-
-One effective method of avoiding this over-fitting, is to apply a *max depth* to the Decision Tree, meaning we only allow it to split the data a certain number of times before it is required to stop.
-
-Unfortunately, we don't necessarily know the *best* number of splits to use for this - so below we will loop over a variety of values and assess which gives us the best predictive performance!
-
-<br>
-```python
-
-# finding the best max_depth
-
-# set up range for search, and empty list to append accuracy scores to
-max_depth_list = list(range(1,9))
-accuracy_scores = []
-
-# loop through each possible depth, train and validate model, append test set accuracy
-for depth in max_depth_list:
-    
-    regressor = DecisionTreeRegressor(max_depth = depth, random_state = 42)
-    regressor.fit(X_train,y_train)
-    y_pred = regressor.predict(X_test)
-    accuracy = r2_score(y_test,y_pred)
-    accuracy_scores.append(accuracy)
-    
-# store max accuracy, and optimal depth    
-max_accuracy = max(accuracy_scores)
-max_accuracy_idx = accuracy_scores.index(max_accuracy)
-optimal_depth = max_depth_list[max_accuracy_idx]
-
-# plot accuracy by max depth
-plt.plot(max_depth_list,accuracy_scores)
-plt.scatter(optimal_depth, max_accuracy, marker = "x", color = "red")
-plt.title(f"Accuracy by Max Depth \n Optimal Tree Depth: {optimal_depth} (Accuracy: {round(max_accuracy,4)})")
-plt.xlabel("Max Depth of Decision Tree")
-plt.ylabel("Accuracy")
-plt.tight_layout()
+# plot the confusion matrix
+plt.style.use("seaborn-poster")
+plt.matshow(conf_matrix, cmap = "coolwarm")
+plt.gca().xaxis.tick_bottom()
+plt.title("Confusion Matrix")
+plt.ylabel("Actual Class")
+plt.xlabel("Predicted Class")
+for (i, j), corr_value in np.ndenumerate(conf_matrix):
+    plt.text(j, i, corr_value, ha = "center", va = "center", fontsize = 20)
 plt.show()
 
 ```
-<br>
-That code gives us the below plot - which visualises the results!
 
 <br>
-![alt text](/img/posts/regression-tree-max-depth-plot.png "Decision Tree Max Depth Plot")
+![alt text](/img/posts/clf-tree-confusion-matrix.png "Decision Tree Confusion Matrix")
 
 <br>
-In the plot we can see that the *maximum* classification accuracy on the test set is found when applying a *max_depth* value of 7.  However, we lose very little accuracy back to a value of 4, but this would result in a simpler model, that generalised even better on new data.  We make the executive decision to re-train our Decision Tree with a maximum depth of 4!
+The aim is to have a high proportion of observations falling into the top left cell (predicted non-signup and actual non-signup) and the bottom right cell (predicted signup and actual signup).
+
+Since the proportion of signups in our data was around 30:70 we will again analyse not only Classification Accuracy, but also Precision, Recall, and F1-Score as they will help us assess how well our model has performed from different points of view.
 
 <br>
-### Visualise Our Decision Tree <a name="regtree-visualise"></a>
+##### Classification Performance Metrics
+<br>
+**Accuracy, Precision, Recall, F1-Score**
 
-To see the decisions that have been made in the (re-fitted) tree, we can use the plot_tree functionality that we imported from scikit-learn.  To do this, we use the below code:
+For details on these performance metrics, please see the above section on Logistic Regression.  Using all four of these metrics in combination gives a really good overview of the performance of a classification model, and gives us an understanding of the different scenarios & considerations!
+
+In the code below, we utilise in-built functionality from scikit-learn to calculate these four metrics.
+
+```python
+
+# classification accuracy
+accuracy_score(y_test, y_pred_class)
+
+# precision
+precision_score(y_test, y_pred_class)
+
+# recall
+recall_score(y_test, y_pred_class)
+
+# f1-score
+f1_score(y_test, y_pred_class)
+
+```
+
+Running this code gives us:
+
+* Classification Accuracy = **0.929** meaning we correctly predicted the class of 92.9% of test set observations
+* Precision = **0.885** meaning that for our *predicted* delivery club signups, we were correct 88.5% of the time
+* Recall = **0.885** meaning that of all *actual* delivery club signups, we predicted correctly 88.5% of the time
+* F1-Score = **0.885**
+
+These are all higher than what we saw when applying Logistic Regression, even after we had optimised the classification threshold!
+
+
+<br>
+### Visualise Our Decision Tree <a name="clftree-visualise"></a>
+
+To see the decisions that have been made in the tree, we can use the plot_tree functionality that we imported from scikit-learn.  To do this, we use the below code:
 
 <br>
 ```python
 
-# re-fit our model using max depth of 4
-regressor = DecisionTreeRegressor(random_state = 42, max_depth = 4)
-regressor.fit(X_train, y_train)
-
 # plot the nodes of the decision tree
 plt.figure(figsize=(25,15))
-tree = plot_tree(regressor,
+tree = plot_tree(clf,
                  feature_names = X.columns,
                  filled = True,
                  rounded = True,
@@ -860,12 +821,63 @@ tree = plot_tree(regressor,
 That code gives us the below plot:
 
 <br>
-![alt text](/img/posts/regression-tree-nodes-plot.png "Decision Tree Max Depth Plot")
+![alt text](/img/posts/clf-tree-nodes-plot.png "Decision Tree Max Depth Plot")
 
 <br>
 This is a very powerful visual, and one that can be shown to stakeholders in the business to ensure they understand exactly what is driving the predictions.
 
-One interesting thing to note is that the *very first split* appears to be using the variable *distance from store* so it would seem that this is a very important variable when it comes to predicting loyalty!
+One interesting thing to note is that the *very first split* appears to be using the variable *distance from store* so it would seem that this is a very important variable when it comes to predicting signups to the delivery club!
+
+<br>
+### Decision Tree Regularisation <a name="clftree-model-regularisation"></a>
+
+Decision Tree's can be prone to over-fitting, in other words, without any limits on their splitting, they will end up learning the training data perfectly.  We would much prefer our model to have a more *generalised* set of rules, as this will be more robust & reliable when making predictions on *new* data.
+
+One effective method of avoiding this over-fitting, is to apply a *max depth* to the Decision Tree, meaning we only allow it to split the data a certain number of times before it is required to stop.
+
+We initially trained our model with a placeholder depth of 5, but unfortunately, we don't necessarily know the *optimal* number for this.  Below we will loop over a variety of values and assess which gives us the best predictive performance!
+
+<br>
+```python
+
+# finding the best max_depth
+
+# set up range for search, and empty list to append accuracy scores to
+max_depth_list = list(range(1,15))
+accuracy_scores = []
+
+# loop through each possible depth, train and validate model, append test set f1-score
+for depth in max_depth_list:
+    
+    clf = DecisionTreeClassifier(max_depth = depth, random_state = 42)
+    clf.fit(X_train,y_train)
+    y_pred = clf.predict(X_test)
+    accuracy = f1_score(y_test,y_pred)
+    accuracy_scores.append(accuracy)
+    
+# store max accuracy, and optimal depth    
+max_accuracy = max(accuracy_scores)
+max_accuracy_idx = accuracy_scores.index(max_accuracy)
+optimal_depth = max_depth_list[max_accuracy_idx]
+
+# plot accuracy by max depth
+plt.plot(max_depth_list,accuracy_scores)
+plt.scatter(optimal_depth, max_accuracy, marker = "x", color = "red")
+plt.title(f"Accuracy (F1 Score) by Max Depth \n Optimal Tree Depth: {optimal_depth} (F1 Score: {round(max_accuracy,4)})")
+plt.xlabel("Max Depth of Decision Tree")
+plt.ylabel("Accuracy (F1 Score)")
+plt.tight_layout()
+plt.show()
+
+```
+<br>
+That code gives us the below plot - which visualises the results!
+
+<br>
+![alt text](/img/posts/clf-tree-max-depth-plot.png "Decision Tree Max Depth Plot")
+
+<br>
+In the plot we can see that the *maximum* classification accuracy on the test set is found when applying a *max_depth* value of 9 which takes our F1-Score up to 0.925
 
 
 
