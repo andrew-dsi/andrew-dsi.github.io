@@ -512,7 +512,8 @@ Running this code gives us:
 
 Since our data is *somewhat* imbalanced, looking at these metrics rather than just Classification Accuracy on it's own - is a good idea, and gives us a much better understanding of what our predictions mean!  We will use these same metrics when applying other models for this task, and can compare how they stack up.
 
-### Finding The Optimal Classification Threshold <a name="linreg-model-summary"></a>
+<br>
+### Finding The Optimal Classification Threshold <a name="logreg-model-summary"></a>
 
 By default, most pre-built classification models & algorithms will just use a 50% probability to discern between a positive class prediction (delivery club signup) and a negative class prediction (delivery club non-signup).
 
@@ -574,32 +575,27 @@ plt.show()
 ![alt text](/img/posts/log-reg-optimal-threshold-plot.png "Logistic Regression Optimal Threshold Plot")
 
 <br>
-As you can see at the top of the plot, the optimal F1-Score for this model 0.78 and this is obtained at a classification threshold of 0.44.
+Along the x-axis of the above plot we have the different classification thresholds that were testing.  Along the y-axis we have the performance score for each of our three metrics.  As per the legend, we have Precision as a blue dotted line, Recall as an orange dotted line, and F1-Score as a thick green line.  You can see the interesting "zero-sum" relationship between Precision & Recall *and* you can see that the point where Precision & Recall meet is where F1-Score is maximised.
 
-
-
-<br>
-The coefficient value for each of the input variables, along with that of the intercept would make up the equation for the line of best fit for this particular model (or more accurately, in this case it would be the plane of best fit, as we have multiple input variables).
-
-For each input variable, the coefficient value we see above tells us, with *everything else staying constant* how many units the output variable (loyalty score) would change with a *one unit change* in this particular input variable.
-
-To provide an example of this - in the table above, we can see that the *distance_from_store* input variable has a coefficient value of -0.201.  This is saying that *loyalty_score* decreases by 0.201 (or 20% as loyalty score is a percentage, or at least a decimal value between 0 and 1) for *every additional mile* that a customer lives from the store.  This makes intuitive sense, as customers who live a long way from this store, most likely live near *another* store where they might do some of their shopping as well, whereas customers who live near this store, probably do a greater proportion of their shopping at this store...and hence have a higher loyalty score!
-
+As you can see at the top of the plot, the optimal F1-Score for this model 0.78 and this is obtained at a classification threshold of 0.44.  This is higher than the F1-Score of 0.734 that we achieved at the default classification threshold of 0.50!
 
 <br>
-# Decision Tree <a name="regtree-title"></a>
+# Decision Tree <a name="clftree-title"></a>
 
-We will again utlise the scikit-learn library within Python to model our data using a Decision Tree. The code sections below are broken up into 4 key sections:
+We will again utlise the scikit-learn library within Python to model our data using a Decision Tree. The code sections below are broken up into 5 key sections:
 
 * Data Import
 * Data Preprocessing
 * Model Training
 * Performance Assessment
+* Optimal Threshold Analysis
 
 <br>
-### Data Import <a name="regtree-import"></a>
+### Data Import <a name="clftree-import"></a>
 
 Since we saved our modelling data as a pickle file, we import it.  We ensure we remove the id column, and we also ensure our data is shuffled.
+
+Just like we did for Logistic Regression - our code also investigates the class balance of our dependent variable.
 
 ```python
 
@@ -607,14 +603,15 @@ Since we saved our modelling data as a pickle file, we import it.  We ensure we 
 import pandas as pd
 import pickle
 import matplotlib.pyplot as plt
-from sklearn.tree import DecisionTreeRegressor, plot_tree
+import numpy as np
+from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split, cross_val_score, KFold
-from sklearn.metrics import r2_score
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
 from sklearn.preprocessing import OneHotEncoder
 
 # import modelling data
-data_for_model = pickle.load(open("data/customer_loyalty_modelling.p", "rb"))
+data_for_model = pickle.load(open("data/delivery_club_modelling.p", "rb"))
 
 # drop uneccessary columns
 data_for_model.drop("customer_id", axis = 1, inplace = True)
@@ -622,9 +619,12 @@ data_for_model.drop("customer_id", axis = 1, inplace = True)
 # shuffle data
 data_for_model = shuffle(data_for_model, random_state = 42)
 
+# assess class balance of dependent variable
+data_for_model["signup_flag"].value_counts(normalize = True)
+
 ```
 <br>
-### Data Preprocessing <a name="regtree-preprocessing"></a>
+### Data Preprocessing <a name="clftree-preprocessing"></a>
 
 While Linear Regression is susceptible to the effects of outliers, and highly correlated input variables - Decision Trees are not, so the required preprocessing here is lighter. We still however will put in place logic for:
 
@@ -647,19 +647,20 @@ data_for_model.dropna(how = "any", inplace = True)
 <br>
 ##### Split Out Data For Modelling
 
-In exactly the same way we did for Linear Regression, in the next code block we do two things, we firstly split our data into an **X** object which contains only the predictor variables, and a **y** object that contains only our dependent variable.
+In exactly the same way we did for Logistic Regression, in the next code block we do two things, we firstly split our data into an **X** object which contains only the predictor variables, and a **y** object that contains only our dependent variable.
 
-Once we have done this, we split our data into training and test sets to ensure we can fairly validate the accuracy of the predictions on data that was not used in training.  In this case, we have allocated 80% of the data for training, and the remaining 20% for validation.
+Once we have done this, we split our data into training and test sets to ensure we can fairly validate the accuracy of the predictions on data that was not used in training.  In this case, we have allocated 80% of the data for training, and the remaining 20% for validation.  Again, we make sure to add in the *stratify* parameter to ensure that both our training and test sets have the same proportion of customers who did, and did not, sign up for the *delivery club* - meaning we can be more confident in our assessment of predictive performance.
+
 
 <br>
 ```python
 
 # split data into X and y objects for modelling
-X = data_for_model.drop(["customer_loyalty_score"], axis = 1)
-y = data_for_model["customer_loyalty_score"]
+X = data_for_model.drop(["signup_flag"], axis = 1)
+y = data_for_model["signup_flag"]
 
 # split out training & test sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42, stratify = y)
 
 ```
 
@@ -668,7 +669,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, rando
 
 In our dataset, we have one categorical variable *gender* which has values of "M" for Male, "F" for Female, and "U" for Unknown.
 
-Just like the Linear Regression algorithm, the Decision Tree cannot deal with data in this format as it can't assign any numerical meaning to it when looking to assess the relationship between the variable and the dependent variable.
+Just like the Logisitc Regression algorithm, the Decision Tree cannot deal with data in this format as it can't assign any numerical meaning to it when looking to assess the relationship between the variable and the dependent variable.
 
 As *gender* doesn't have any explicit *order* to it, in other words, Male isn't higher or lower than Female and vice versa - we would again apply One Hot Encoding to the categorical column.
 
@@ -700,17 +701,17 @@ X_test.drop(categorical_vars, axis = 1, inplace = True)
 ```
 
 <br>
-### Model Training <a name="regtree-model-training"></a>
+### Model Training <a name="clftree-model-training"></a>
 
 Instantiating and training our Decision Tree model is done using the below code.  We use the *random_state* parameter to ensure we get reproducible results, and this helps us understand any improvements in performance with changes to model hyperparameters.
 
 ```python
 
 # instantiate our model object
-regressor = DecisionTreeRegressor(random_state = 42)
+clf = DecisionTreeClassifier(random_state = 42)
 
 # fit our model using our training & test sets
-regressor.fit(X_train, y_train)
+clf.fit(X_train, y_train)
 
 ```
 
