@@ -502,7 +502,7 @@ recall_score(y_test, y_pred_class)
 f1_score(y_test, y_pred_class)
 
 ```
-
+<br>
 Running this code gives us:
 
 * Classification Accuracy = **0.866** meaning we correctly predicted the class of 86.6% of test set observations
@@ -789,7 +789,7 @@ recall_score(y_test, y_pred_class)
 f1_score(y_test, y_pred_class)
 
 ```
-
+<br>
 Running this code gives us:
 
 * Classification Accuracy = **0.929** meaning we correctly predicted the class of 92.9% of test set observations
