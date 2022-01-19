@@ -453,17 +453,37 @@ The aim is to have a high proportion of observations falling into the top left c
 Since the proportion of signups in our data was around 30:70 we will next analyse not only Classification Accuracy, but also Precision, Recall, and F1-Score which will help us assess how well our model has performed in reality.
 
 <br>
-##### Calculate Cross Validated R-Squared
+##### Classification Performance Metrics
 
-An even more powerful and reliable way to assess model performance is to utilise Cross Validation.
+**Classification Accuracy**
 
-Instead of simply dividing our data into a single training set, and a single test set, with Cross Validation we break our data into a number of "chunks" and then iteratively train the model on all but one of the "chunks", test the model on the remaining "chunk" until each has had a chance to be the test set.
+Classification Accuracy is a metric that tells us *of all predicted observations, what proportion did we correctly classify*.  This is very intuitive, but when dealing with imbalanced classes, can be misleading.  
 
-The result of this is that we are provided a number of test set validation results - and we can take the average of these to give a much more robust & reliable view of how our model will perform on new, un-seen data!
+An example of this could be a rare disease. A model with a 98% Classification Accuracy on might appear like a fantastic result, but if our data contained 98% of patients *without* the disease, and 2% *with* the disease - then a 98% Classification Accuracy could be obtained simply by predicting that *no one* has the disease - which wouldn't be a great model in the real world.  Luckily, there are other metrics which can help us!
 
-In the code below, we put this into place.  We first specify that we want 4 "chunks" and then we pass in our regressor object, training set, and test set.  We also specify the metric we want to assess with, in this case, we stick with r-squared.
+In this example of the rare disease, we could define Classification Accuracy as *of all predicted patients, what proportion did we correctly classify as either having the disease, or not having the disease*
 
-Finally, we take a mean of all four test set results.
+**Precision & Recall**
+
+Precision is a metric that tells us *of all observations that were predicted as positive, how many actually were positive*
+
+Keeping with the rare disease example, Precision would tell us *of all patients we predicted to have the disease, how many actually did*
+
+Recall is a metric that tells us *of all positive observations, how many did we predict as positive*
+
+Again, keeping with the rare disease example, Recall would tell us *of all patients who actually had the disease, how many did we correctly predict*
+
+This would be a key metric in a real-world disease prediction model - it would tell us how often we will misdiagnose patients!
+
+The tricky thing about Precision & Recall is that it is impossible to optimise both - it's a zero-sum game.  If you try to increase Precision, then Recall decreases, and vice versa.  Sometimes however it will make more sense to try and elevate one of them, in spite of the other.  In the case of our rare-disease prediction like we've used in our example, perhaps it would be more important to optimise for Recall as we want to classify as many positive cases as possible.  In saying this however, we don't want to just classify every patient as having the disease, as that isn't a great outcome either!
+
+So - there is one more metric to cover, which is actually a *combination* of both Precision & Recall...
+
+**F1 Score**
+
+xxxx
+
+In the code below, we xxxx
 
 ```python
 
