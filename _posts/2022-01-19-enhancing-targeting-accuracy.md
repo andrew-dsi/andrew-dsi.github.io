@@ -884,7 +884,7 @@ That code gives us the below plot - which visualises the results!
 ![alt text](/img/posts/clf-tree-max-depth-plot.png "Decision Tree Max Depth Plot")
 
 <br>
-In the plot we can see that the *maximum* classification accuracy on the test set is found when applying a *max_depth* value of 9 which takes our F1-Score up to 0.925
+In the plot we can see that the *maximum* F1-Score on the test set is found when applying a *max_depth* value of 9 which takes our F1-Score up to 0.925
 
 
 
@@ -1101,9 +1101,9 @@ f1_score(y_test, y_pred_class)
 <br>
 Running this code gives us:
 
-* Classification Accuracy = **0.935** meaning we correctly predicted the class of 92.9% of test set observations
-* Precision = **0.887** meaning that for our *predicted* delivery club signups, we were correct 88.5% of the time
-* Recall = **0.904** meaning that of all *actual* delivery club signups, we predicted correctly 88.5% of the time
+* Classification Accuracy = **0.935** meaning we correctly predicted the class of 93.5% of test set observations
+* Precision = **0.887** meaning that for our *predicted* delivery club signups, we were correct 88.7% of the time
+* Recall = **0.904** meaning that of all *actual* delivery club signups, we predicted correctly 90.4% of the time
 * F1-Score = **0.895**
 
 These are all higher than what we saw when applying Logistic Regression, and marginally higher than what we got from our Decision Tree.  If we are after out and out accuracy then this would be the best model to choose.  If we were happier with a simpler, easier explain model, but that had almost the same performance - then we may choose the Decision Tree instead!
@@ -1464,12 +1464,15 @@ The variables that have been dropped are *total_items* and *credit score* - we w
 <br>
 ### Model Training <a name="knn-model-training"></a>
 
-Instantiating and training our Logistic Regression model is done using the below code.  We use the *random_state* parameter to ensure reproducible results, meaning any refinements can be compared to past results.  We also specify *max_iter = 1000* to allow the solver more attempts at finding an optimal regression line, as the default value of 100 was not enough.
+Instantiating and training our KNN model is done using the below code.  At this stage we will just use the default parameters, meaning that the algorithm:
+
+* Will use a value for k of 5, or in other words it will base classifications based upon the 5 nearest neighbours
+* Will use *uniform* weighting, or in other words an equal weighting to all 5 neighbours regardless of distance
 
 ```python
 
 # instantiate our model object
-clf = LogisticRegression(random_state = 42, max_iter = 1000)
+clf = KNeighborsClassifier()
 
 # fit our model using our training & test sets
 clf.fit(X_train, y_train)
@@ -1483,7 +1486,7 @@ clf.fit(X_train, y_train)
 
 To assess how well our model is predicting on new data - we use the trained model object (here called *clf*) and ask it to predict the *signup_flag* variable for the test set.
 
-In the code below we create one object to hold the binary 1/0 predictions, and another to hold the actual prediction probabilities for the positive class.
+In the code below we create one object to hold the binary 1/0 predictions, and another to hold the actual prediction probabilities for the positive class (which is based upon the majority class within the k nearest neighbours)
 
 ```python
 
@@ -1496,7 +1499,7 @@ y_pred_prob = clf.predict_proba(X_test)[:,1]
 <br>
 ##### Confusion Matrix
 
-A Confusion Matrix provides us a visual way to understand how our predictions match up against the actual values for those test set observations.
+As we've seen with all models so far, our Confusion Matrix provides us a visual way to understand how our predictions match up against the actual values for those test set observations.
 
 The below code creates the Confusion Matrix using the *confusion_matrix* functionality from within scikit-learn and then plots it using matplotlib.
 
@@ -1519,49 +1522,22 @@ plt.show()
 ```
 
 <br>
-![alt text](/img/posts/log-reg-confusion-matrix.png "Logistic Regression Confusion Matrix")
+![alt text](/img/posts/knn-confusion-matrix.png "KNN Confusion Matrix")
 
 <br>
 The aim is to have a high proportion of observations falling into the top left cell (predicted non-signup and actual non-signup) and the bottom right cell (predicted signup and actual signup).
+
+The results here are interesting - all of the errors are where the model incorrectly classified *delivery club* signups as non-signups - the model made no errors when classifying non-signups non-signups.
 
 Since the proportion of signups in our data was around 30:70 we will next analyse not only Classification Accuracy, but also Precision, Recall, and F1-Score which will help us assess how well our model has performed in reality.
 
 <br>
 ##### Classification Performance Metrics
 <br>
-**Classification Accuracy**
+**Accuracy, Precision, Recall, F1-Score**
 
-Classification Accuracy is a metric that tells us *of all predicted observations, what proportion did we correctly classify*.  This is very intuitive, but when dealing with imbalanced classes, can be misleading.  
+For details on these performance metrics, please see the above section on Logistic Regression.  Using all four of these metrics in combination gives a really good overview of the performance of a classification model, and gives us an understanding of the different scenarios & considerations!
 
-An example of this could be a rare disease. A model with a 98% Classification Accuracy on might appear like a fantastic result, but if our data contained 98% of patients *without* the disease, and 2% *with* the disease - then a 98% Classification Accuracy could be obtained simply by predicting that *no one* has the disease - which wouldn't be a great model in the real world.  Luckily, there are other metrics which can help us!
-
-In this example of the rare disease, we could define Classification Accuracy as *of all predicted patients, what proportion did we correctly classify as either having the disease, or not having the disease*
-
-<br>
-**Precision & Recall**
-
-Precision is a metric that tells us *of all observations that were predicted as positive, how many actually were positive*
-
-Keeping with the rare disease example, Precision would tell us *of all patients we predicted to have the disease, how many actually did*
-
-Recall is a metric that tells us *of all positive observations, how many did we predict as positive*
-
-Again, referring to the rare disease example, Recall would tell us *of all patients who actually had the disease, how many did we correctly predict*
-
-The tricky thing about Precision & Recall is that it is impossible to optimise both - it's a zero-sum game.  If you try to increase Precision, Recall decreases, and vice versa.  Sometimes however it will make more sense to try and elevate one of them, in spite of the other.  In the case of our rare-disease prediction like we've used in our example, perhaps it would be more important to optimise for Recall as we want to classify as many positive cases as possible.  In saying this however, we don't want to just classify every patient as having the disease, as that isn't a great outcome either!
-
-So - there is one more metric we will discuss & calculate, which is actually a *combination* of both...
-
-<br>
-**F1 Score**
-
-F1-Score is a metric that essentially "combines" both Precision & Recall.  Technically speaking, it is the harmonic mean of these two metrics.  A good, or high, F1-Score comes when there is a balance between Precision & Recall, rather than a disparity between them.
-
-Overall, optimising your model for F1-Score means that you'll get a model that is working well for both positive & negative classifications rather than skewed towards one or the other.  To return to the rare disease predictions, a high F1-Score would mean we've got a good balance between successfully predicting the disease when it's present, and not predicting cases where it's not present.
-
-Using all of these metrics in combination gives a really good overview of the performance of a classification model, and gives us an understanding of the different scenarios & considerations!
-
-<br>
 In the code below, we utilise in-built functionality from scikit-learn to calculate these four metrics.
 
 ```python
@@ -1582,90 +1558,73 @@ f1_score(y_test, y_pred_class)
 <br>
 Running this code gives us:
 
-* Classification Accuracy = **0.866** meaning we correctly predicted the class of 86.6% of test set observations
-* Precision = **0.784** meaning that for our *predicted* delivery club signups, we were correct 78.4% of the time
-* Recall = **0.69** meaning that of all *actual* delivery club signups, we predicted correctly 69% of the time
-* F1-Score = **0.734** 
+* Classification Accuracy = **0.936** meaning we correctly predicted the class of 93.6% of test set observations
+* Precision = **1.00** meaning that for our *predicted* delivery club signups, we were correct 100% of the time
+* Recall = **0.762** meaning that of all *actual* delivery club signups, we predicted correctly 76.2% of the time
+* F1-Score = **0.865**
 
-Since our data is *somewhat* imbalanced, looking at these metrics rather than just Classification Accuracy on it's own - is a good idea, and gives us a much better understanding of what our predictions mean!  We will use these same metrics when applying other models for this task, and can compare how they stack up.
-
-<br>
-### Finding The Optimal Classification Threshold <a name="logreg-opt-threshold"></a>
-
-By default, most pre-built classification models & algorithms will just use a 50% probability to discern between a positive class prediction (delivery club signup) and a negative class prediction (delivery club non-signup).
-
-Just because 50% is the default threshold *does not mean* it is the best one for our task.
-
-Here, we will test many potential classification thresholds, and plot the Precision, Recall & F1-Score, and find an optimal solution!
+These are interesting.  The KNN has obtained the highest overall Classification Accuracy & Precision, but the lower Recall score has penalised the F1-Score meaning that is actually lower than what was seen for both the Decision Tree & the Random Forest!
 
 <br>
-```python
+### Finding The Optimal Value For k <a name="knn-opt-k"></a>
 
-# set up the list of thresholds to loop through
-thresholds = np.arange(0, 1, 0.01)
+By default, the KNN algorithm within scikit-learn will use k = 5 meaning that classifications are based upon the five nearest neighbouring data-points in n-dimensional space.
 
-# create empty lists to append the results to
-precision_scores = []
-recall_scores = []
-f1_scores = []
+Just because this is the default threshold *does not mean* it is the best one for our task.
 
-# loop through each threshold - fit the model - append the results
-for threshold in thresholds:
-    
-    pred_class = (y_pred_prob >= threshold) * 1
-    
-    precision = precision_score(y_test, pred_class, zero_division = 0)
-    precision_scores.append(precision)
-    
-    recall = recall_score(y_test, pred_class)
-    recall_scores.append(recall)
-    
-    f1 = f1_score(y_test, pred_class)
-    f1_scores.append(f1)
-    
-# extract the optimal f1-score (and it's index)
-max_f1 = max(f1_scores)
-max_f1_idx = f1_scores.index(max_f1)
-
-```
-<br>
-
-Now we have run this, we can use the below code to plot the results!
+Here, we will test many potential values for k, and plot the Precision, Recall & F1-Score, and find an optimal solution!
 
 <br>
 ```python
 
-# plot the results
-plt.style.use("seaborn-poster")
-plt.plot(thresholds, precision_scores, label = "Precision", linestyle = "--")
-plt.plot(thresholds, recall_scores, label = "Recall", linestyle = "--")
-plt.plot(thresholds, f1_scores, label = "F1", linewidth = 5)
-plt.title(f"Finding the Optimal Threshold for Classification Model \n Max F1: {round(max_f1,2)} (Threshold = {round(thresholds[max_f1_idx],2)})")
-plt.xlabel("Threshold")
-plt.ylabel("Assessment Score")
-plt.legend(loc = "lower left")
+# set up range for search, and empty list to append accuracy scores to
+k_list = list(range(2,25))
+accuracy_scores = []
+
+# loop through each possible value of k, train and validate model, append test set f1-score
+for k in k_list:
+    
+    clf = KNeighborsClassifier(n_neighbors = k)
+    clf.fit(X_train,y_train)
+    y_pred = clf.predict(X_test)
+    accuracy = f1_score(y_test,y_pred)
+    accuracy_scores.append(accuracy)
+    
+# store max accuracy, and optimal k value    
+max_accuracy = max(accuracy_scores)
+max_accuracy_idx = accuracy_scores.index(max_accuracy)
+optimal_k_value = k_list[max_accuracy_idx]
+
+# plot accuracy by max depth
+plt.plot(k_list,accuracy_scores)
+plt.scatter(optimal_k_value, max_accuracy, marker = "x", color = "red")
+plt.title(f"Accuracy (F1 Score) by k \n Optimal Value for k: {optimal_k_value} (Accuracy: {round(max_accuracy,4)})")
+plt.xlabel("k")
+plt.ylabel("Accuracy (F1 Score)")
 plt.tight_layout()
 plt.show()
 
 ```
 <br>
-![alt text](/img/posts/log-reg-optimal-threshold-plot.png "Logistic Regression Optimal Threshold Plot")
+That code gives us the below plot - which visualises the results!
 
 <br>
-Along the x-axis of the above plot we have the different classification thresholds that were testing.  Along the y-axis we have the performance score for each of our three metrics.  As per the legend, we have Precision as a blue dotted line, Recall as an orange dotted line, and F1-Score as a thick green line.  You can see the interesting "zero-sum" relationship between Precision & Recall *and* you can see that the point where Precision & Recall meet is where F1-Score is maximised.
+![alt text](/img/posts/knn-optimal-k-value-plot.png "KNN Optimal k Value Plot")
 
-As you can see at the top of the plot, the optimal F1-Score for this model 0.78 and this is obtained at a classification threshold of 0.44.  This is higher than the F1-Score of 0.734 that we achieved at the default classification threshold of 0.50!
+<br>
+In the plot we can see that the *maximum* F1-Score on the test set is found when applying a k value of 5 - which is exactly what we started with, so nothing needs to change!
 
 <br>
 # Modelling Summary  <a name="modelling-summary"></a>
 
 The goal for the project was to build a model that would accurately predict the customers that would sign up for the *delivery club*.  This would allow for a much more targeted approach when running the next iteration of the campaign.  A secondary goal was to understand what the drivers for this are, so the client can get closer to the customers that need or want this service, and enhance their messaging.
 
-Based upon these, the chosen the model is the Random Forest as it was a) the most performant on the test set across classication accuracy, precision, recall, and f1-score, and b) the feature importance and permutation importance allows the client an understanding of the key drivers behind *delivery club* signups.
+Based upon these, the chosen the model is the Random Forest as it was a) the most consistently performant on the test set across classication accuracy, precision, recall, and f1-score, and b) the feature importance and permutation importance allows the client an understanding of the key drivers behind *delivery club* signups.
 
 <br>
 **Metric 1: Classification Accuracy**
 
+* KNN = 0.936
 * Random Forest = 0.935
 * Decision Tree = 0.929
 * Logistic Regression = 0.866
@@ -1673,6 +1632,7 @@ Based upon these, the chosen the model is the Random Forest as it was a) the mos
 <br>
 **Metric 2: Precision**
 
+* KNN = 1.00
 * Random Forest = 0.887
 * Decision Tree = 0.885
 * Logistic Regression = 0.784
@@ -1682,6 +1642,7 @@ Based upon these, the chosen the model is the Random Forest as it was a) the mos
 
 * Random Forest = 0.904
 * Decision Tree = 0.885
+* KNN = 0.762
 * Logistic Regression = 0.69
 
 <br>
@@ -1689,6 +1650,7 @@ Based upon these, the chosen the model is the Random Forest as it was a) the mos
 
 * Random Forest = 0.895
 * Decision Tree = 0.885
+* KNN = 0.865
 * Logistic Regression = 0.734
 
 <br>
