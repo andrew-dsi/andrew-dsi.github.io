@@ -1378,9 +1378,38 @@ X_test.drop(categorical_vars, axis = 1, inplace = True)
 ```
 
 <br>
+##### Feature Scaling
+
+As KNN is a *distance based* algorithm, in other words it is reliant on an understanding of how similar or different data points are across different dimensions in n-dimensional space, the application of *Feature Scaling* is extremely important.
+
+Feature Scaling is where we force the values from different columns to exist on the same scale, in order to enchance the learning capabilities of the model. There are two common approaches for this, Standardisation, and Normalisation.
+
+Standardisation rescales data to have a mean of 0, and a standard deviation of 1 - meaning most datapoints will most often fall between values of around -4 and +4.
+
+Normalisation rescales datapoints so that they exist in a range between 0 and 1.
+
+The below code uses the in-built *MinMaxScaler* functionality from scikit-learn to apply Normalisation to all of our input variables.  The reason we choose Normalisation over Standardisation is that our scaled data will all exist between 0 and 1, and these will then be compatible with any categorical variables that we have encoded as 1's and 0's. 
+
+In the code, we also make sure to apply *fit_transform* to the training set, but only *transform* to the test set. This means the scaling logic will learn and apply the "rules" from the training data, but only apply them to the test data. This is important in order to avoid data leakage where the test set learns information about the training data, and means we can’t fully trust model performance metrics!
+
+<br>
+```python
+
+# create our scaler object
+scale_norm = MinMaxScaler()
+
+# normalise the training set (using fit_transform)
+X_train = pd.DataFrame(scale_norm.fit_transform(X_train), columns = X_train.columns)
+
+# normalise the test set (using transform only)
+X_test = pd.DataFrame(scale_norm.transform(X_test), columns = X_test.columns)
+
+```
+
+<br>
 ##### Feature Selection
 
-Feature Selection is the process used to select the input variables that are most important to your Machine Learning task.  It can be a very important addition or at least, consideration, in certain scenarios.  The potential benefits of Feature Selection are:
+As we discussed when applying Logistic Regression above - Feature Selection is the process used to select the input variables that are most important to your Machine Learning task.  It can be a very important addition or at least, consideration, in certain scenarios.  The potential benefits of Feature Selection are:
 
 * **Improved Model Accuracy** - eliminating noise can help true relationships stand out
 * **Lower Computational Cost** - our model becomes faster to train, and faster to make predictions
