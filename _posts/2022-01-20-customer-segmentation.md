@@ -78,6 +78,7 @@ In the code below, we:
 * Pivot the data to get it into the right format for clustering
 * Change the values from raw dollars, into a percentage of spend for each customer (to ensure each customer is comparable)
 
+<br>
 ```python
 
 # import required Python packages
@@ -139,39 +140,22 @@ The data is at customer level, and we have a column for each of the highest leve
 <br>
 ### Concept Overview <a name="kmeans-overview"></a>
 
-Since we saved our modelling data as a pickle file, we import it.  We ensure we remove the id column, and we also ensure our data is shuffled.
+K-Means is an *unsupervised learning* algorithm, meaning that it does not look to predict known labels or values, but instead looks to isolate patterns within unlabelled data.
 
-We also investigate the class balance of our dependent variable - which is important when assessing classification accuracy.
+The algorithm works in a way where it partitions data-points into distinct groups (clusters) based upon their *similarity* to each other.
 
-```python
+This similarity is most often the eucliedean (straight-line) distance between data-points in n-dimensional space.  Each variable that is included lies on one of the dimensions in space.
 
-# import required packages
-import pandas as pd
-import pickle
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.linear_model import LogisticRegression
-from sklearn.utils import shuffle
-from sklearn.model_selection import train_test_split, cross_val_score, KFold
-from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.feature_selection import RFECV
+The number of distinct groups (clusters) is determined by the value that is set for "k".
 
-# import modelling data
-data_for_model = pickle.load(open("data/delivery_club_modelling.p", "rb"))
+The algorithm does this by iterating over four key steps, namely:
 
-# drop uneccessary columns
-data_for_model.drop("customer_id", axis = 1, inplace = True)
+1. It selects "k" random points in space (these points are known as centroids)
+2. It then assigns each of the data points to the nearest centroid (based upon euclidean distance)
+3. It then repositions the centroids to the *mean* dimension values of it's cluster
+4. It then reassigns each data-point to the nearest centroid
 
-# shuffle data
-data_for_model = shuffle(data_for_model, random_state = 42)
-
-# assess class balance of dependent variable
-data_for_model["signup_flag"].value_counts(normalize = True)
-
-```
-<br>
-From the last step in the above code, we see that **69% of customers did not sign up and 31% did**.  This tells us that while the data isn't perfectly balanced at 50:50, it isn't *too* imbalanced either.  Because of this, and as you will see, we make sure to not rely on classification accuracy alone when assessing results - also analysing Precision, Recall, and F1-Score.
+Steps 3 & 4 continue to iterate until no data-points are reassigned to a closer centroid.
 
 <br>
 ### Data Preprocessing <a name="kmeans-preprocessing"></a>
