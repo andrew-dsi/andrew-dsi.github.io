@@ -31,69 +31,28 @@ In this project we use k-means clustering to segment up the customer base in ord
 
 ### Context <a name="overview-context"></a>
 
-Our client, a grocery retailer, sent out mailers in a marketing campaign for their new *delivery club*.  This cost customers $100 per year for membership, and offered free grocery deliveries, rather than the normal cost of $10 per delivery.
+The Senior Management team from our client, a supermarket chain, are disagreeing about how customers are shopping, and how lifestyle choices may affect which food areas customers are shopping into, or more interestingly, not shopping into.
 
-For this, they sent mailers to their entire customer base (apart from a control group) but this proved expensive.  For the next batch of communications they would like to save costs by *only* mailing customers that were likely to sign up.
+They have asked us to use data, and Machine Learning to help segment up their customers based upon their engagement with each of the major food categories - aiding business understanding of the customer base, and to enhance the relevancy of targeted messaging & customer communications.
 
-Based upon the results of the last campaign and the customer data available, we will look to understand the *probability* of customers signing up for the *delivery club*.  This would allow the client to mail a more targeted selection of customers, lowering costs, and improving ROI.
-
-Let's use Machine Learning to take on this task!
 <br>
 <br>
 ### Actions <a name="overview-actions"></a>
 
-We firstly needed to compile the necessary data from tables in the database, gathering key customer metrics that may help predict *delivery club* membership.
+We firstly needed to compile the necessary data from sevaral tables in the database, namely the *transactions* table and the *product_areas* table.  We joined together the relevant information using Pandas, and then aggregated the transactional data across product areas, from the most recent six month to a customer level.
 
-Within our historical dataset from the last campaign, we found that 69% of customers did not sign up and 31% did.  This tells us that while the data isn't perfectly balanced at 50:50, it isn't *too* imbalanced either.  Even so, we make sure to not rely on classification accuracy alone when assessing results - also analysing Precision, Recall, and F1-Score.
+As a starting point, we test & apply k-means clustering for this task.  We need to apply some data pre-processing, most importantly feature scaling to ensure all variables exist on the same scale - a very important consideration for distance based algorithms such as k-means.
 
-As we are predicting a binary output, we tested four classification modelling approaches, namely:
+As k-means is an *unsupervised learning* approach, in other words there are no labels - we use a process known as *Within Cluster Sum of Squares (WCSS)* to understand what a "good" number of clusters or segments is.
 
-* Logistic Regression
-* Decision Tree
-* Random Forest
-* K Nearest Neighbours (KNN)
-
-For each model, we will import the data in the same way but will need to pre-process the data based up the requirements of each particular algorithm.  We will train & test each model, look to refine each to provide optimal performance, and then measure this predictive performance based on several metrics to give a well-rounded overview of which is best.
+Based upon this, we apply the k-means algorithm onto the product area data, append the clusters to our customer base, and then profile the resulting customer segments to understand what the differentiating factors were!
 <br>
 <br>
 
 ### Results <a name="overview-results"></a>
 
-The goal for the project was to build a model that would accurately predict the customers that would sign up for the *delivery club*.  This would allow for a much more targeted approach when running the next iteration of the campaign.  A secondary goal was to understand what the drivers for this are, so the client can get closer to the customers that need or want this service, and enhance their messaging.
+xxxxx
 
-Based upon these, the chosen the model is the Random Forest as it was a) the most consistently performant on the test set across classication accuracy, precision, recall, and f1-score, and b) the feature importance and permutation importance allows the client an understanding of the key drivers behind *delivery club* signups.
-
-<br>
-**Metric 1: Classification Accuracy**
-
-* KNN = 0.936
-* Random Forest = 0.935
-* Decision Tree = 0.929
-* Logistic Regression = 0.866
-
-<br>
-**Metric 2: Precision**
-
-* KNN = 1.00
-* Random Forest = 0.887
-* Decision Tree = 0.885
-* Logistic Regression = 0.784
-
-<br>
-**Metric 3: Recall**
-
-* Random Forest = 0.904
-* Decision Tree = 0.885
-* KNN = 0.762
-* Logistic Regression = 0.69
-
-<br>
-**Metric 4: F1 Score**
-
-* Random Forest = 0.895
-* Decision Tree = 0.885
-* KNN = 0.865
-* Logistic Regression = 0.734
 <br>
 <br>
 ### Growth/Next Steps <a name="overview-growth"></a>
@@ -107,38 +66,75 @@ From a data point of view, further variables could be collected, and further fea
 
 # Data Overview  <a name="data-overview"></a>
 
-We will be predicting the binary *signup_flag* metric from the *campaign_data* table in the client database.
+We are primarily looking to discover segments of customers based upon their transactions within *food* based product areas so we will need to only select those.
 
-The key variables hypothesised to predict this will come from the client database, namely the *transactions* table, the *customer_details* table, and the *product_areas* table.
+In the code below, we:
 
-We aggregated up customer data from the 3 months prior to the last campaign.
+* Import the required python packages & libraries
+* Import the tables from the database
+* Merge the tables to tag on *product_area_name* which only exists in the *product_areas* table
+* Drop the non-food categories
+* Aggregate the sales data for each product area, at customer level
+* Pivot the data to get it into the right format for clustering
+* Change the values from raw dollars, into a percentage of spend for each customer (to ensure each customer is comparable)
 
-After this data pre-processing in Python, we have a dataset for modelling that contains the following fields...
+```python
+
+# import required Python packages
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import MinMaxScaler
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# import tables from database
+transactions = ...
+product_areas = ...
+
+# merge product_area_name on
+transactions = pd.merge(transactions, product_areas, how = "inner", on = "product_area_id")
+
+# drop the non-food category
+transactions.drop(transactions[transactions["product_area_name"] == "Non-Food"].index, inplace = True)
+
+# aggregate sales at customer level (by product area)
+transaction_summary = transactions.groupby(["customer_id", "product_area_name"])["sales_cost"].sum().reset_index()
+
+# pivot data to place product areas as columns
+transaction_summary_pivot = transactions.pivot_table(index = "customer_id",
+                                                    columns = "product_area_name",
+                                                    values = "sales_cost",
+                                                    aggfunc = "sum",
+                                                    fill_value = 0,
+                                                    margins = True,
+                                                    margins_name = "Total").rename_axis(None,axis = 1)
+
+# transform sales into % sales
+transaction_summary_pivot = transaction_summary_pivot.div(transaction_summary_pivot["Total"], axis = 0)
+
+# drop the "total" column as we don't need that for clustering
+data_for_clustering = transaction_summary_pivot.drop(["Total"], axis = 1)
+
+```
+<br>
+
+After the data pre-processing using Pandas, we have a dataset for clustering that looks like the below sample:
 <br>
 <br>
 
-| **Variable Name** | **Variable Type** | **Description** |
-|---|---|---|
-| signup_flag | Dependent | A binary variable showing if the customer signed up for the delivery club in the last campaign |
-| distance_from_store | Independent | The distance in miles from the customers home address, and the store |
-| gender | Independent | The gender provided by the customer |
-| credit_score | Independent | The customers most recent credit score |
-| total_sales | Independent | Total spend by the customer in ABC Grocery - 3 months pre campaign |
-| total_items | Independent | Total products purchased by the customer in ABC Grocery - 3 months pre campaign |
-| transaction_count | Independent | Total unique transactions made by the customer in ABC Grocery - 3 months pre campaign |
-| product_area_count | Independent | The number of product areas within ABC Grocery the customers has shopped into - 3 months pre campaign |
-| average_basket_value | Independent | The average spend per transaction for the customer in ABC Grocery - 3 months pre campaign |
+| **customer_id** | **dairy** | **fruit** | **meat** | **vegetables** |
+|---|---|---|---|---|
+| 2 | 0.246 | 0.198 | 0.394 | 0.162  |
+| 3 | 0.142 | 0.233 | 0.528 | 0.097  |
+| 4 | 0.341 | 0.245 | 0.272 | 0.142  |
+| 5 | 0.213 | 0.250 | 0.430 | 0.107  |
+| 6 | 0.180 | 0.178 | 0.546 | 0.095  |
+| 7 | 0.000 | 0.517 | 0.000 | 0.483  |
+
+<br>
+The data is at customer level, and we have a column for each of the highest level food product areas.  Within each of those we have the *percentage* of sales that each customer allocated to that product area over the past six months.
 
 <br>
 # K-Means <a name="kmeans-title"></a>
-
-We utlise the scikit-learn library within Python to model our data using Logistic Regression. The code sections below are broken up into 5 key sections:
-
-* Data Import
-* Data Preprocessing
-* Model Training
-* Performance Assessment
-* Optimal Threshold Analysis
 
 <br>
 ### Concept Overview <a name="kmeans-overview"></a>
