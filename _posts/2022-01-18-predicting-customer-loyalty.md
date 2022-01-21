@@ -38,6 +38,7 @@ Our client, a grocery retailer, hired a market research consultancy to append ma
     - [Model Feature Importance](#rf-model-feature-importance)
 - [06. Modelling Summary](#modelling-summary)
 - [07. Predicting Missing Loyalty Scores](#modelling-predictions)
+- [08. Growth & Next Steps](#growth-next-steps)
 
 ---
 
