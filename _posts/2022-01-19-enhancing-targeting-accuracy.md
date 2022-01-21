@@ -21,22 +21,29 @@ Our client, a grocery retailer, wants to utilise Machine Learning to reduce mail
     - [Data Preprocessing](#logreg-preprocessing)
     - [Model Training](#logreg-model-training)
     - [Model Performance Assessment](#logreg-model-assessment)
-    - [Optimal Threshold Analysis](#logreg-model-threshold)
-- [04. Decision Tree](#regtree-title)
-    - [Data Import](#regtree-import)
-    - [Data Preprocessing](#regtree-preprocessing)
-    - [Model Training](#regtree-model-training)
-    - [Model Performance Assessment](#regtree-model-assessment)
-    - [Model Regularisation](#regtree-model-regularisation)
-    - [Model Visualisation](#regtree-visualise)
+    - [Optimal Threshold Analysis](#logreg-opt-threshold)
+- [04. Decision Tree](#clftree-title)
+    - [Data Import](#clftree-import)
+    - [Data Preprocessing](#clftree-preprocessing)
+    - [Model Training](#clftree-model-training)
+    - [Model Performance Assessment](#clftree-model-assessment)
+    - [Model Visualisation](#clftree-visualise)
+    - [Model Regularisation](#clftree-model-regularisation)
 - [05. Random Forest](#rf-title)
     - [Data Import](#rf-import)
     - [Data Preprocessing](#rf-preprocessing)
     - [Model Training](#rf-model-training)
     - [Model Performance Assessment](#rf-model-assessment)
     - [Model Feature Importance](#rf-model-feature-importance)
-- [06. Modelling Summary](#modelling-summary)
-- [07. Predicting Missing Loyalty Scores](#modelling-predictions)
+- [06. KNN](#knn-title)
+    - [Data Import](#knn-import)
+    - [Data Preprocessing](#knn-preprocessing)
+    - [Model Training](#knn-model-training)
+    - [Model Performance Assessment](#knn-model-assessment)
+    - [Optimal Value For k](#knn-opt-k)
+- [07. Modelling Summary](#modelling-summary)
+- [08. Application](#modelling-application)
+- [09. Growth & Next Steps](#growth-next-steps)
 
 ---
 
@@ -65,6 +72,8 @@ As we are predicting a binary output, we tested four classification modelling ap
 * Decision Tree
 * Random Forest
 * K Nearest Neighbours (KNN)
+
+For each model, we will import the data in the same way but will need to pre-process the data based up the requirements of each particular algorithm.  We will train & test each model, look to refine each to provide optimal performance, and then measure this predictive performance based on several metrics to give a well-rounded overview of which is best.
 <br>
 <br>
 
@@ -72,11 +81,12 @@ As we are predicting a binary output, we tested four classification modelling ap
 
 The goal for the project was to build a model that would accurately predict the customers that would sign up for the *delivery club*.  This would allow for a much more targeted approach when running the next iteration of the campaign.  A secondary goal was to understand what the drivers for this are, so the client can get closer to the customers that need or want this service, and enhance their messaging.
 
-Based upon these, the chosen the model is the Random Forest as it was a) the most performant on the test set across classication accuracy, precision, recall, and f1-score, and b) the feature importance and permutation importance allows the client an understanding of the key drivers behind *delivery club* signups.
+Based upon these, the chosen the model is the Random Forest as it was a) the most consistently performant on the test set across classication accuracy, precision, recall, and f1-score, and b) the feature importance and permutation importance allows the client an understanding of the key drivers behind *delivery club* signups.
 
 <br>
 **Metric 1: Classification Accuracy**
 
+* KNN = 0.936
 * Random Forest = 0.935
 * Decision Tree = 0.929
 * Logistic Regression = 0.866
@@ -84,22 +94,25 @@ Based upon these, the chosen the model is the Random Forest as it was a) the mos
 <br>
 **Metric 2: Precision**
 
+* KNN = 1.00
 * Random Forest = 0.887
 * Decision Tree = 0.885
 * Logistic Regression = 0.784
 
 <br>
-**Metric 2: Recall**
+**Metric 3: Recall**
 
 * Random Forest = 0.904
 * Decision Tree = 0.885
+* KNN = 0.762
 * Logistic Regression = 0.69
 
 <br>
-**Metric 2: F1 Score**
+**Metric 4: F1 Score**
 
 * Random Forest = 0.895
 * Decision Tree = 0.885
+* KNN = 0.865
 * Logistic Regression = 0.734
 <br>
 <br>
@@ -137,7 +150,7 @@ After this data pre-processing in Python, we have a dataset for modelling that c
 | average_basket_value | Independent | The average spend per transaction for the customer in ABC Grocery - 3 months pre campaign |
 
 <br>
-# Modelling Overview
+# Modelling Overview  <a name="modelling-overview"></a>
 
 We will build a model that looks to accurately predict *signup_flag*, based upon the customer metrics listed above.
 
@@ -1480,7 +1493,7 @@ clf.fit(X_train, y_train)
 ```
 
 <br>
-### Model Performance Assessment <a name="logreg-model-assessment"></a>
+### Model Performance Assessment <a name="knn-model-assessment"></a>
 
 ##### Predict On The Test Set
 
@@ -1638,7 +1651,7 @@ Based upon these, the chosen the model is the Random Forest as it was a) the mos
 * Logistic Regression = 0.784
 
 <br>
-**Metric 2: Recall**
+**Metric 3: Recall**
 
 * Random Forest = 0.904
 * Decision Tree = 0.885
@@ -1646,7 +1659,7 @@ Based upon these, the chosen the model is the Random Forest as it was a) the mos
 * Logistic Regression = 0.69
 
 <br>
-**Metric 2: F1 Score**
+**Metric 4: F1 Score**
 
 * Random Forest = 0.895
 * Decision Tree = 0.885
