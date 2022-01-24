@@ -25,7 +25,7 @@ In this project we use k-means clustering to segment up the customer base in ord
 - [03. Application](#kmeans-application)
 - [04. Growth & Next Steps](#growth-next-steps)
 
----
+___
 
 # Project Overview  <a name="overview-main"></a>
 
