@@ -62,7 +62,8 @@ While predictive accuracy was relatively high - other modelling approaches could
 From a data point of view, further variables could be collected, and further feature engineering could be undertaken to ensure that we have as much useful information available for predicting customer loyalty
 <br>
 <br>
----
+
+___
 
 # Data Overview  <a name="data-overview"></a>
 
@@ -160,195 +161,79 @@ Steps 3 & 4 continue to iterate until no data-points are reassigned to a closer 
 <br>
 ### Data Preprocessing <a name="kmeans-preprocessing"></a>
 
-For Logistic Regression we have certain data preprocessing steps that need to be addressed, including:
+There are three vital preprocessing steps for k-means, namely:
 
 * Missing values in the data
 * The effect of outliers
-* Encoding categorical variables to numeric form
-* Multicollinearity & Feature Selection
+* Feature Scaling
 
 <br>
 ##### Missing Values
 
-The number of missing values in the data was extremely low, so instead of applying any imputation (i.e. mean, most common value) we will just remove those rows
+Missing values can cause issues for k-means, as the algorithm won't know where to plot those data-points along the dimension where the value is not present.  If we have observations with missing values, the most common options are to either remove the observations, or to use an imputer to fill-in or to estimate what those value might be.
 
-```python
-
-# remove rows where values are missing
-data_for_model.isna().sum()
-data_for_model.dropna(how = "any", inplace = True)
-
-```
+As we aggregated our data for each customer, we actually don't suffer from missing values so we don't need to deal with that here.
 
 <br>
 ##### Outliers
 
-The ability for a Logistic Regression model to generalise well across *all* data can be hampered if there are outliers present.  There is no right or wrong way to deal with outliers, but it is always something worth very careful consideration - just because a value is high or low, does not necessarily mean it should not be there!
+As k-means is a distance based algorithm, outliers can cause problems. The main issue we face is when we come to scale our input variables, a very important step for a distance based algorithm.
 
-In this code section, we use **.describe()** from Pandas to investigate the spread of values for each of our predictors.  The results of this can be seen in the table below.
-
-<br>
-
-| **metric** | **distance_from_store** | **credit_score** | **total_sales** | **total_items** | **transaction_count** | **product_area_count** | **average_basket_value** |
-|---|---|---|---|---|---|---|---|
-| mean | 2.61 | 0.60 | 968.17 | 143.88 | 22.21 | 4.18 | 38.03  |
-| std | 14.40 | 0.10 | 1073.65 | 125.34 | 11.72 | 0.92 | 24.24  |
-| min | 0.00 | 0.26 | 2.09 | 1.00 | 1.00 | 1.00 | 2.09  |
-| 25% | 0.73 | 0.53 | 383.94 | 77.00 | 16.00 | 4.00 | 21.73  |
-| 50% | 1.64 | 0.59 | 691.64 | 123.00 | 23.00 | 4.00 | 31.07  |
-| 75% | 2.92 | 0.67 | 1121.53 | 170.50 | 28.00 | 5.00 | 46.43  |
-| max | 400.97 | 0.88 | 7372.06 | 910.00 | 75.00 | 5.00 | 141.05  |
+We don’t want any variables to be “bunched up” due to a single outlier value, as this will make it hard to compare their values to the other input variables. We should always investigate outliers rigorously - however in our case where we're dealing with percentages, we thankfully don't face this issue!
 
 <br>
-Based on this investigation, we see some *max* column values for several variables to be much higher than the *median* value.
+##### Feature Scaling
 
-This is for columns *distance_from_store*, *total_sales*, and *total_items*
+Again, as k-means is a distance based algorithm, in other words it is reliant on an understanding of how similar or different data points are across different dimensions in n-dimensional space, the application of Feature Scaling is extremely important.
 
-For example, the median *distance_to_store* is 1.64 miles, but the maximum is over 400 miles!
+Feature Scaling is where we force the values from different columns to exist on the same scale, in order to enchance the learning capabilities of the model. There are two common approaches for this, Standardisation, and Normalisation.
 
-Because of this, we apply some outlier removal in order to facilitate generalisation across the full dataset.
+Standardisation rescales data to have a mean of 0, and a standard deviation of 1 - meaning most datapoints will most often fall between values of around -4 and +4.
 
-We do this using the "boxplot approach" where we remove any rows where the values within those columns are outside of the interquartile range multiplied by 2.
+Normalisation rescales datapoints so that they exist in a range between 0 and 1.
 
-<br>
+For k-means clustering, either approach is going to be *far better* than using no scaling at all.  Here, we will look to apply normalisation as this will ensure all variables will end up having the same range, fixed between 0 and 1, and therefore the k-means algorithm can judge each variable in the same context.  Standardisation *can* result in different ranges, variable to variable, and this is not so useful (although this isn't explcitly true in all scenarios).
+
+Another reason for choosing Normalisation over Standardisation is that our scaled data will *all* exist between 0 and 1, and these will then be compatible with any categorical variables that we have encoded as 1’s and 0’s (although we don't have any variables of this type in our task here).
+
+In our specific task here, we are using percentages, so our values are _already_ spread between 0 and 1.  We will still apply normalisation for the following reason.  One of the product areas might commonly make up a large proportion of customer sales, and this may end up dominating the clustering space.  If we normalise all of our variables, even product areas that make up smaller volumes, will be spread proportionately between 0 and 1!
+
+The below code uses the in-built MinMaxScaler functionality from scikit-learn to apply Normalisation to all of our variables.  The reason we create a new object (here called data_for_clustering_scaled) is that we want to use the scaled data for clustering, but when profiling the clusters later on, we may want to use the actual percentages as this may make more intuitive business sense, so it's good to have both options available!
+
 ```python
 
-outlier_investigation = data_for_model.describe()
-outlier_columns = ["distance_from_store", "total_sales", "total_items"]
+# create our scaler object
+scale_norm = MinMaxScaler()
 
-# boxplot approach
-for column in outlier_columns:
-    
-    lower_quartile = data_for_model[column].quantile(0.25)
-    upper_quartile = data_for_model[column].quantile(0.75)
-    iqr = upper_quartile - lower_quartile
-    iqr_extended = iqr * 2
-    min_border = lower_quartile - iqr_extended
-    max_border = upper_quartile + iqr_extended
-    
-    outliers = data_for_model[(data_for_model[column] < min_border) | (data_for_model[column] > max_border)].index
-    print(f"{len(outliers)} outliers detected in column {column}")
-    
-    data_for_model.drop(outliers, inplace = True)
+# normalise the data
+data_for_clustering_scaled = pd.DataFrame(scale_norm.fit_transform(data_for_clustering), columns = data_for_clustering.columns)
 
 ```
 
 <br>
-##### Split Out Data For Modelling
+### Finding A Good Value For k <a name="kmeans-k-value"></a>
 
-In the next code block we do two things, we firstly split our data into an **X** object which contains only the predictor variables, and a **y** object that contains only our dependent variable.
+At this point here, our data is ready to be fed into the k-means clustering algorithm.  Before that however, we want to understand what number of clusters we want the data split into.
 
-Once we have done this, we split our data into training and test sets to ensure we can fairly validate the accuracy of the predictions on data that was not used in training.  In this case, we have allocated 80% of the data for training, and the remaining 20% for validation.  We make sure to add in the *stratify* parameter to ensure that both our training and test sets have the same proportion of customers who did, and did not, sign up for the *delivery club* - meaning we can be more confident in our assessment of predictive performance.
+In the world of unsupervised learning, there is no *right or wrong* value for this - it really depends on the data you are dealing with, as well as the unique scenario you're utilising the algorithm for.  From our client, having a very high number of clusters might not be appropriate as it would be too hard for the business to understand the nuance of each in a way where they can apply the right strategies.
 
-<br>
+Finding the "right" value for k, can feel more like art than science, but there are some data driven approaches that can help us!  
+
+The approach we will utilise here is known as *Within Cluster Sum of Squares (WCSS)* which measures the sum of the squared euclidean distances that data points lie from their closest centroid.  WCSS can help us understand the point where adding *more clusters* provides little extra benefit in terms of separating our data.
+
+By default, the k-means algorithm within scikit-learn will use k = 8 meaning that it will look to split the data into eight distinct clusters.  We want to find a better value that fits our data, and our task!
+
+In the code below we will test multiple values for k, and plot how this WCSS metric changes.  As we increase the value for k (in other words, as we increase the number or centroids or clusters) the WCSS value will always decrease.  However, these decreases will get smaller and smaller each time we add another centroid and we are looking for a point where this decrease is quite prominent *before* this point of diminishiing returns....
+
 ```python
 
-# split data into X and y objects for modelling
-X = data_for_model.drop(["signup_flag"], axis = 1)
-y = data_for_model["signup_flag"]
-
-# split out training & test sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42, stratify = y)
-
-```
-
-<br>
-##### Categorical Predictor Variables
-
-In our dataset, we have one categorical variable *gender* which has values of "M" for Male, "F" for Female, and "U" for Unknown.
-
-The Logistic Regression algorithm can't deal with data in this format as it can't assign any numerical meaning to it when looking to assess the relationship between the variable and the dependent variable.
-
-As *gender* doesn't have any explicit *order* to it, in other words, Male isn't higher or lower than Female and vice versa - one appropriate approach is to apply One Hot Encoding to the categorical column.
-
-One Hot Encoding can be thought of as a way to represent categorical variables as binary vectors, in other words, a set of *new* columns for each categorical value with either a 1 or a 0 saying whether that value is true or not for that observation.  These new columns would go into our model as input variables, and the original column is discarded.
-
-We also drop one of the new columns using the parameter *drop = "first"*.  We do this to avoid the *dummy variable trap* where our newly created encoded columns perfectly predict each other - and we run the risk of breaking the assumption that there is no multicollinearity, a requirement or at least an important consideration for some models, Linear Regression being one of them! Multicollinearity occurs when two or more input variables are *highly* correlated with each other, it is a scenario we attempt to avoid as in short, while it won't neccessarily affect the predictive accuracy of our model, it can make it difficult to trust the statistics around how well the model is performing, and how much each input variable is truly having.
-
-In the code, we also make sure to apply *fit_transform* to the training set, but only *transform* to the test set.  This means the One Hot Encoding logic will *learn and apply* the "rules" from the training data, but only *apply* them to the test data.  This is important in order to avoid *data leakage* where the test set *learns* information about the training data, and means we can't fully trust model performance metrics!
-
-For ease, after we have applied One Hot Encoding, we turn our training and test objects back into Pandas Dataframes, with the column names applied.
-
-<br>
-```python
-
-# list of categorical variables that need encoding
-categorical_vars = ["gender"]
-
-# instantiate OHE class
-one_hot_encoder = OneHotEncoder(sparse=False, drop = "first")
-
-# apply OHE
-X_train_encoded = one_hot_encoder.fit_transform(X_train[categorical_vars])
-X_test_encoded = one_hot_encoder.transform(X_test[categorical_vars])
-
-# extract feature names for encoded columns
-encoder_feature_names = one_hot_encoder.get_feature_names_out(categorical_vars)
-
-# turn objects back to pandas dataframe
-X_train_encoded = pd.DataFrame(X_train_encoded, columns = encoder_feature_names)
-X_train = pd.concat([X_train.reset_index(drop=True), X_train_encoded.reset_index(drop=True)], axis = 1)
-X_train.drop(categorical_vars, axis = 1, inplace = True)
-
-X_test_encoded = pd.DataFrame(X_test_encoded, columns = encoder_feature_names)
-X_test = pd.concat([X_test.reset_index(drop=True), X_test_encoded.reset_index(drop=True)], axis = 1)
-X_test.drop(categorical_vars, axis = 1, inplace = True)
-
-```
-
-<br>
-##### Feature Selection
-
-Feature Selection is the process used to select the input variables that are most important to your Machine Learning task.  It can be a very important addition or at least, consideration, in certain scenarios.  The potential benefits of Feature Selection are:
-
-* **Improved Model Accuracy** - eliminating noise can help true relationships stand out
-* **Lower Computational Cost** - our model becomes faster to train, and faster to make predictions
-* **Explainability** - understanding & explaining outputs for stakeholder & customers becomes much easier
-
-There are many, many ways to apply Feature Selection.  These range from simple methods such as a *Correlation Matrix* showing variable relationships, to *Univariate Testing* which helps us understand statistical relationships between variables, and then to even more powerful approaches like *Recursive Feature Elimination (RFE)* which is an approach that starts with all input variables, and then iteratively removes those with the weakest relationships with the output variable.
-
-For our task we applied a variation of Reursive Feature Elimination called *Recursive Feature Elimination With Cross Validation (RFECV)* where we split the data into many "chunks" and iteratively trains & validates models on each "chunk" seperately.  This means that each time we assess different models with different variables included, or eliminated, the algorithm also knows how accurate each of those models was.  From the suite of model scenarios that are created, the algorithm can determine which provided the best accuracy, and thus can infer the best set of input variables to use!
-
-<br>
-```python
-
-# instantiate RFECV & the model type to be utilised
+# instantiate our model object
 clf = LogisticRegression(random_state = 42, max_iter = 1000)
-feature_selector = RFECV(clf)
 
-# fit RFECV onto our training & test data
-fit = feature_selector.fit(X_train,y_train)
-
-# extract & print the optimal number of features
-optimal_feature_count = feature_selector.n_features_
-print(f"Optimal number of features: {optimal_feature_count}")
-
-# limit our training & test sets to only include the selected variables
-X_train = X_train.loc[:, feature_selector.get_support()]
-X_test = X_test.loc[:, feature_selector.get_support()]
+# fit our model using our training & test sets
+clf.fit(X_train, y_train)
 
 ```
-
-<br>
-The below code then produces a plot that visualises the cross-validated classification accuracy with each potential number of features
-
-```python
-
-plt.style.use('seaborn-poster')
-plt.plot(range(1, len(fit.cv_results_['mean_test_score']) + 1), fit.cv_results_['mean_test_score'], marker = "o")
-plt.ylabel("Classification Accuracy")
-plt.xlabel("Number of Features")
-plt.title(f"Feature Selection using RFECV \n Optimal number of features is {optimal_feature_count} (at score of {round(max(fit.cv_results_['mean_test_score']),4)})")
-plt.tight_layout()
-plt.show()
-
-```
-
-<br>
-This creates the below plot, which shows us that the highest cross-validated classification accuracy (0.904) is when we include seven of our original input variables.  The variable that has been dropped is *total_sales* but from the chart we can see that the difference is negligible.  However, we will continue on with the selected seven!
-
-<br>
-![alt text](/img/posts/log-reg-feature-selection-plot.png "Logistic Regression Feature Selection Plot")
 
 <br>
 ### Model Fitting <a name="kmeans-model-fitting"></a>
