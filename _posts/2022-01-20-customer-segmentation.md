@@ -223,15 +223,27 @@ The approach we will utilise here is known as *Within Cluster Sum of Squares (WC
 
 By default, the k-means algorithm within scikit-learn will use k = 8 meaning that it will look to split the data into eight distinct clusters.  We want to find a better value that fits our data, and our task!
 
-In the code below we will test multiple values for k, and plot how this WCSS metric changes.  As we increase the value for k (in other words, as we increase the number or centroids or clusters) the WCSS value will always decrease.  However, these decreases will get smaller and smaller each time we add another centroid and we are looking for a point where this decrease is quite prominent *before* this point of diminishiing returns....
+In the code below we will test multiple values for k, and plot how this WCSS metric changes.  As we increase the value for k (in other words, as we increase the number or centroids or clusters) the WCSS value will always decrease.  However, these decreases will get smaller and smaller each time we add another centroid and we are looking for a point where this decrease is quite prominent *before* this point of diminishing returns....
 
 ```python
 
-# instantiate our model object
-clf = LogisticRegression(random_state = 42, max_iter = 1000)
+# set up range for search, and empty list to append wcss scores to
+k_values = list(range(1,10))
+wcss_list = []
 
-# fit our model using our training & test sets
-clf.fit(X_train, y_train)
+# loop through each possible value of k, fit to the data, append the wcss score
+for k in k_values:
+    kmeans = KMeans(n_clusters = k, random_state = 42)
+    kmeans.fit(data_for_clustering_scaled)
+    wcss_list.append(kmeans.inertia_)
+
+# plot wcss by k
+plt.plot(k_values, wcss_list)
+plt.title("Within Cluster Sum of Squares -  by k")
+plt.xlabel("k")
+plt.ylabel("WCSS Score")
+plt.tight_layout()
+plt.show()
 
 ```
 
