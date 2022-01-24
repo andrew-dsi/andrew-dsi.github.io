@@ -289,6 +289,7 @@ data_for_clustering["cluster"] = kmeans.labels_
 
 Once we have our data separated into distinct clusters, our client needs to understand *what is is* that is driving the separation.  This means the business can understand the customers within each, and the behaviours that make them unique.
 
+<br>
 ##### Cluster Sizes
 
 In the below code we firstly assess the number of customers that fall into each cluster.
@@ -310,6 +311,7 @@ Running that code shows us that the three clusters are different in size, with t
 
 Based on these results, it does appear we do have a skew toward Cluster 0 with Cluster 1 & Cluster 2 being proportionally smaller.  This isn't right or wrong, it is simply showing up pockets of the customer base that are exhibiting different behaviours - and this is *exactly* what we want.
 
+<br>
 ##### Cluster Attributes
 
 To understand what these different behaviours or characteristics are, we can look to analyse the attributes of each cluster, in terms of the variables we fed into the k-means algorithm.
