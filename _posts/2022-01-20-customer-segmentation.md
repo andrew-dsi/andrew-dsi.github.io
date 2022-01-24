@@ -223,7 +223,7 @@ The approach we will utilise here is known as *Within Cluster Sum of Squares (WC
 
 By default, the k-means algorithm within scikit-learn will use k = 8 meaning that it will look to split the data into eight distinct clusters.  We want to find a better value that fits our data, and our task!
 
-In the code below we will test multiple values for k, and plot how this WCSS metric changes.  As we increase the value for k (in other words, as we increase the number or centroids or clusters) the WCSS value will always decrease.  However, these decreases will get smaller and smaller each time we add another centroid and we are looking for a point where this decrease is quite prominent *before* this point of diminishing returns....
+In the code below we will test multiple values for k, and plot how this WCSS metric changes.  As we increase the value for k (in other words, as we increase the number or centroids or clusters) the WCSS value will always decrease.  However, these decreases will get smaller and smaller each time we add another centroid and we are looking for a point where this decrease is quite prominent *before* this point of diminishing returns.
 
 ```python
 
@@ -246,201 +246,95 @@ plt.tight_layout()
 plt.show()
 
 ```
+<br>
+That code gives us the below plot - which visualises our results!
+
+<br>
+![alt text](/img/posts/kmeans-optimal-k-value-plot.png "K-Means Optimal k Value Plot")
+
+<br>
+Based upon the shape of the above plot - there does appear to be an elbow at k = 3.  Prior to that we see a significant drop in the WCSS score, but following the decreases are much smaller, meaning this could be a point that suggests adding *more clusters* will provide little extra benefit in terms of separating our data.  A small number of clusters can be beneficial when considering how easy it is for the business to focus on, and understand, each - so we will continue on, and fit our k-means clustering solution with k = 3.
 
 <br>
 ### Model Fitting <a name="kmeans-model-fitting"></a>
 
-Instantiating and training our Logistic Regression model is done using the below code.  We use the *random_state* parameter to ensure reproducible results, meaning any refinements can be compared to past results.  We also specify *max_iter = 1000* to allow the solver more attempts at finding an optimal regression line, as the default value of 100 was not enough.
+The below code will instantiate our k-means object using a value for k equal to 3.  We then fit this object to our scaled dataset to separate our data into three distinct segments or clusters.
 
 ```python
 
-# instantiate our model object
-clf = LogisticRegression(random_state = 42, max_iter = 1000)
+# instantiate our k-means object
+kmeans = KMeans(n_clusters = 3, random_state = 42)
 
-# fit our model using our training & test sets
-clf.fit(X_train, y_train)
+# fit to our data
+kmeans.fit(data_for_clustering_scaled)
 
 ```
 
 <br>
 ### Append Clusters To Customers <a name="kmeans-append-clusters"></a>
 
-##### Predict On The Test Set
+With the k-means algorithm fitted to our data, we can now append those clusters to our original dataset, meaning that each customer will be tagged with the cluster number that they most closely fit into based upon their sales data over each product area.
 
-To assess how well our model is predicting on new data - we use the trained model object (here called *clf*) and ask it to predict the *signup_flag* variable for the test set.
-
-In the code below we create one object to hold the binary 1/0 predictions, and another to hold the actual prediction probabilities for the positive class.
+In the code below we tag this cluster number onto our original dataframe.
 
 ```python
 
-# predict on the test set
-y_pred_class = clf.predict(X_test)
-y_pred_prob = clf.predict_proba(X_test)[:,1]
+# add cluster labels to our original data
+data_for_clustering["cluster"] = kmeans.labels_
 
 ```
 
 <br>
-##### Confusion Matrix
+### Cluster Profiling <a name="kmeans-cluster-profiling"></a>
 
-A Confusion Matrix provides us a visual way to understand how our predictions match up against the actual values for those test set observations.
+Once we have our data separated into distinct clusters, our client needs to understand *what is is* that is driving the separation.  This means the business can understand the customers within each, and the behaviours that make them unique.
 
-The below code creates the Confusion Matrix using the *confusion_matrix* functionality from within scikit-learn and then plots it using matplotlib.
+##### Cluster Sizes
 
-```python
-
-# create the confusion matrix
-conf_matrix = confusion_matrix(y_test, y_pred_class)
-
-# plot the confusion matrix
-plt.style.use("seaborn-poster")
-plt.matshow(conf_matrix, cmap = "coolwarm")
-plt.gca().xaxis.tick_bottom()
-plt.title("Confusion Matrix")
-plt.ylabel("Actual Class")
-plt.xlabel("Predicted Class")
-for (i, j), corr_value in np.ndenumerate(conf_matrix):
-    plt.text(j, i, corr_value, ha = "center", va = "center", fontsize = 20)
-plt.show()
-
-```
-
-<br>
-![alt text](/img/posts/log-reg-confusion-matrix.png "Logistic Regression Confusion Matrix")
-
-<br>
-The aim is to have a high proportion of observations falling into the top left cell (predicted non-signup and actual non-signup) and the bottom right cell (predicted signup and actual signup).
-
-Since the proportion of signups in our data was around 30:70 we will next analyse not only Classification Accuracy, but also Precision, Recall, and F1-Score which will help us assess how well our model has performed in reality.
-
-<br>
-##### Classification Performance Metrics
-<br>
-**Classification Accuracy**
-
-Classification Accuracy is a metric that tells us *of all predicted observations, what proportion did we correctly classify*.  This is very intuitive, but when dealing with imbalanced classes, can be misleading.  
-
-An example of this could be a rare disease. A model with a 98% Classification Accuracy on might appear like a fantastic result, but if our data contained 98% of patients *without* the disease, and 2% *with* the disease - then a 98% Classification Accuracy could be obtained simply by predicting that *no one* has the disease - which wouldn't be a great model in the real world.  Luckily, there are other metrics which can help us!
-
-In this example of the rare disease, we could define Classification Accuracy as *of all predicted patients, what proportion did we correctly classify as either having the disease, or not having the disease*
-
-<br>
-**Precision & Recall**
-
-Precision is a metric that tells us *of all observations that were predicted as positive, how many actually were positive*
-
-Keeping with the rare disease example, Precision would tell us *of all patients we predicted to have the disease, how many actually did*
-
-Recall is a metric that tells us *of all positive observations, how many did we predict as positive*
-
-Again, referring to the rare disease example, Recall would tell us *of all patients who actually had the disease, how many did we correctly predict*
-
-The tricky thing about Precision & Recall is that it is impossible to optimise both - it's a zero-sum game.  If you try to increase Precision, Recall decreases, and vice versa.  Sometimes however it will make more sense to try and elevate one of them, in spite of the other.  In the case of our rare-disease prediction like we've used in our example, perhaps it would be more important to optimise for Recall as we want to classify as many positive cases as possible.  In saying this however, we don't want to just classify every patient as having the disease, as that isn't a great outcome either!
-
-So - there is one more metric we will discuss & calculate, which is actually a *combination* of both...
-
-<br>
-**F1 Score**
-
-F1-Score is a metric that essentially "combines" both Precision & Recall.  Technically speaking, it is the harmonic mean of these two metrics.  A good, or high, F1-Score comes when there is a balance between Precision & Recall, rather than a disparity between them.
-
-Overall, optimising your model for F1-Score means that you'll get a model that is working well for both positive & negative classifications rather than skewed towards one or the other.  To return to the rare disease predictions, a high F1-Score would mean we've got a good balance between successfully predicting the disease when it's present, and not predicting cases where it's not present.
-
-Using all of these metrics in combination gives a really good overview of the performance of a classification model, and gives us an understanding of the different scenarios & considerations!
-
-<br>
-In the code below, we utilise in-built functionality from scikit-learn to calculate these four metrics.
-
-```python
-
-# classification accuracy
-accuracy_score(y_test, y_pred_class)
-
-# precision
-precision_score(y_test, y_pred_class)
-
-# recall
-recall_score(y_test, y_pred_class)
-
-# f1-score
-f1_score(y_test, y_pred_class)
-
-```
-<br>
-Running this code gives us:
-
-* Classification Accuracy = **0.866** meaning we correctly predicted the class of 86.6% of test set observations
-* Precision = **0.784** meaning that for our *predicted* delivery club signups, we were correct 78.4% of the time
-* Recall = **0.69** meaning that of all *actual* delivery club signups, we predicted correctly 69% of the time
-* F1-Score = **0.734** 
-
-Since our data is *somewhat* imbalanced, looking at these metrics rather than just Classification Accuracy on it's own - is a good idea, and gives us a much better understanding of what our predictions mean!  We will use these same metrics when applying other models for this task, and can compare how they stack up.
-
-<br>
-### Segment Profiling <a name="kmeans-cluster-profiling"></a>
-
-By default, most pre-built classification models & algorithms will just use a 50% probability to discern between a positive class prediction (delivery club signup) and a negative class prediction (delivery club non-signup).
-
-Just because 50% is the default threshold *does not mean* it is the best one for our task.
-
-Here, we will test many potential classification thresholds, and plot the Precision, Recall & F1-Score, and find an optimal solution!
+In the below code we firstly assess the number of customers that fall into each cluster.
 
 <br>
 ```python
 
-# set up the list of thresholds to loop through
-thresholds = np.arange(0, 1, 0.01)
-
-# create empty lists to append the results to
-precision_scores = []
-recall_scores = []
-f1_scores = []
-
-# loop through each threshold - fit the model - append the results
-for threshold in thresholds:
-    
-    pred_class = (y_pred_prob >= threshold) * 1
-    
-    precision = precision_score(y_test, pred_class, zero_division = 0)
-    precision_scores.append(precision)
-    
-    recall = recall_score(y_test, pred_class)
-    recall_scores.append(recall)
-    
-    f1 = f1_score(y_test, pred_class)
-    f1_scores.append(f1)
-    
-# extract the optimal f1-score (and it's index)
-max_f1 = max(f1_scores)
-max_f1_idx = f1_scores.index(max_f1)
+# check cluster sizes
+data_for_clustering["cluster"].value_counts(normalize=True)
 
 ```
 <br>
 
-Now we have run this, we can use the below code to plot the results!
+Running that code shows us that the three clusters are different in size, with the following proportions:
+
+* Cluster 0: **73.6%** of customers
+* Cluster 2: **14.6%** of customers
+* Cluster 1: **11.8%** of customers
+
+Based on these results, it does appear we do have a skew toward Cluster 0 with Cluster 1 & Cluster 2 being proportionally smaller.  This isn't right or wrong, it is simply showing up pockets of the customer base that are exhibiting different behaviours - and this is *exactly* what we want.
+
+##### Cluster Attributes
+
+To understand what these different behaviours or characteristics are, we can look to analyse the attributes of each cluster, in terms of the variables we fed into the k-means algorithm.
 
 <br>
 ```python
 
-# plot the results
-plt.style.use("seaborn-poster")
-plt.plot(thresholds, precision_scores, label = "Precision", linestyle = "--")
-plt.plot(thresholds, recall_scores, label = "Recall", linestyle = "--")
-plt.plot(thresholds, f1_scores, label = "F1", linewidth = 5)
-plt.title(f"Finding the Optimal Threshold for Classification Model \n Max F1: {round(max_f1,2)} (Threshold = {round(thresholds[max_f1_idx],2)})")
-plt.xlabel("Threshold")
-plt.ylabel("Assessment Score")
-plt.legend(loc = "lower left")
-plt.tight_layout()
-plt.show()
+# profile clusters (mean % sales for each product area)
+cluster_summary = data_for_clustering.groupby("cluster")[["Dairy","Fruit","Meat","Vegetables"]].mean().reset_index()
 
 ```
 <br>
-![alt text](/img/posts/log-reg-optimal-threshold-plot.png "Logistic Regression Optimal Threshold Plot")
+<br>
+
+That code results in the following table...
+
+| **Cluster** | **Dairy** | **Fruit** | **Meat** | **Vegetables** |
+|---|---|---|---|---|
+| 0 | 22.1% | 26.5% | 37.7% | 13.8%  |
+| 1 | 0.2% | 63.8% | 0.4% | 35.6%  |
+| 2 | 36.4% | 39.4% | 2.9% | 21.3%  |
 
 <br>
-Along the x-axis of the above plot we have the different classification thresholds that were testing.  Along the y-axis we have the performance score for each of our three metrics.  As per the legend, we have Precision as a blue dotted line, Recall as an orange dotted line, and F1-Score as a thick green line.  You can see the interesting "zero-sum" relationship between Precision & Recall *and* you can see that the point where Precision & Recall meet is where F1-Score is maximised.
+xxxxxxxxxxxxxxxxxxx
 
-As you can see at the top of the plot, the optimal F1-Score for this model 0.78 and this is obtained at a classification threshold of 0.44.  This is higher than the F1-Score of 0.734 that we achieved at the default classification threshold of 0.50!
 
 <br>
 # Application <a name="kmeans-application"></a>
