@@ -5,6 +5,10 @@ image: "/posts/deep-learning-brain.jpg"
 tags: [Deep Learning, CNN, Data Science, Computer Vision, Python]
 ---
 
+Here, we take on the task of building an Image Search Engine using Deep Learning, so that our client can help their customers more easily find the products that they want!
+
+
+
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum nunc justo, dignissim ac condimentum ut, lacinia vitae ante. Ut ipsum tellus, euismod at vehicula vitae, dapibus at augue. Nam nec eros ac nunc molestie fermentum. Integer ut mi varius, elementum ex et, finibus orci. Sed molestie ipsum non eros pulvinar interdum at ac mauris. Aliquam in erat malesuada, porttitor elit eget, lobortis ante. Praesent sit amet nisl metus. Quisque feugiat, justo maximus faucibus sollicitudin, turpis ipsum mattis lectus, sed faucibus ipsum metus ac orci. Mauris non est sit amet ante interdum vehicula quis sed lorem. Etiam gravida facilisis tempus. Nulla posuere neque facilisis ligula maximus maximus. Suspendisse venenatis sapien quis libero vulputate suscipit. Vivamus egestas enim nibh, tristique volutpat erat dapibus eu. Ut ligula leo, cursus vel rhoncus ultricies, efficitur et lectus. Aliquam ornare dignissim risus ut rhoncus.
 
 Nulla sed purus sed mi interdum finibus. Suspendisse maximus purus id dolor varius iaculis. Fusce vulputate quam diam, ac cursus augue euismod vel. Fusce felis lorem, bibendum tempus imperdiet at, malesuada ac libero. Ut dolor nisl, pellentesque id nisl non, feugiat egestas nisi. Nulla gravida turpis a felis ornare venenatis. Sed in luctus mauris. Fusce tempus augue sed ornare tincidunt. Aliquam erat volutpat. Maecenas sagittis dignissim augue, hendrerit sagittis magna eleifend vel. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Mauris porta, mauris sed gravida viverra, diam massa semper quam, et eleifend enim erat vel urna. Aenean nec dolor nec turpis condimentum vehicula. Pellentesque consequat commodo orci at elementum. Integer facilisis dictum libero, ut porta felis feugiat id. Vestibulum urna dolor, vestibulum vitae neque quis, ullamcorper accumsan ligula.
