@@ -226,41 +226,87 @@ As you can see from the print statement, each transaction (row) from the initial
 <br>
 # Applying The Apriori Algorithm <a name="apriori-fit"></a>
 
-We firstly apply PCA to our training set without limiting the algorithm to any particular number of components, in other words we're not explicitly reducing the feature space at this point.
+In the code below we apply the apriori algorithm from the apyori library.
 
-Allowing all components to be created here allows us to examine & plot the percentage of explained variance for each, and assess which solution might work best for our task.
+This algorithm allows us to specify the association rules that we want.  We set:
 
-In the code below we instantiate our PCA object, and then fit it to our training set.
+* A minimum *Support* of 0.003 to eliminate very rare product sets
+* A minimum *Confidence* of 0.2
+* A minimum *Lift* of 3 to ensure we're only focusing on product sets with strong relationships
+* A minimum & maximum length of 2 meaning we're only focusing on product *pairs* rather than larger sets
 
 ```python
 
-# instantiate our PCA object (no limit on components)
-pca = PCA(n_components = None,  random_state = 42)
+# apply the apriori algorthm and specify required parameters
+apriori_rules = apriori(transactions_list,
+                        min_support = 0.003,
+                        min_confidence = 0.2,
+                        min_lift = 3,
+                        min_length = 2,
+                        max_length = 2)
 
-# fit to our training data
-pca.fit(X_train)
+# convert the output to a list
+apriori_rules = list(apriori_rules)
+
+# print out the first element
+apriori_rules[0]
+
+RelationRecord(items=frozenset({'America White', 'American Rose'}), support=0.020745724698626296, ordered_statistics=[OrderedStatistic(items_base=frozenset({'American Rose'}), items_add=frozenset({'America White'}), confidence=0.5323741007194245, lift=3.997849299507762)])
+
+```
+<br>
+The output from the algorithm is in the form of a generator. We covert this to a list as this is easier to manipulate & analyse.  
+
+Based upon the parameters we set when applying the algorithm, we get 132 product pairs.  We print out the first element from the list to see what the output looks like, and while this contains all the key information we need - to make it easier to analyse (and more accessible & useable for stakeholders) - in the next code snippet, we extract the key elements and use list comprehension to re-work this data to exist as a Pandas DataFrame.
+
+```python
+
+# extract each piece of information
+product1 = [list(rule[2][0][0])[0] for rule in apriori_rules]
+product2 = [list(rule[2][0][1])[0] for rule in apriori_rules]
+support = [rule[1] for rule in apriori_rules]
+confidence = [rule[2][0][2] for rule in apriori_rules]
+lift = [rule[2][0][3] for rule in apriori_rules]
+
+# compile into a single dataframe
+apriori_rules_df = pd.DataFrame({"product1" : product1,
+                                 "product2" : product2,
+                                 "support" : support,
+                                 "confidence": confidence,
+                                 "lift" : lift})
+
+```
+<br>
+A sample of this data (the first 5 product pairs - not in any order) can be seen below:
+<br>
+<br>
+
+| **product1** | **product2** | **support** | **confidence** | **lift** |
+|---|---|---|---|---|
+| American Rose | America White | 0.021 | 0.532 | 3.998 |
+| America White | American White | 0.054 | 0.408 | 3.597 |
+| Australian Rose | America White | 0.005 | 0.486 | 3.653 |
+| Low Alcohol A.C | America White | 0.003 | 0.462 | 3.466 |
+| American Rose | American Red | 0.016 | 0.403 | 3.575 |
+| … | … | … | … | … |
+
+<br>
+In the DataFrame we have the two products in the pair, and then the three key metrics; Support, Confidence, and Lift. 
+
+<br>
+# Interpreting The Results <a name="apriori-results"></a>
+
+Now we have our data in a useable format - let's look at the product pairs with the *strongest* relationships - we can do this by sorting our Lift column, in descending order.
+
+```python
+
+# sort pairs by descending Lift
+apriori_rules_df.sort_values(by = "lift", ascending = False, inplace = True)
 
 ```
 
 <br>
-# Analysis Of Explained Variance <a name="pca-variance"></a>
-
-There is no right or wrong number of components to use - this is something that we need to decide based upon the scenario we're working in.  We know we want to reduce the number of features, but we need to trade this off with the amount of information we lose.
-
-In the following code, we extract this information from the prior step where we fit the PCA object to our training data.  We extract the variance for each component, and we do the same again, but for the *cumulative* variance.  Will will assess & plot both of these in the next step.
-
-```python
-
-# explained variance across components
-explained_variance = pca.explained_variance_ratio_
-
-# explained variance across components (cumulative)
-explained_variance_cumulative = pca.explained_variance_ratio_.cumsum()
-
-```
-
-<br>
-In the following code, we create two plots - one for the variance of each principal component, and one for the cumulative variance.
+xxxxxxxxx
 
 ```python
 
