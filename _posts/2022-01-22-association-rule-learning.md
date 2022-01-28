@@ -27,42 +27,39 @@ ___
 
 ### Context <a name="overview-context"></a>
 
-Our client is looking to promote Ed Sheeran's new album - and want to be both targeted with their customer communications, and as efficient as possible with their marketing budget.
+Our client is looking to re-jig the alcohol section within their store.  Customers are often complaining that they can't find the products they want, and are also wanting recommendations about which other products to try.  On top of this, their marketing team would like to start running "bundled" promotions as this has worked well in other areas of the store - but need guidance with selecting which products to put together.
 
-As a proof-of-concept they would like us to build a classification model for customers who purchased Ed's *last* album based upon a small sample of listening data they have acquired for some of their customers at that time.
-
-If we can do this successfully, they will look to purchase up-to-date listening data, apply the model, and use the predicted probabilities to promote to customers who are most likely to purchase.
-
-The sample data is short but wide.  It contains only 356 customers, but for each, columns that represent the percentage of historical listening time allocated to each of 100 artists.  On top of these, the 100 columns do not contain the artist in question, instead being labelled *artist1, artist2* etc.
-
-We will need to compress this data into something more manageable for classification!
+They have provided us a sample of 3,500 alcohol transactions - our task is fairly open - to see if we can find solutions or insights that might help the business address the aforementioned problems!
 
 <br>
 <br>
 ### Actions <a name="overview-actions"></a>
 
-We firstly needed to bring in the required data, both the historical listening sample, and the flag showing which customers purchased Ed Sheeran's last album.  We ensure we  split our data a training set & a test set, for classification purposes.  For PCA, we ensure that we scale the data so that all features exist on the same scale.
+Based upon the tasks at hand - we apply Association Rule Learning, specifically *Apriori* to examine & analyse the strength of relationship between different products within the transactional data.
 
-We then apply PCA without any specified number of components - which allows us to examine & plot the percentage of explained variance for every number of components.  Based upon this we make a call to limit our dataset to the number of components that make up 75% of the variance of the initial feature set (rather than limiting to a specific number of components).  We apply this rule to both our training set (using fit_transform) and our test set (using transform only)
+We firstly needed to bring in the sample data, and get it into the right format for the Apriori algorithm to deal with.
 
-With this new, compressed dataset, we apply a Random Forest Classifier to predict the sales of the album, and we assess the predictive performance!
+From there we apply the Apriori algorithm to provide us with several different relationship metrics, namely:
+
+* Support
+* Confidence
+* Expected Confidence
+* Lift
+
+These metrics examine product relationships in different ways, so we utilise each to put forward ideas that address each of the tasks at hand
 
 <br>
 <br>
 
 ### Results <a name="overview-results"></a>
 
-Based upon an analysis of variance vs. components - we made a call to keep 75% of the variance of the initial feature set, which meant we dropped the number of features from 100 down to 24.
-
-Using these 24 components, we trained a Random Forest Classifier which able to predict customers that would purchase Ed Sheeran's last album with a Classification Accuracy of 93%
+xxx
 
 <br>
 <br>
 ### Growth/Next Steps <a name="overview-growth"></a>
 
-We only tested one type of classifier here (Random Forest) - it would be worthwhile testing others.  We also only used the default classifier hyperparameters - we would want to optimise these.
-
-Here, we selected 24 components based upon the fact this accounted for 75% of the variance of the initial feature set.  We would instead look to search for the optimal number of components to use based upon classification accuracy.
+xxx
 
 <br>
 <br>
@@ -137,17 +134,55 @@ The data is at customer level.  We have a binary column showing whether the cust
 From the above sample, we can also see the sparsity of the data, customers do not listen to all artists and therefore many of the values are 0.
 
 <br>
-# PCA Overview  <a name="data-overview"></a>
+# Apriori Overview  <a name="data-overview"></a>
 
-Principal Component Analysis (PCA) is often used as a *Dimensionality Reduction* technique that can reduce a large set of variables down to a smaller set, that still contains most of the original information.
+Association Rule Learning is an approach that discovers the strength of relationships between different data-points.  It is commonly utilised to understand which products are frequently (or infrequently) purchased together.
 
-In other words, PCA takes a high number of dimensions, or variables and boils them down into a much smaller number of new variables - each of which is called a *principal component*.  These new *components* are somewhat abstract - they are a blend of some of the original features where the PCA algorithm found they were correlated.  By blending the original variables rather than just removing them, the hope is that we still keep much of the key information that was held in the original feature set.
+In a business sense this can provide some really interesting, and useful information that can help optimise:
 
-Dimensionality Reduction techniques like PCA are mainly used to simplify the space in which we're operating.  Attempting to apply the k-means clustering algorithm (for example) across hundreds or thousands of features can be computationally expensive, PCA reduces this vastly while maintaining much of the key information contained in the data.  But PCA doesn’t have applications just within the realms of unsupervised learning, it could just as easily be applied to a set of input variables in a supervised learning approach - exactly like we will do here!
+* Product Arrangement/Placement (making the customer journey more efficient)
+* Product Recommendations (customers who purchased product A also purchased product B)
+* Bundled Discounts (which products should/should not be put together)
 
-In supervised learning, we often focus on *Feature Selection* where we look to remove variables that are not deemed to be important in predicting our output.  PCA is often used in a similar way, although in this case we aren't explicitly *removing* variables - we are simply creating a smaller number of *new* ones that contain much of the information contained in the original set.
+One powerful, intuitive, and commonly used algorithm for Association Rule Learning is **Apriori**.
 
-Business consideration of PCA:  It is much more difficult to interpret the outputs of a predictive model (for example) that is based upon component values versys the original variables.
+In Apriori there are four key metrics, namely:
+
+* Support
+* Confidence
+* Expected Confidence
+* Lift
+
+Each of these metrics help us understand items, and their relationship with other items in their own way.
+
+##### Support
+
+Support is extremely intuitive, it simply tells us the percentage of all transactions that contain *both* Item A and Item B.  To calculate this we’d just count up the transactions that include both items, and divide this by the total number of transactions.
+
+You can think of Support as a baseline metric that helps us understand how common or popular this particular *pair* of items is.
+
+##### Confidence
+
+Confidence takes us a little bit further than Support, and looks more explcitly at the *relationship* between the two items.
+
+It asks "of all transactions that *included item A*, what proportion also included item B?"  
+
+In other words, here we are counting up the number of transactions that contained *both items A and B* and then rather than dividing by *all transactions* like we did for Support, we instead divide this by the *total number of transactions that contained item A*.
+
+A high score for Confidence can mean a strong product relationship - but not always!  When one of the items is very popular we can get an inflated score.  To help us regulate this, we can look at two further metrics, Expected Confidence and Lift!
+
+##### Expected Confidence
+
+Expected Confidence is quite simple, it is the percentage of *all transactions* that *contained item B*.
+
+This is important as it provides indication of what the Confidence *would be* if there were no relationship between the items.  We can use Expected Confidence, along with Confidence to calculate our final (and most powerful) metric - Lift!
+
+##### Lift
+
+Lift is the factor by which the Confidence, exceeds the Expected Confidence.  In other words, Lift tells us how likely item B is purchased *when item A is purchased*, while *controlling* for how popular item B is.
+
+We calculate Lift by dividing Confidence by Expected Confidence.
+
 
 <br>
 # Data Preparation  <a name="pca-data-prep"></a>
