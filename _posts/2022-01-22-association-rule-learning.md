@@ -55,13 +55,23 @@ These metrics examine product relationships in different ways, so we utilise eac
 
 ### Results <a name="overview-results"></a>
 
-xxx
+Interestingly, the strongest relationship existed between two products labelled as "gifts" - this is useful information for the category managers as they may want to ensure that gift products are available in one section of the aisle, rather than existing in their respective product types.
+
+We also saw some strong relationships between French wines, and other French wines - which again is extremely useful for category managers who are thinking about the best way to lay out the products - having sections by country rather than necessarily by type might make it easier for customers to find what they are after.
+
+Another interesting association is between products labelled "small".  At this point, we don't know exactly what that means - but it is certainly something to take back to the client as they may be able to make more sense of it, and turn it into an actionable insight!
+
+We propose to also build a "search engine" for category managers where they can look-up products by keyword in the product association table.
+
+As an example - we search for any products that associate strongly with "New Zealand" products. There appeared to be *some* relationship between New Zealand wines and other New Zealand wines, but what was also interesting was that New Zealand wines seemed to be more associated with French & South American wines than they were with Australian Wines.
+
+New Zealand & Australia are often grouped together, but in terms of wine this wouldn't make sense - perhaps because of the difference climates the wines are very different and thus it wouldn't make sense to group wines by geographical proximity, but by preference instead.  This is only a hypothesis for now - we will need to take this back to the client and get their category experts to help us interpret it!
 
 <br>
 <br>
 ### Growth/Next Steps <a name="overview-growth"></a>
 
-xxx
+Build the same for other cateogories + search engine
 
 <br>
 <br>
@@ -296,6 +306,8 @@ In the DataFrame we have the two products in the pair, and then the three key me
 <br>
 # Interpreting The Results <a name="apriori-results"></a>
 
+##### Associated Products
+
 Now we have our data in a useable format - let's look at the product pairs with the *strongest* relationships - we can do this by sorting our Lift column, in descending order.
 
 ```python
@@ -306,35 +318,72 @@ apriori_rules_df.sort_values(by = "lift", ascending = False, inplace = True)
 ```
 
 <br>
-xxxxxxxxx
+In the table below, we can see the ten highest product relationships, based upon Lift
+<br>
+<br>
+
+| **product1** | **product2** | **support** | **confidence** | **lift** |
+|---|---|---|---|---|
+| Wine Gifts | Beer/Lager Gifts | 0.004 | 0.314 | 10.173 |
+| Beer/Lager Gifts | Spirits & Fortified | 0.013 | 0.427 | 9.897 |
+| Wine Gifts | Spirits & Fortified | 0.006 | 0.412 | 9.537 |
+| Red Wine Bxes & 25Cl | White Boxes | 0.015 | 0.474 | 9.344 |
+| French White Rhone | French Red | 0.003 | 0.480 | 8.691 |
+| Small Sizeswhite Oth | Small Sizes White | 0.005 | 0.559 | 8.340 |
+| Small Sizes Red | Small Sizes White | 0.025 | 0.486 | 7.258 |
+| French White Loire | French White South | 0.004 | 0.349 | 6.763 |
+| French White Rhone | French White 2 | 0.005 | 0.760 | 6.661 |
+| Small Sizeswhite Oth | Small Sizes Red | 0.003 | 0.324 | 6.306 |
+| Small Sizes Wht Othr | Small Sizes White | 0.003 | 0.414 | 6.176 |
+
+<br>
+Interestingly, the strongest relationship exists between two products labelled as "gifts" - this is useful information for the category managers as they may want to ensure that gift products are available in one section of the aisle, rather than existing in their respective product types.
+
+We also see some strong relationships between French wines, and other French wines - which again is extremely useful for category managers who are thinking about the best way to lay out the products - having sections by country rather than necessarily by type might make it easier for customers to find what they are after.
+
+Another interesting association is between products labelled "small".  At this point, we don't know exactly what that means - but it is certainly something to take back to the client as they may be able to make more sense of it, and turn it into an actionable insight!
+
+##### Potential Search Tool For Category Managers
+
+With the data now stored as a DataFrame, we will also go back to the client with a proposal to build a simple "search" tool for Category Managers to use.
+
+An example of how this might work would be to test a hypothesis around New Zealand wines.
+
+The code below uses a string function to pull back all rows in the DataFrame where *product1* contains the words "New Zealand"
 
 ```python
 
-num_vars_list = list(range(1,101))
-plt.figure(figsize=(16,9))
-
-# plot the variance explained by each component
-plt.subplot(2,1,1)
-plt.bar(num_vars_list,explained_variance)
-plt.title("Variance across Principal Components")
-plt.xlabel("Number of Components")
-plt.ylabel("% Variance")
-plt.tight_layout()
-
-# plot the cumulative variance
-plt.subplot(2,1,2)
-plt.plot(num_vars_list,explained_variance_cumulative)
-plt.title("Cumulative Variance across Principal Components")
-plt.xlabel("Number of Components")
-plt.ylabel("Cumulative % Variance")
-plt.tight_layout()
-plt.show()
+# search based upon text
+apriori_rules_df[apriori_rules_df["product1"].str.contains("New Zealand")]
 
 ```
 <br>
-As we can see in the top plot, PCA works in a way where the first component holds the most variance, and each subsequent component holds less and less.
+The results of this search, in order of descending Lift are as follows:
+<br>
+<br>
 
-The second plot shows this as a cumulative measure - and we can how many components we would need remain in order to keep any amount of variance from the original feature set. 
+| **product1** | **product2** | **support** | **confidence** | **lift** |
+|---|---|---|---|---|
+| New Zealand Red | Malt Whisky | 0.005326605 | 0.271428571 | 5.628986711 |
+| New Zealand Red | Iberia White | 0.007289038 | 0.371428571 | 4.616326531 |
+| New Zealand Red | New Zealand White | 0.012615643 | 0.642857143 | 4.613825812 |
+| New Zealand Red | French White South | 0.004485562 | 0.228571429 | 4.431055901 |
+| New Zealand Red | French White 2 | 0.009531819 | 0.485714286 | 4.256862057 |
+| New Zealand Red | French Red | 0.004205214 | 0.214285714 | 3.879985497 |
+| New Zealand Red | French Red South | 0.006447996 | 0.328571429 | 3.868033946 |
+| New Zealand Red | South America | 0.010933558 | 0.557142857 | 3.799863425 |
+| New Zealand Red | Other Red | 0.004485562 | 0.228571429 | 3.591692889 |
+| New Zealand Red | Iberia | 0.012054948 | 0.614285714 | 3.528433402 |
+| New Zealand Red | Champagne | 0.008690777 | 0.442857143 | 3.526052296 |
+| New Zealand White | South America White | 0.049341183 | 0.354124748 | 3.423205902 |
+| New Zealand Red | French Red 2 | 0.010092515 | 0.514285714 | 3.359811617 |
+| New Zealand Red | South America White | 0.006728343 | 0.342857143 | 3.314285714 |
+| New Zealand Red | Australia White | 0.007289038 | 0.371428571 | 3.215742025 |
+
+<br>
+There appears to be *some* relationship between New Zealand wines and other New Zealand wines, but what is also interesting is that New Zealand wines seem to be more associated with French & South American wines than they are with Australian Wines.
+
+New Zealand & Australia are often grouped together, but in terms of wine this wouldn't make sense - perhaps because of the difference climates the wines are very different and thus it wouldn't make sense to group wines by geographical proximity, but by preference instead.  This is only a hypothesis for now - we will need to take this back to the client and get their category experts to help us interpret it!
 
 <br>
 ![alt text](/img/posts/pca-variance-plots.png "PCA Variance by Component")
