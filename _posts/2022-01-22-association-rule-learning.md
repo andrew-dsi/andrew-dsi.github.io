@@ -15,13 +15,11 @@ In this project we use Association Rule Learning to analyse the transactional re
     - [Results](#overview-results)
     - [Growth/Next Steps](#overview-growth)
 - [01. Data Overview](#data-overview)
-- [02. PCA Overview](#pca-overview)
-- [03. Data Preparation](#pca-data-prep)
-- [04. Fitting PCA](#pca-fit)
-- [05. Analysis Of Explained Variance](#pca-variance)
-- [06. Applying our PCA solution](#pca-application)
-- [07. Classification Model](#pca-classification)
-- [08. Growth & Next Steps](#growth-next-steps)
+- [02. Apriori Overview](#apriori-overview)
+- [03. Data Preparation](#apriori-data-prep)
+- [04. Applying The Apriori Algorithm](#apriori-fit)
+- [04. Interpreting The Results](#apriori-results)
+- [05. Growth & Next Steps](#growth-next-steps)
 
 ___
 
