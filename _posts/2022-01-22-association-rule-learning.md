@@ -135,12 +135,14 @@ In Apriori there are four key metrics, namely:
 
 Each of these metrics help us understand items, and their relationship with other items in their own way.
 
+<br>
 ##### Support
 
 Support is extremely intuitive, it simply tells us the percentage of all transactions that contain *both* Item A and Item B.  To calculate this we’d just count up the transactions that include both items, and divide this by the total number of transactions.
 
 You can think of Support as a baseline metric that helps us understand how common or popular this particular *pair* of items is.
 
+<br>
 ##### Confidence
 
 Confidence takes us a little bit further than Support, and looks more explcitly at the *relationship* between the two items.
@@ -151,12 +153,14 @@ In other words, here we are counting up the number of transactions that containe
 
 A high score for Confidence can mean a strong product relationship - but not always!  When one of the items is very popular we can get an inflated score.  To help us regulate this, we can look at two further metrics, Expected Confidence and Lift!
 
+<br>
 ##### Expected Confidence
 
 Expected Confidence is quite simple, it is the percentage of *all transactions* that *contained item B*.
 
 This is important as it provides indication of what the Confidence *would be* if there were no relationship between the items.  We can use Expected Confidence, along with Confidence to calculate our final (and most powerful) metric - Lift!
 
+<br>
 ##### Lift
 
 Lift is the factor by which the Confidence, exceeds the Expected Confidence.  In other words, Lift tells us how likely item B is purchased *when item A is purchased*, while *controlling* for how popular item B is.
@@ -165,10 +169,12 @@ We calculate Lift by dividing Confidence by Expected Confidence.
 
 A Lift score *greater than 1* indicates that items A & B appear together *more often* than expected, and conversely a Lift score *less then 1* indicates that items A & B appear together *less often* than expected.
 
+<br>
 ##### In Practice
 
 While above we're just discussing two products (Item A & Item B) - in reality this score would be calculated between *all* pairs of products, and we could then sort these by Lift score (for example) and see exactly what the strongest or weakest relationships were - and this information would guide our decisions regarding product layout, recommendations for customers, or promotions.
 
+<br>
 ##### An Important Consideration
 
 Something to consider when assessing the results of Apriori is that, Item/Product relationships that have a *high Lift score* but also have a *low Support score* should be interpreted with caution!
