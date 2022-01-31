@@ -347,7 +347,7 @@ We also see some strong relationships between French wines, and other French win
 
 Another interesting association is between products labelled "small".  At this point, we don't know exactly what that means - but it is certainly something to take back to the client as they may be able to make more sense of it, and turn it into an actionable insight!
 
-##### Potential Search Tool For Category Managers
+##### Search Tool For Category Managers
 
 With the data now stored as a DataFrame, we will also go back to the client with a proposal to build a simple "search" tool for Category Managers to use.
 
