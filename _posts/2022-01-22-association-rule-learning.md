@@ -71,7 +71,11 @@ New Zealand & Australia are often grouped together, but in terms of wine this wo
 <br>
 ### Growth/Next Steps <a name="overview-growth"></a>
 
-Build the same for other cateogories + search engine
+As this is first & foremost an exploratory project, we will take back the results to the client Category Managers & discuss the results, our views on how these insights can be actioned best, and any considerations that need to be taken into account when interpreting.
+
+From there we will recommend applying this same logic to all other categories, as well as potentially across the full-product range.
+
+We will also propose the build of the "Keyword Search Engine" which will help Category Managers extract and utilise the insights held within the data.
 
 <br>
 <br>
@@ -386,100 +390,10 @@ There appears to be *some* relationship between New Zealand wines and other New 
 New Zealand & Australia are often grouped together, but in terms of wine this wouldn't make sense - perhaps because of the difference climates the wines are very different and thus it wouldn't make sense to group wines by geographical proximity, but by preference instead.  This is only a hypothesis for now - we will need to take this back to the client and get their category experts to help us interpret it!
 
 <br>
-![alt text](/img/posts/pca-variance-plots.png "PCA Variance by Component")
-
-<br>
-Based upon the cumulative plot above, we can see that we could keep 75% of the variance from the original feature set with only around 25 components, in other words with only a quarter of the number of features we can still hold onto around three-quarters of the information.
-
-<br>
-# Applying our PCA solution <a name="pca-application"></a>
-
-Now we've run our analysis of variance by component - we can apply our PCA solution.
-
-In the code below - we *re-instantiate* our PCA object, this time specifying that we want the number of components that will keep 75% of the initial variance.
-
-We then apply this solution to both our training set (using fit_transform) and our test set (using transform only).
-
-Finally - based on this 75% threshold, we confirm the number of components that this leaves us with.
-
-```python
-
-# re-instantiate our PCA object (keeping 75% of variance)
-pca = PCA(n_components = 0.75,  random_state = 42)
-
-# fit to our data
-X_train = pca.fit_transform(X_train)
-X_test = pca.transform(X_test)
-
-# check the number of components
-print(pca.n_components_)
-
-```
-
-<br>
-Turns out we were almost correct from looking at our chart - we will retain 75% of the information from our initial feature set, with only 24 principal components.
-
-Our X_train and X_test objects now contain 24 columns, each representing one of the principal components - we can see a sample of X_train below:
-
-| **0** | **1** | **2** | **3** | **4** | **5** | **6** | **…** |
-|---|---|---|---|---|---|---|---|
-| -0.402194 | -0.756999 | 0.219247 | -0.0995449 | 0.0527621 | 0.0968236 | -0.0500932 | … |
-| -0.360072 | -1.13108 | 0.403249 | -0.573797 | -0.18079 | -0.305604 | -1.33653 | … |
-| 10.6929 | -0.866574 | 0.711987 | 0.168807 | -0.333284 | 0.558677 | 0.861932 | … |
-| -0.47788 | -0.688505 | 0.0876652 | -0.0656084 | -0.0842425 | 1.06402 | 0.309337 | … |
-| -0.258285 | -0.738503 | 0.158456 | -0.0864722 | -0.0696632 | 1.79555 | 0.583046 | … |
-| -0.440366 | -0.564226 | 0.0734247 | -0.0372701 | -0.0331369 | 0.204862 | 0.188869 | … |
-| -0.56328 | -1.22408 | 1.05047 | -0.931397 | -0.353803 | -0.565929 | -2.4482 | … |
-| -0.282545 | -0.379863 | 0.302378 | -0.0382711 | 0.133327 | 0.135512 | 0.131 | … |
-| -0.460647 | -0.610939 | 0.085221 | -0.0560837 | 0.00254932 | 0.534791 | 0.251593 | … |
-| … | … | … | … | … | … | … | … |
-
-<br>
-Here, column "0" represents the first component, column "1" represents the second component, and so on.  This are the input variables we will feed into our classification model to predict which customers purchased Ed Sheeran's last album!
-
-<br>
-# Classification Model <a name="pca-classification"></a>
-
-##### Training The Classifier
-
-To start with, we will simply apply a Random Forest Classifier to see if it is possible to predict based upon our set of 24 components.  
-
-In the code below we instantiate the Random Forest using the default parameters, and then we fit this to our data.
-
-```python
-
-# instantiate our model object
-clf = RandomForestClassifier(random_state = 42)
-
-# fit our model using our training & test sets
-clf.fit(X_train, y_train)
-
-```
-<br>
-##### Classification Performance
-
-In the code below we use the trained classifier to predict on the test set - and we run a simple analysis for the classification accuracy for the predictions vs. actuals.
-
-```python
-
-# predict on the test set
-y_pred_class = clf.predict(X_test)
-
-# assess the classification accuracy
-accuracy_score(y_test, y_pred_class)
-
-```
-<br>
-The result of this is a **93%** classification accuracy, in other words, using a classifier trained on 24 principal components we were able to accurately predict which test set customers purchased Ed Sheeran's last album, with an accuracy of 93%.
-
-<br>
-# Application <a name="kmeans-application"></a>
-
-Based upon this proof-of-concept, we could go back to the client and recommend that they purchase some up to date listening data.  We would could apply PCA to this, create the components, and predict which customers are likely to buy Ed's *next* album.
-
-<br>
 # Growth & Next Steps <a name="growth-next-steps"></a>
 
-We only tested one type of classifier here (Random Forest) - it would be worthwhile testing others.  We also only used the default classifier hyperparameters - we would want to optimise these.
+As this was first & foremost an exploratory project, we will take back the results to the client Category Managers & discuss the results, our views on how these insights can be actioned best, and any considerations that need to be taken into account when interpreting.
 
-Here, we selected 24 components based upon the fact this accounted for 75% of the variance of the initial feature set.  We would instead look to search for the optimal number of components to use based upon classification accuracy.
+From there we will recommend applying this same logic to all other categories, as well as potentially across the full-product range.
+
+We will also propose the build of the "Keyword Search Engine" which will help Category Managers extract and utilise the insights held within the data.
