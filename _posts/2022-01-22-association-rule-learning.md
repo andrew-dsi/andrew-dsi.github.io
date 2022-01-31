@@ -128,7 +128,7 @@ For our sample data, the maximum number of unique products was 45, meaning the t
 The *apyori* library that we are using does not want the data in this format, it instead wants it passed in as a *list of lists* so we will need to modify it.  The code and logic for this can be found in the Data Preparation section below.
 
 <br>
-# Apriori Overview  <a name="data-overview"></a>
+# Apriori Overview  <a name="apriori-overview"></a>
 
 Association Rule Learning is an approach that discovers the strength of relationships between different data-points.  It is commonly utilised to understand which products are frequently (or infrequently) purchased together.
 
