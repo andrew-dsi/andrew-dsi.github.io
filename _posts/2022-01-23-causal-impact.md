@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Analysing Sales Uplift Using Causal Impact Analysis
-image: "/posts/causal-impact-title-img.jpg"
+image: "/posts/causal-impact-title-img.png"
 tags: [Causal Impact Analysis, Python]
 ---
 
@@ -27,9 +27,11 @@ ___
 
 ### Context <a name="overview-context"></a>
 
-Our client is looking to re-jig the alcohol section within their store.  Customers are often complaining that they can't find the products they want, and are also wanting recommendations about which other products to try.  On top of this, their marketing team would like to start running "bundled" promotions as this has worked well in other areas of the store - but need guidance with selecting which products to put together.
+Earlier in the year, our client, a grocery retailer, ran a campaign to promote their new "Delivery Club" - an initiative that costs a customer $100 per year for membership, but offers free grocery deliveries rather than the normal cost of $10 per delivery.
 
-They have provided us a sample of 3,500 alcohol transactions - our task is fairly open - to see if we can find solutions or insights that might help the business address the aforementioned problems!
+They want to understand if customers who did join the club have increased their spend in the months following.  The hypothesis is that, if customers are not paying for deliveries, they will be tempted to shop more frequently, and hopefully purchase more each time.
+
+The aim of this work is to understand and quantify the uplift in sales for customers that joined the club, over and above what they *would* have spent had the club not come into existence!
 
 <br>
 <br>
