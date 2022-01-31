@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Analysing Sales Uplift Using Causal Impact Analysis
+title: Quantifying Sales Uplift With Causal Impact Analysis
 image: "/posts/causal-impact-title-img.png"
 tags: [Causal Impact Analysis, Python]
 ---
@@ -15,10 +15,10 @@ In this project we use Causal Impact Analysis to analyse & understand the sales 
     - [Results](#overview-results)
     - [Growth/Next Steps](#overview-growth)
 - [01. Data Overview](#data-overview)
-- [02. Apriori Overview](#apriori-overview)
-- [03. Data Preparation](#apriori-data-prep)
-- [04. Applying The Apriori Algorithm](#apriori-fit)
-- [04. Interpreting The Results](#apriori-results)
+- [02. Causal Impact Analysis Overview](#causal-impact-overview)
+- [03. Data Preparation](#causal-impact-data-prep)
+- [04. Applying Causal Impact Analysis](#causal-impact-fit)
+- [04. Interpreting The Results](#causal-impact-results)
 - [05. Growth & Next Steps](#growth-next-steps)
 
 ___
@@ -130,7 +130,7 @@ For our sample data, the maximum number of unique products was 45, meaning the t
 The *apyori* library that we are using does not want the data in this format, it instead wants it passed in as a *list of lists* so we will need to modify it.  The code and logic for this can be found in the Data Preparation section below.
 
 <br>
-# Apriori Overview  <a name="apriori-overview"></a>
+# Apriori Overview  <a name="causal-impact-overview"></a>
 
 Association Rule Learning is an approach that discovers the strength of relationships between different data-points.  It is commonly utilised to understand which products are frequently (or infrequently) purchased together.
 
@@ -198,7 +198,7 @@ Something to consider when assessing the results of Apriori is that, Item/Produc
 In other words, if we sorted all Item relationships by descending Lift score, the one that comes out on top might initially seem very impressive and it may appear that there is a very strong relationship between the two items.  Always take into account the Support metric - it could be that this relationship is only taking place by chance due to the rarity of the item set.
 
 <br>
-# Data Preparation  <a name="apriori-data-prep"></a>
+# Data Preparation  <a name="causal-impact-data-prep"></a>
 
 As mentioned in the Data Overview section above, the *apyori* library that we are using does not want the data in table format, it instead wants it passed in as a *list of lists* so we will need to modify it here.  
 
@@ -240,7 +240,7 @@ print(transactions_list[:10])
 As you can see from the print statement, each transaction (row) from the initial DataFrame is now contained within a list, all making up the master list.
 
 <br>
-# Applying The Apriori Algorithm <a name="apriori-fit"></a>
+# Applying The Apriori Algorithm <a name="causal-impact-fit"></a>
 
 In the code below we apply the apriori algorithm from the apyori library.
 
@@ -310,7 +310,7 @@ A sample of this data (the first 5 product pairs - not in any order) can be seen
 In the DataFrame we have the two products in the pair, and then the three key metrics; Support, Confidence, and Lift. 
 
 <br>
-# Interpreting The Results <a name="apriori-results"></a>
+# Interpreting The Results <a name="causal-impact-results"></a>
 
 <br>
 #### Associated Products
