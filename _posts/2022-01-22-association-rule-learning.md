@@ -310,7 +310,8 @@ In the DataFrame we have the two products in the pair, and then the three key me
 <br>
 # Interpreting The Results <a name="apriori-results"></a>
 
-##### Associated Products
+<br>
+#### Associated Products
 
 Now we have our data in a useable format - let's look at the product pairs with the *strongest* relationships - we can do this by sorting our Lift column, in descending order.
 
@@ -347,7 +348,8 @@ We also see some strong relationships between French wines, and other French win
 
 Another interesting association is between products labelled "small".  At this point, we don't know exactly what that means - but it is certainly something to take back to the client as they may be able to make more sense of it, and turn it into an actionable insight!
 
-##### Search Tool For Category Managers
+<br>
+#### Search Tool For Category Managers
 
 With the data now stored as a DataFrame, we will also go back to the client with a proposal to build a simple "search" tool for Category Managers to use.
 
