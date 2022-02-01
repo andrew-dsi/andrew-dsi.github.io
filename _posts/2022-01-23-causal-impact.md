@@ -36,23 +36,36 @@ The aim of this work is to understand and quantify the uplift in sales for custo
 <br>
 ### Actions <a name="overview-actions"></a>
 
-xxx
-xxx
+We applied Causal Impact Analysis (see full details below) using the *pycausalimpact* library.
+
+In the client database, we have a *campaign_data* table which shows us which customers received each type of "Delivery Club" mailer, which customers were in the control group, and which customers joined the club as a result.
+
+Since Delivery Club membership was open to *all customers* - the control group we have in the *campaign_data* table would help us measure the impact of *contacting* customers but here, we are actually look to measure the overall impact on sales from the Delivery Club itself.  Because of this, we instead used customers who did not sign up as the control.  The hypothesis was that customers who did not sign up should continue their normal shopping habits after the club went live, and this will help us create the counter-factual for the customers that did sign-up.
+
+Sales data was from the *transactions* table and was aggregated from a customer/transaction/product area level to customer/date level as per the requirements of the algorithm.
+
+We used a 3 months pre-period for the algorithm to model, 3 months post-period for the counterfactual.
 
 <br>
 <br>
 
 ### Results <a name="overview-results"></a>
 
-xxx
-xxx
+We saw a 41.1% uplift in sales for those customers that joined the Delivery Club, over and above what we believe they would have spent, had the club not been in existence.  This was across the three month post-period, and the uplift was deemed to be significantly significant (@ 95%).
 
 <br>
 <br>
 ### Growth/Next Steps <a name="overview-growth"></a>
 
-xxx
-xxx
+It would be interesting to look at this pool of customers (both those who did and did not join the Delivery club) and investigate if there were any differences in sales in these time periods *last year* - this would help us understand if any of the uplift we are seeing here is actually the result of seasonality.
+
+It would be interesting to track this uplift over time and see if:
+
+* It continues to grow
+* It flattens or returns to normal
+* We see any form of uplift pull-forward
+
+It would also be interesting to analyse what it is that is making up this uplift.  Are customers increasing their spend across the same categories - or are they buying into new categories
 
 <br>
 <br>
@@ -113,7 +126,7 @@ Here we will utilise a Python package called **pycausalimpact** to apply this al
 
 In the client database, we have a *campaign_data* table which shows us which customers received each type of "Delivery Club" mailer, which customers were in the control group, and which customers joined the club as a result.
 
-Since Delivery Clum membership was open to *all customers* - the control group we have in the *campaign_data* table would help us measure the impact of *contacting* customers but here, we are actually look to measure the overall impact on sales from the Delivery Club itself.  Because of this, we will instead just use customers who did not sign up as the control.  The customers who did not sign up should continue their normal shopping habits after the club went live, and this will help us create the counter-factual for the customers that did sign-up.
+Since Delivery Club membership was open to *all customers* - the control group we have in the *campaign_data* table would help us measure the impact of *contacting* customers but here, we are actually look to measure the overall impact on sales from the Delivery Club itself.  Because of this, we will instead just use customers who did not sign up as the control.  The customers who did not sign up should continue their normal shopping habits after the club went live, and this will help us create the counter-factual for the customers that did sign-up.
 
 In the code below, we:
 
@@ -288,7 +301,6 @@ print(ci.summary(output = "report"))
 
 Analysis report {CausalImpact}
 
-
 During the post-intervention period, the response variable had an average value of approx. 171.33. By contrast, in the absence of an intervention, we would have expected an average response of 121.42.
 
 The 95% interval of this counterfactual prediction is [112.79, 129.77].
@@ -314,7 +326,7 @@ The high level story of this that, yes, we did see an uplift in sales for those 
 <br>
 # Growth & Next Steps <a name="growth-next-steps"></a>
 
-It would be interesting to look at this pool of customers (both those who did and did not join the club) and investigate if there were any differences in sales in these time periods *last year* - this would help us understand if any of the uplift we are seeing here is actually the result of seasonality.
+It would be interesting to look at this pool of customers (both those who did and did not join the Delivery club) and investigate if there were any differences in sales in these time periods *last year* - this would help us understand if any of the uplift we are seeing here is actually the result of seasonality.
 
 It would be interesting to track this uplift over time and see if:
 
