@@ -18,8 +18,8 @@ In this project we use Association Rule Learning to analyse the transactional re
 - [02. Apriori Overview](#apriori-overview)
 - [03. Data Preparation](#apriori-data-prep)
 - [04. Applying The Apriori Algorithm](#apriori-fit)
-- [04. Interpreting The Results](#apriori-results)
-- [05. Growth & Next Steps](#growth-next-steps)
+- [05. Interpreting The Results](#apriori-results)
+- [06. Growth & Next Steps](#growth-next-steps)
 
 ___
 
