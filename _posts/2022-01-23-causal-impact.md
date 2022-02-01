@@ -111,47 +111,71 @@ Here we will utilise a Python package called **pycausalimpact** to apply this al
 <br>
 # Data Overview & Preparation  <a name="causal-impact-data-prep"></a>
 
-As mentioned in the Data Overview section above, the *apyori* library that we are using does not want the data in table format, it instead wants it passed in as a *list of lists* so we will need to modify it here.  
+In the client database, we have a *campaign_data* table which shows us which customers received each type of "Delivery Club" mailer, which customers were in the control group, and which customers joined the club as a result.
+
+Since Delivery Clum membership was open to *all customers* - the control group we have in the *campaign_data* table would help us measure the impact of *contacting* customers but here, we are actually look to measure the overall impact on sales from the Delivery Club itself.  Because of this, we will instead just use customers who did not sign up as the control.  The customers who did not sign up should continue their normal shopping habits after the club went live, and this will help us create the counter-factual for the customers that did sign-up.
 
 In the code below, we:
 
-* Remove the ID column as it is not required
-* Iterate over the DataFrame, appending each transaction to a list, and appending those to a master list
-* Print out the first 10 lists from the master list
+* Load in the Python libraries we require
+* Import the required data from the *transactions* table and the *campaign_data* table
+* Aggregate the transactions table from customer/transaction/product area level to customer/date level
+* Merge on the signup flag from the *campaign_data* table
+* Pivot & aggregate to give us aggregated daily sales by signed-up/did not sign-up groups
+* Manoeuvre the data specifically for the pycausalimpact algorithm
+* Give our groups some meaningful names, to help with interpretation
 
 <br>
 ```python
 
-# drop ID column
-alcohol_transactions.drop("transaction_id", axis = 1, inplace = True)
+# install the required python libraries
+from causalimpact import CausalImpact
+import pandas as pd
 
-# modify data for apriori algorithm
-transactions_list = []
-for index, row in alcohol_transactions.iterrows():
-    transaction = list(row.dropna())
-    transactions_list.append(transaction)
-    
-# print out first 10 lists from master list
-print(transactions_list[:10])
+# import data tables
+transactions = ...
+campaign_data = ...
 
-[['Premium Lager', 'Iberia'],
- ['Sparkling', 'Premium Lager', 'Premium Cider', 'Own Label', 'Italy White', 'Italian White', 'Italian Red', 'French Red', 'Bottled Ale'],
- ['Small Sizes White', 'Small Sizes Red', 'Sherry Spanish', 'No/Low Alc Cider', 'Cooking Wine', 'Cocktails/Liqueurs', 'Bottled Ale'],
- ['White Uk', 'Sherry Spanish', 'Port', 'Italian White', 'Italian Red'],
- ['Premium Lager', 'Over-Ice Cider', 'French White South', 'French Rose', 'Cocktails/Liqueurs', 'Bottled Ale'],
- ['Kosher Red'],
- ['Own Label', 'Italy White', 'Australian Red'],
- ['Brandy/Cognac'],
- ['Small Sizes White', 'Bottled Ale'],
- ['White Uk', 'Spirits Mixers', 'Sparkling', 'German', 'Australian Red', 'American Red']]
+# aggregate transaction data to customer, date level
+customer_daily_sales = transactions.groupby(["customer_id", "transaction_date"])["sales_cost"].sum().reset_index()
+
+# merge on the signup flag
+customer_daily_sales = pd.merge(customer_daily_sales, campaign_data, how = "inner", on = "customer_id")
+
+# pivot the data to aggregate daily sales by signup group
+causal_impact_df = customer_daily_sales.pivot_table(index = "transaction_date",
+                                                    columns = "signup_flag",
+                                                    values = "sales_cost",
+                                                    aggfunc = "mean")
+
+# provide a frequency for our DateTimeIndex (avoids a warning message)
+causal_impact_df.index.freq = "D"
+
+# ensure the impacted group is in the first column (the library expects this)
+causal_impact_df = causal_impact_df[[1,0]]
+
+# rename columns to something lear & meaningful
+causal_impact_df.columns = ["member", "non_member"]
 
 ```
 <br>
+A sample of this data (the first 5 days of data) can be seen below:
+<br>
+<br>
 
-As you can see from the print statement, each transaction (row) from the initial DataFrame is now contained within a list, all making up the master list.
+| **transaction_date** | **member** | **non_member** |
+|---|---|---|
+| 01/04/2020 | 194.49 | 74.46 |
+| 02/04/2020 | 185.16 | 75.56 |
+| 03/04/2020 | 118.12 | 74.39 |
+| 04/04/2020 | 198.53 | 63.00 |
+| 05/04/2020 | 145.46 | 72.44 |
 
 <br>
-# Applying The Apriori Algorithm <a name="causal-impact-fit"></a>
+In the DataFrame we have the transaction data, and then a column showing the average daily sales for those who signed up (member) and those who did not (non_member).  This is the required format for applying the algorithm.
+
+<br>
+# Applying The Causal Impact Algorithm <a name="causal-impact-fit"></a>
 
 In the code below we apply the apriori algorithm from the apyori library.
 
