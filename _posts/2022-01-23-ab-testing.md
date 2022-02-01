@@ -14,10 +14,10 @@ In this project we apply the Chi-Square Test For Independence to assess the perf
     - [Actions](#overview-actions)
     - [Results](#overview-results)
     - [Growth/Next Steps](#overview-growth)
-- [01. Causal Impact Analysis Overview](#causal-impact-overview)
-- [02. Data Overview & Preparation](#causal-impact-data-prep)
-- [03. Applying Causal Impact Analysis](#causal-impact-fit)
-- [04. Analysing The Results](#causal-impact-results)
+- [01. Concept Overview](#concept-overview)
+- [02. Data Overview & Preparation](#data-overview)
+- [03. Applying Chi-Square Test For Independence](#chi-square-application)
+- [04. Analysing The Results](#chi-square-results)
 - [05. Growth & Next Steps](#growth-next-steps)
 
 ___
@@ -28,101 +28,95 @@ ___
 
 Earlier in the year, our client, a grocery retailer, ran a campaign to promote their new "Delivery Club" - an initiative that costs a customer $100 per year for membership, but offers free grocery deliveries rather than the normal cost of $10 per delivery.
 
-They want to understand if customers who did join the club have increased their spend in the three months following.  The hypothesis is that, if customers are not paying for deliveries, they will be tempted to shop more frequently, and hopefully purchase more each time.
+For the campaign promoting the club, customers were put randomly into three groups - the first group received a low quality, low cost mailer, the second group received a high quality, high cost mailer, and the third group were a control group, receiving no mailer at all.
 
-The aim of this work is to understand and quantify the uplift in sales for customers that joined the club, over and above what they *would* have spent had the club not come into existence!
+The client knows that customers who were contacted, signed up for the Delivery Club at a far higher rate than the control group, but now want to understand if there is a significant difference in signup rate between the cheap mailer and the expensive mailer.  This will allow them to make more informed decisions in the future, with the overall aim of optimising campaign ROI!
 
 <br>
 <br>
 ### Actions <a name="overview-actions"></a>
 
-We applied Causal Impact Analysis (see full details below) using the *pycausalimpact* library.
-
-In the client database, we have a *campaign_data* table which shows us which customers received each type of "Delivery Club" mailer, which customers were in the control group, and which customers joined the club as a result.
-
-Since Delivery Club membership was open to *all customers* - the control group we have in the *campaign_data* table would help us measure the impact of *contacting* customers but here, we are actually look to measure the overall impact on sales from the Delivery Club itself.  Because of this, we instead used customers who did not sign up as the control.  The hypothesis was that customers who did not sign up should continue their normal shopping habits after the club went live, and this will help us create the counter-factual for the customers that did sign-up.
-
-Sales data was from the *transactions* table and was aggregated from a customer/transaction/product area level to customer/date level as per the requirements of the algorithm.
-
-We used a 3 months pre-period for the algorithm to model, 3 months post-period for the counterfactual.
+xxx
 
 <br>
 <br>
 
 ### Results <a name="overview-results"></a>
 
-We saw a 41.1% uplift in sales for those customers that joined the Delivery Club, over and above what we believe they would have spent, had the club not been in existence.  This was across the three month post-period, and the uplift was deemed to be significantly significant (@ 95%).
+xxx
 
 <br>
 <br>
 ### Growth/Next Steps <a name="overview-growth"></a>
 
-It would be interesting to look at this pool of customers (both those who did and did not join the Delivery club) and investigate if there were any differences in sales in these time periods *last year* - this would help us understand if any of the uplift we are seeing here is actually the result of seasonality.
-
-It would be interesting to track this uplift over time and see if:
-
-* It continues to grow
-* It flattens or returns to normal
-* We see any form of uplift pull-forward
-
-It would also be interesting to analyse what it is that is making up this uplift.  Are customers increasing their spend across the same categories - or are they buying into new categories
+xxx
 
 <br>
 <br>
 
 ___
 
-# Causal Impact Analysis Overview  <a name="causal-impact-overview"></a>
+# Concept Overview  <a name="concept-overview"></a>
 
 <br>
-#### Context
+#### A/B Testing
 
-One of the most common tasks we undertake in Data Science & Data Analysis is *understanding and quantifying a change in a key business metric after some event has taken place*.
+An A/B Test can be described as a randomised experiment containing two groups, A & B, that receive different experiences. Within an A/B Test, we look to understand and measure the response of each group - and the information from this helps drive future business decisions.
 
-Depending on the industry - this could be the uplift in sales after a promotion or a product release, the additional clicks, conversions, or signups generated by an online ad campaign, the change in share price after a market event, or even the change in the value of the US dollar after the president opens his mouth.
-
-Whatever the scenario, the task is *essentially* the same - we want to understand how big this change was.
-
-But to understand this *robustly & reliably* we really need to understand what *would have happened* had the event not taken place.
-
-In most cases the trends *preceding the event in question* isn’t tame, it is filled with lumps and bumps and ups and downs.  When some key event does take place, understanding what *would have happened had the event not taken place* so we can estimate the true impact can be difficult!
-
-In many cases, the event that we’re analysing is part of a randomised & controlled experiment, and this means understanding the difference between the group that was affected by the event can be compared to a control group, that was purposely held back from the effect of the event.
-
-But there are a lot of cases where we just can’t run a randomised experiment, either because it’s expensive, or potentially it’s just impossible.  As an example, in the case of measuring the change in a share price after an event, we don’t really have a direct control group to lean on for comparison purposes.
-
-An approach that works really well in both scenarios, is Causal Impact Analysis.
+Application of A/B testing can range from testing different online ad strategies, different email subject lines when contacting customers, or testing the effect of mailing customers a coupon, vs a control group.  Companies like Amazon are running these tests in an almost never-ending cycle, testing new website features on randomised groups of customers...all with the aim of finding what works best so they can stay ahead of their competition.  Reportedly, Netflix will even test different images for the same movie or show, to different segments of their customer base to see if certain images pull more viewers in.
 
 <br>
-#### How It Works
+#### Hypothesis Testing
 
-Causal Impact is a time-series technique, originally developed by Google.
+A Hypothesis Test is used to assess the plausibility, or likelihood of an assumed viewpoint based on sample data - in other words, a it helps us assess whether a certain view we have about some data is likely to be true or not.
 
-It estimates what *would have happened* (known as a "counterfactual") by applying a model to *comparable data* in a pre-period and projecting this model onto that data in a post-period. The difference between the actual data and the counterfactual in the post-period, is the estimated impact of the event.
-
-The *comparable data* that we pass in can be a control group, another set of related data, or even multiple sets of related data - but for this approach to work robustly & reliably, this additional data must must adhere to several rules:
-
-It must not be affected by the event that we’re measuring, but it must be predictive of our output, or have some relationship with our initial time-series data.
-
-So, in the case of randomised experiment, we could use the control group as our additional set of data.
-
-In the case where we don't have a control group, we need to find other sets of data that meet the aforementoined rules. These must not be affected by the event, but they should have some relationship or correlation with the time-series data we’re measuring.  If we were measuring stock prices, perhaps we could use other stocks that are in a similar industry to us.  If we were measuring the sales of a certain section of the grocery store, say health and beauty products, perhaps our second time-series could be the sales of another non-food category in the store.
-
-Either way, this additional data provides the algorithm insights into the trends of the data over time.
-
-The algorithm uses these insights to models the relationship between the two (or more) time-series in the pre-period.  In other words, it finds a set of rules that best predict the time-series of interest, based on the movements and fluctuations of the other time-series that we provided it.
-
-Once the algorithm has modelled this relationship, it then looks to apply the learnings from this model in the post-period, the result of which is an estimation for the counterfactual, or what the model *believes would have happened* to our time series if our event never took place!
-
-Once we have this counterfactual, we can proceed to calculate the estimation for the causal effect, or in other words, the effect caused by our event!
+There are many different scenarios we can run Hypothesis Tests on, and they all have slightly different techniques and formulas - however they all have some shared, fundamental steps & logic that underpin how they work.
 
 <br>
-#### Application
+**The Null Hypothesis**
 
-Here we will utilise a Python package called **pycausalimpact** to apply this algorithm to our data.  This will model the relationships, and provide very useful plots and summarises to help us understand the results.
+In any Hypothesis Test, we start with the Null Hypothesis. The Null Hypothesis is where we state our initial viewpoint, and in statistics, and specifically Hypothesis Testing, our initial viewpoint is always that the result is purely by chance or that there is no relationship or association between two outcomes or groups
 
 <br>
-# Data Overview & Preparation  <a name="causal-impact-data-prep"></a>
+**The Alternate Hypothesis**
+
+The aim of the Hypothesis Test is to look for evidence to support or reject the Null Hypothesis.  If we reject the Null Hypothesis, that would mean we’d be supporting the Alternate Hypothesis.  The Alternate Hypothesis is essentially the opposite viewpoint to the Null Hypothesis - that the result is *not* by chance, or that there *is* a relationship between two outcomes or groups
+
+<br>
+**The Acceptance Criteria**
+
+In a Hypothesis Test, before we collect any data or run any numbers - we specify an Acceptance Criteria.  This is a p-value threshold at which we’ll decide to reject or support the null hypothesis.  It is essentially a line we draw in the sand saying "if I was to run this test many many times, what proportion of those times would I want to see different results come out, in order to feel comfortable, or confident that my results are not just some unusual occurrence"
+
+Conventionally, we set our Acceptance Criteria to 0.05 - but this does not have to be the case.  If we need to be more confident that something did not occur through chance alone, we could lower this value down to something much smaller, meaning that we only come to the conclusion that the outcome was special or rare if it’s extremely rare.
+
+So to summarise, in a Hypothesis Test, we test the Null Hypothesis using a p-value and then decide it’s fate based on the Acceptance Criteria.
+
+<br>
+**Types Of Hypothesis Test**
+
+There are many different types of Hypothesis Tests, each of which is appropriate for use in differing scenarios - depending on a) the type of data that you’re looking to test and b) the question that you’re asking of that data.
+
+In the case of our task here, where we are looking to understand the difference in sign-up *rate* between two groups - we will utilise the Chi-Square Test For Independence.
+
+<br>
+#### Chi-Square Test For Independence
+
+The Chi-Square Test For Independence is a type of Hypothesis Test that assumes observed frequencies for categorical variables will match the expected frequencies.
+
+The *assumption* is the Null Hypothesis, which as discussed above is always the viewpoint that the two groups will be equal.  With the Chi-Square Test For Independence we look to calculate a statistic which, based on the specified Acceptance Criteria will mean we either reject or support this initial assumption.
+
+The *observed frequencies* are the true values that we’ve seen.
+
+The *expected frequencies* are essentially what we would *expect* to see based on all of the data.
+
+**Note:** Another option when comparing "rates" is a test known as the *Z-Test For Proportions*.  While, we could absolutely use this test here, we have chosen the Chi-Square Test For Independence because:
+
+* The resulting test statistic for both tests will be the same
+* The Chi-Square Test can be represented using 2x2 tables of data - meaning it can be easier to explain to stakeholders
+* The Chi-Square Test can extend out to more than 2 groups - meaning the business can have one consistent approach to measuring signficance
+
+<br>
+# Data Overview & Preparation  <a name="data-overview"></a>
 
 In the client database, we have a *campaign_data* table which shows us which customers received each type of "Delivery Club" mailer, which customers were in the control group, and which customers joined the club as a result.
 
@@ -188,7 +182,7 @@ A sample of this data (the first 5 days of data) can be seen below:
 In the DataFrame we have the transaction data, and then a column showing the average daily sales for those who signed up (member) and those who did not (non_member).  This is the required format for applying the algorithm.
 
 <br>
-# Applying The Causal Impact Algorithm <a name="causal-impact-fit"></a>
+# Applying Chi-Square Test For Independence <a name="chi-square-application"></a>
 
 In the code below, we specify the start and end dates of the "pre-period" and the start and end dates of the "post-period". We then apply the algorithm by passing in the DataFrame and the specified pre and post period time windows.
 
@@ -210,7 +204,7 @@ ci = CausalImpact(causal_impact_df, pre_period, post_period)
 We can use the created object (called ci above) to examine & plot the results.
 
 <br>
-# Analysing The Results <a name="causal-impact-results"></a>
+# Analysing The Results <a name="chi-square-results"></a>
 
 <br>
 #### Plotting The Results
