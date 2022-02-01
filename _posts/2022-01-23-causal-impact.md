@@ -213,6 +213,12 @@ ci.plot()
 <br>
 xxx
 
+<br>
+![alt text](/img/posts/causal-impact-results-plot.png "Causal Impact Results Plot")
+
+<br>
+xxx
+
 #### Interpreting The Results
 
 xxx
