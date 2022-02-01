@@ -14,10 +14,9 @@ In this project we use Causal Impact Analysis to analyse & understand the sales 
     - [Actions](#overview-actions)
     - [Results](#overview-results)
     - [Growth/Next Steps](#overview-growth)
-- [01. Data Overview](#data-overview)
-- [02. Causal Impact Analysis Overview](#causal-impact-overview)
-- [03. Data Preparation](#causal-impact-data-prep)
-- [04. Applying Causal Impact Analysis](#causal-impact-fit)
+- [01. Causal Impact Analysis Overview](#causal-impact-overview)
+- [02. Data Overview & Preparation](#causal-impact-data-prep)
+- [03. Applying Causal Impact Analysis](#causal-impact-fit)
 - [04. Interpreting The Results](#causal-impact-results)
 - [05. Growth & Next Steps](#growth-next-steps)
 
@@ -60,52 +59,6 @@ xxx
 
 ___
 
-# Data Overview  <a name="data-overview"></a>
-
-Our initial dataset contains 3,500 transactions, each of which shows the alcohol products that were present in that transaction.  
-
-In the code below, we import Pandas, as well as the apriori algorithm from the apyori library, and we bring the raw data into Python.
-<br>
-```python
-
-# import required Python packages
-import pandas as pd
-from apyori import apriori
-
-# import the sample data
-alcohol_transactions = pd.read_csv("data/sample_data_apriori.csv")
-
-```
-<br>
-
-A sample of this data (the first 10 transactions) can be seen below:
-<br>
-<br>
-
-| **transaction_id** | **product1** | **product2** | **product3** | **product4** | **product5** | **…** |
-|---|---|---|---|---|---|---|
-| 1 | Premium Lager | Iberia | … |  |  | ... |
-| 2 | Sparkling | Premium Lager | Premium Cider | Own Label | Italy White | … |
-| 3 | Small Sizes White | Small Sizes Red | Sherry Spanish | No/Low Alc Cider | Cooking Wine | … |
-| 4 | White Uk | Sherry Spanish | Port | Italian White | Italian Red | … |
-| 5 | Premium Lager | Over-Ice Cider | French White South | French Rose | Cocktails/Liqueurs | … |
-| 6 | Kosher Red | … |  |  |  | ... |
-| 7 | Own Label | Italy White | Australian Red | … |  | ... |
-| 8 | Brandy/Cognac | … |  |  |  | ... |
-| 9 | Small Sizes White | Bottled Ale | … |  |  | ... |
-| 10 | White Uk | Spirits Mixers | Sparkling | German | Australian Red | … |
-| … | … | … | … | … | … | … |
-
-<br>
-To explain this data, *Transaction 1* (the first row) contained two products, Premium Lager, and Iberia.  As there were only two products in this transaction, the remaining columns are blank.
-
-Transaction 2 (the second row) contained nine products (not all shown in the snippet).  The first nine columns for this row are therefore populated, followed by blank values.
-
-For our sample data, the maximum number of unique products was 45, meaning the table of data had a total of 46 columns (45 for products + transaction_id).
-
-The *apyori* library that we are using does not want the data in this format, it instead wants it passed in as a *list of lists* so we will need to modify it.  The code and logic for this can be found in the Data Preparation section below.
-
-<br>
 # Causal Impact Analysis Overview  <a name="causal-impact-overview"></a>
 
 Association Rule Learning is an approach that discovers the strength of relationships between different data-points.  It is commonly utilised to understand which products are frequently (or infrequently) purchased together.
