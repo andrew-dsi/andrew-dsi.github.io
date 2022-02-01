@@ -177,7 +177,7 @@ In the DataFrame we have the transaction data, and then a column showing the ave
 <br>
 # Applying The Causal Impact Algorithm <a name="causal-impact-fit"></a>
 
-In the code below, we specify which part of the data will represent the "pre-period" and which part will represent the "post-period" and then we apply the algorithm by passing in the DataFrame and the time-periods.
+In the code below, we specify the start and end dates of the "pre-period" and the start and end dates of the "post-period". We then apply the algorithm by passing in the DataFrame and the specified pre and post period time windows.
 
 The algorithm will model the relationship between members & non-members in the pre-period - and it will use this to create the counterfactual, in other words what it believes would happen to the average daily spend for members in the post-period if no event was to have taken place!
 
@@ -211,13 +211,29 @@ ci.plot()
 
 ```
 <br>
-xxx
+The resulting plot(s) can be seen below.
 
 <br>
 ![alt text](/img/posts/causal-impact-results-plot.png "Causal Impact Results Plot")
 
 <br>
-xxx
+To explain what we have in the above image...
+
+The vertical dotted line down the middle of each plot is the date that the Delivery Club membership started.  Everything to the left of this dotted line is the pre-period, and everything to the right of the dotted line is the post-period.
+
+<br>
+**Chart 1:  Actual vs. Counterfactual**
+
+The top chart shows the actual data for the impacted group as a black line, in other words the *actual* average daily sales for customers who did go on to sign up to the Delivery Club.  You can also see the counterfactual, which is shown with the blue dotted line.  The purple area around the blue dotted line represent the confidence intervals around the counterfactual - in other words, the range in which the algorithm believes the prediction should fall in.  A wider confidence interval suggests that the model is less sure about it's counterfactual prediction - and this is all taken into account when we look to quantify the actual uplift.
+
+Just eyeing this first chart, it does indeed look like there is some increase in daily average spend for customers who joined the club, over-and-above what the model suggests they would have done, if the club was never in existence.  We will look at the actual numbers for this very soon.
+
+<br>
+**Chart 2:  Pointwise Effects**
+
+This second chart shows us, for each day (or data point in general) in our time-series, the *raw differences* between the actual values and the values for the counterfactual.  It is plotting the *differences* from Chart 1.  As an example, if on Day 1 the actual and the counterfactual were the same, this chart would show a value of 0.  If the actual is higher than the counterfactual then we would see a positive value on this chart, and vice versa.  It is essentially showing how far above or below the counterfactual, the actual values are.
+
+What is interesting here is that for the pre-period...
 
 #### Interpreting The Results
 
