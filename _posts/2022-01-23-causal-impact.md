@@ -17,7 +17,7 @@ In this project we use Causal Impact Analysis to analyse & understand the sales 
 - [01. Causal Impact Analysis Overview](#causal-impact-overview)
 - [02. Data Overview & Preparation](#causal-impact-data-prep)
 - [03. Applying Causal Impact Analysis](#causal-impact-fit)
-- [04. Interpreting The Results](#causal-impact-results)
+- [04. Analysing The Results](#causal-impact-results)
 - [05. Growth & Next Steps](#growth-next-steps)
 
 ___
@@ -28,7 +28,7 @@ ___
 
 Earlier in the year, our client, a grocery retailer, ran a campaign to promote their new "Delivery Club" - an initiative that costs a customer $100 per year for membership, but offers free grocery deliveries rather than the normal cost of $10 per delivery.
 
-They want to understand if customers who did join the club have increased their spend in the months following.  The hypothesis is that, if customers are not paying for deliveries, they will be tempted to shop more frequently, and hopefully purchase more each time.
+They want to understand if customers who did join the club have increased their spend in the three months following.  The hypothesis is that, if customers are not paying for deliveries, they will be tempted to shop more frequently, and hopefully purchase more each time.
 
 The aim of this work is to understand and quantify the uplift in sales for customers that joined the club, over and above what they *would* have spent had the club not come into existence!
 
@@ -118,7 +118,7 @@ Since Delivery Clum membership was open to *all customers* - the control group w
 In the code below, we:
 
 * Load in the Python libraries we require
-* Import the required data from the *transactions* table and the *campaign_data* table
+* Import the required data from the *transactions* and *campaign_data* tables (3 months prior, 3 months post campaign)
 * Aggregate the transactions table from customer/transaction/product area level to customer/date level
 * Merge on the signup flag from the *campaign_data* table
 * Pivot & aggregate to give us aggregated daily sales by signed-up/did not sign-up groups
@@ -177,162 +177,50 @@ In the DataFrame we have the transaction data, and then a column showing the ave
 <br>
 # Applying The Causal Impact Algorithm <a name="causal-impact-fit"></a>
 
-In the code below we apply the apriori algorithm from the apyori library.
+In the code below, we specify which part of the data will represent the "pre-period" and which part will represent the "post-period" and then we apply the algorithm by passing in the DataFrame and the time-periods.
 
-This algorithm allows us to specify the association rules that we want.  We set:
+The algorithm will model the relationship between members & non-members in the pre-period - and it will use this to create the counterfactual, in other words what it believes would happen to the average daily spend for members in the post-period if no event was to have taken place!
 
-* A minimum *Support* of 0.003 to eliminate very rare product sets
-* A minimum *Confidence* of 0.2
-* A minimum *Lift* of 3 to ensure we're only focusing on product sets with strong relationships
-* A minimum & maximum length of 2 meaning we're only focusing on product *pairs* rather than larger sets
+The difference between this counterfactual and the actual data in the post-period will be our "causal impact"
 
 ```python
 
-# apply the apriori algorthm and specify required parameters
-apriori_rules = apriori(transactions_list,
-                        min_support = 0.003,
-                        min_confidence = 0.2,
-                        min_lift = 3,
-                        min_length = 2,
-                        max_length = 2)
+# specify the pre & post periods
+pre_period = ["2020-04-01","2020-06-30"]
+post_period = ["2020-07-01","2020-09-30"]
 
-# convert the output to a list
-apriori_rules = list(apriori_rules)
-
-# print out the first element
-apriori_rules[0]
-
-RelationRecord(items=frozenset({'America White', 'American Rose'}), support=0.020745724698626296, ordered_statistics=[OrderedStatistic(items_base=frozenset({'American Rose'}), items_add=frozenset({'America White'}), confidence=0.5323741007194245, lift=3.997849299507762)])
+# apply the algorithm
+ci = CausalImpact(causal_impact_df, pre_period, post_period)
 
 ```
 <br>
-The output from the algorithm is in the form of a generator. We covert this to a list as this is easier to manipulate & analyse.  
+We can use the created object (called ci above) to examine & plot the results.
 
-Based upon the parameters we set when applying the algorithm, we get 132 product pairs.  We print out the first element from the list to see what the output looks like, and while this contains all the key information we need - to make it easier to analyse (and more accessible & useable for stakeholders) - in the next code snippet, we extract the key elements and use list comprehension to re-work this data to exist as a Pandas DataFrame.
+<br>
+# Analysing The Results <a name="causal-impact-results"></a>
+
+<br>
+#### Plotting The Results
+
+The *pycausalimpact* library makes plotting the results extremely easy - all done with the single line of code below:
 
 ```python
 
-# extract each piece of information
-product1 = [list(rule[2][0][0])[0] for rule in apriori_rules]
-product2 = [list(rule[2][0][1])[0] for rule in apriori_rules]
-support = [rule[1] for rule in apriori_rules]
-confidence = [rule[2][0][2] for rule in apriori_rules]
-lift = [rule[2][0][3] for rule in apriori_rules]
-
-# compile into a single dataframe
-apriori_rules_df = pd.DataFrame({"product1" : product1,
-                                 "product2" : product2,
-                                 "support" : support,
-                                 "confidence": confidence,
-                                 "lift" : lift})
+# plot the results
+ci.plot()
 
 ```
 <br>
-A sample of this data (the first 5 product pairs - not in any order) can be seen below:
-<br>
-<br>
+xxx
 
-| **product1** | **product2** | **support** | **confidence** | **lift** |
-|---|---|---|---|---|
-| American Rose | America White | 0.021 | 0.532 | 3.998 |
-| America White | American White | 0.054 | 0.408 | 3.597 |
-| Australian Rose | America White | 0.005 | 0.486 | 3.653 |
-| Low Alcohol A.C | America White | 0.003 | 0.462 | 3.466 |
-| American Rose | American Red | 0.016 | 0.403 | 3.575 |
-| … | … | … | … | … |
+#### Interpreting The Results
 
-<br>
-In the DataFrame we have the two products in the pair, and then the three key metrics; Support, Confidence, and Lift. 
+xxx
 
-<br>
-# Interpreting The Results <a name="causal-impact-results"></a>
 
-<br>
-#### Associated Products
 
-Now we have our data in a useable format - let's look at the product pairs with the *strongest* relationships - we can do this by sorting our Lift column, in descending order.
-
-```python
-
-# sort pairs by descending Lift
-apriori_rules_df.sort_values(by = "lift", ascending = False, inplace = True)
-
-```
-
-<br>
-In the table below, we can see the ten highest product relationships, based upon Lift
-<br>
-<br>
-
-| **product1** | **product2** | **support** | **confidence** | **lift** |
-|---|---|---|---|---|
-| Wine Gifts | Beer/Lager Gifts | 0.004 | 0.314 | 10.173 |
-| Beer/Lager Gifts | Spirits & Fortified | 0.013 | 0.427 | 9.897 |
-| Wine Gifts | Spirits & Fortified | 0.006 | 0.412 | 9.537 |
-| Red Wine Bxes & 25Cl | White Boxes | 0.015 | 0.474 | 9.344 |
-| French White Rhone | French Red | 0.003 | 0.480 | 8.691 |
-| Small Sizeswhite Oth | Small Sizes White | 0.005 | 0.559 | 8.340 |
-| Small Sizes Red | Small Sizes White | 0.025 | 0.486 | 7.258 |
-| French White Loire | French White South | 0.004 | 0.349 | 6.763 |
-| French White Rhone | French White 2 | 0.005 | 0.760 | 6.661 |
-| Small Sizeswhite Oth | Small Sizes Red | 0.003 | 0.324 | 6.306 |
-| Small Sizes Wht Othr | Small Sizes White | 0.003 | 0.414 | 6.176 |
-
-<br>
-Interestingly, the strongest relationship exists between two products labelled as "gifts" - this is useful information for the category managers as they may want to ensure that gift products are available in one section of the aisle, rather than existing in their respective product types.
-
-We also see some strong relationships between French wines, and other French wines - which again is extremely useful for category managers who are thinking about the best way to lay out the products - having sections by country rather than necessarily by type might make it easier for customers to find what they are after.
-
-Another interesting association is between products labelled "small".  At this point, we don't know exactly what that means - but it is certainly something to take back to the client as they may be able to make more sense of it, and turn it into an actionable insight!
-
-<br>
-#### Search Tool For Category Managers
-
-With the data now stored as a DataFrame, we will also go back to the client with a proposal to build a simple "search" tool for Category Managers to use.
-
-An example of how this might work would be to test a hypothesis around New Zealand wines.
-
-The code below uses a string function to pull back all rows in the DataFrame where *product1* contains the words "New Zealand"
-
-```python
-
-# search based upon text
-apriori_rules_df[apriori_rules_df["product1"].str.contains("New Zealand")]
-
-```
-<br>
-The results of this search, in order of descending Lift are as follows:
-<br>
-<br>
-
-| **product1** | **product2** | **support** | **confidence** | **lift** |
-|---|---|---|---|---|
-| New Zealand Red | Malt Whisky | 0.005326605 | 0.271428571 | 5.628986711 |
-| New Zealand Red | Iberia White | 0.007289038 | 0.371428571 | 4.616326531 |
-| New Zealand Red | New Zealand White | 0.012615643 | 0.642857143 | 4.613825812 |
-| New Zealand Red | French White South | 0.004485562 | 0.228571429 | 4.431055901 |
-| New Zealand Red | French White 2 | 0.009531819 | 0.485714286 | 4.256862057 |
-| New Zealand Red | French Red | 0.004205214 | 0.214285714 | 3.879985497 |
-| New Zealand Red | French Red South | 0.006447996 | 0.328571429 | 3.868033946 |
-| New Zealand Red | South America | 0.010933558 | 0.557142857 | 3.799863425 |
-| New Zealand Red | Other Red | 0.004485562 | 0.228571429 | 3.591692889 |
-| New Zealand Red | Iberia | 0.012054948 | 0.614285714 | 3.528433402 |
-| New Zealand Red | Champagne | 0.008690777 | 0.442857143 | 3.526052296 |
-| New Zealand White | South America White | 0.049341183 | 0.354124748 | 3.423205902 |
-| New Zealand Red | French Red 2 | 0.010092515 | 0.514285714 | 3.359811617 |
-| New Zealand Red | South America White | 0.006728343 | 0.342857143 | 3.314285714 |
-| New Zealand Red | Australia White | 0.007289038 | 0.371428571 | 3.215742025 |
-
-<br>
-There appears to be *some* relationship between New Zealand wines and other New Zealand wines, but what is also interesting is that New Zealand wines seem to be more associated with French & South American wines than they are with Australian Wines.
-
-New Zealand & Australia are often grouped together, but in terms of wine this wouldn't make sense - perhaps because of the difference climates the wines are very different and thus it wouldn't make sense to group wines by geographical proximity, but by preference instead.  This is only a hypothesis for now - we will need to take this back to the client and get their category experts to help us interpret it!
 
 <br>
 # Growth & Next Steps <a name="growth-next-steps"></a>
 
-As this was first & foremost an exploratory project, we will take back the results to the client Category Managers & discuss the results, our views on how these insights can be actioned best, and any considerations that need to be taken into account when interpreting.
-
-From there we will recommend applying this same logic to all other categories, as well as potentially across the full-product range.
-
-We will also propose the build of the "Keyword Search Engine" which will help Category Managers extract and utilise the insights held within the data.
+xxx
