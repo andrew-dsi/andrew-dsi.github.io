@@ -233,16 +233,93 @@ Just eyeing this first chart, it does indeed look like there is some increase in
 
 This second chart shows us, for each day (or data point in general) in our time-series, the *raw differences* between the actual values and the values for the counterfactual.  It is plotting the *differences* from Chart 1.  As an example, if on Day 1 the actual and the counterfactual were the same, this chart would show a value of 0.  If the actual is higher than the counterfactual then we would see a positive value on this chart, and vice versa.  It is essentially showing how far above or below the counterfactual, the actual values are.
 
-What is interesting here is that for the pre-period...
+What is interesting here is that for the pre-period we see a difference surrounding zero, but in the post period we see mostly positive values mirroring what we saw in Chart 1 where the actual average spend was greater than the counterfactual.
 
-#### Interpreting The Results
+<br>
+**Chart 3:  Cumulative Effects**
 
-xxx
+The bottom chart shows the cumulative uplift over time.  In other words this chart is effectively adding up the Pointwise contributions from the second chart over time.  This is very useful as it helps the viewer get a feel for what the total uplift or difference is at any point in time.
+
+As we would expect based on the other two charts, there does appear to be a cumulative uplift over time.
+
+<br>
+#### Interpreting The Numbers
+
+The *pycausalimpact* library also makes interpreting the numbers very easy.  We can get a clean results summary with the following line of code:
+
+```python
+
+# results summary
+print(ci.summary())
+
+Posterior Inference {Causal Impact}
+                          Average            Cumulative
+Actual                    171.33             15762.67
+Prediction (s.d.)         121.42 (4.33)      11170.19 (398.51)
+95% CI                    [112.79, 129.77]   [10376.65, 11938.77]
+
+Absolute effect (s.d.)    49.92 (4.33)       4592.48 (398.51)
+95% CI                    [41.56, 58.54]     [3823.9, 5386.02]
+
+Relative effect (s.d.)    41.11% (3.57%)     41.11% (3.57%)
+95% CI                    [34.23%, 48.22%]   [34.23%, 48.22%]
+
+Posterior tail-area probability p: 0.0
+Posterior prob. of a causal effect: 100.0%
+
+```
+<br>
+At the top of the results summary (above) we see that in the post-period the average actual daily sales per customer over the post-period was $171, higher than that of the counterfactual, which was $121.  This counterfactual prediction had 95% confidence intervals of $113 and $130.
+
+Below that we can see the *absolute effect* which is the difference between actual and counterfactual (so the difference between $171 and $121) - and this figure is essentially showing us the average daily *uplift* in sales over the post-period.  We also get the confidence intervals surrounding that effect, and since these do not pass through zero, we can confidently say that there *was* an uplift driven by the Delivery Club.
+
+Below that, we get these same numbers - as percentages.
+
+In the columns on the right of the summary, we see the *cumulative* values for these across the entire post-period, rather than the average per day.
+
+What is amazing about the *pycausalimpact* library is that, with an extra parameter, we can actually get all of this information provided as a written output.
+
+If we put:
+
+```python
+
+# results summary - report
+print(ci.summary(output = "report"))
+
+Analysis report {CausalImpact}
 
 
+During the post-intervention period, the response variable had an average value of approx. 171.33. By contrast, in the absence of an intervention, we would have expected an average response of 121.42.
 
+The 95% interval of this counterfactual prediction is [112.79, 129.77].
+
+Subtracting this prediction from the observed response yields an estimate of the causal effect the intervention had on the response variable. This effect is 49.92 with a 95% interval of [41.56, 58.54]. For a discussion of the significance of this effect, see below.
+
+Summing up the individual data points during the post-intervention period (which can only sometimes be meaningfully interpreted), the response variable had an overall value of 15762.67. By contrast, had the intervention not taken place, we would have expected a sum of 11170.19. The 95% interval of this prediction is [10376.65, 11938.77].
+
+The above results are given in terms of absolute numbers. In relative terms, the response variable showed an increase of +41.11%. The 95% interval of this percentage is [34.23%, 48.22%].
+
+This means that the positive effect observed during the intervention period is statistically significant and unlikely to be due to random fluctuations. It should be noted, however, that the question of whether this increase also bears substantive significance can only be answered by comparing the absolute effect (49.92) to the original goal
+of the underlying intervention.
+
+The probability of obtaining this effect by chance is very small (Bayesian one-sided tail-area probability p = 0.0). This means the causal effect can be considered statistically
+significant.
+
+```
+<br>
+So, this is the same information as we saw above, but put into a written report which can go straight to the client.
+
+The high level story of this that, yes, we did see an uplift in sales for those customers that joined the Delivery Club, over and above what we believe they would have spent, had the club not been in existence.  This uplift was deemed to be significantly significant (@ 95%)
 
 <br>
 # Growth & Next Steps <a name="growth-next-steps"></a>
 
-xxx
+It would be interesting to look at this pool of customers (both those who did and did not join the club) and investigate if there were any differences in sales in these time periods *last year* - this would help us understand if any of the uplift we are seeing here is actually the result of seasonality.
+
+It would be interesting to track this uplift over time and see if:
+
+* It continues to grow
+* It flattens or returns to normal
+* We see any form of uplift pull-forward
+
+It would also be interesting to analyse what it is that is making up this uplift.  Are customers increasing their spend across the same categories - or are they buying into new categories
