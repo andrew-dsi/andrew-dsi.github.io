@@ -147,6 +147,7 @@ After the data pre-processing using Pandas, we have a dataset for clustering tha
 <br>
 The data is at customer level, and we have a column for each of the highest level food product areas.  Within each of those we have the *percentage* of sales that each customer allocated to that product area over the past six months.
 
+___
 <br>
 # K-Means <a name="kmeans-title"></a>
 
@@ -347,7 +348,7 @@ That code results in the following table...
 <br>
 For *Cluster 0* we see a reasonably significant portion of spend being allocated to each of the product areas.  For *Cluster 1* we see quite high proportions of spend being allocated to Fruit & Vegetables, but very little to the Dairy & Meat product areas.  It could be hypothesised that these customers are following a vegan diet.  Finally customers in *Cluster 2* spend, on average, significant portions within Dairy, Fruit & Vegetables, but very little in the Meat product area - so similarly, we would make an early hypothesis that these customers are more along the lines of those following a vegetarian diet - very interesting!
 
-
+___
 <br>
 # Application <a name="kmeans-application"></a>
 
@@ -357,6 +358,7 @@ Tracking these clusters over time would allow the client to more quickly react t
 
 Based upon these clusters, the client will be able to target customers more accurately - promoting products & discounts to customers that are truly relevant to them - overall enabling a more customer focused communication strategy.
 
+___
 <br>
 # Growth & Next Steps <a name="growth-next-steps"></a>
 
