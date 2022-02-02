@@ -40,7 +40,7 @@ Our client, a grocery retailer, hired a market research consultancy to append ma
 - [07. Predicting Missing Loyalty Scores](#modelling-predictions)
 - [08. Growth & Next Steps](#growth-next-steps)
 
----
+___
 
 # Project Overview  <a name="overview-main"></a>
 
@@ -102,7 +102,7 @@ Example 1: Customer X has a total grocery spend of $100 and all of this is spent
 Example 2: Customer Y has a total grocery spend of $200 but only 20% is spent with our client.  The remaining 80% is spend with competitors.  Customer Y has a *customer loyalty score* of 0.2
 <br>
 <br>
----
+___
 
 # Data Overview  <a name="data-overview"></a>
 
@@ -172,6 +172,7 @@ After this data pre-processing in Python, we have a dataset for modelling that c
 | product_area_count | Independent | The number of product areas within ABC Grocery the customers has shopped into within the latest 6 months |
 | average_basket_value | Independent | The average spend per transaction for the customer in ABC Grocery within the latest 6 months |
 
+___
 <br>
 # Modelling Overview
 
@@ -185,6 +186,7 @@ As we are predicting a numeric output, we tested three regression modelling appr
 * Decision Tree
 * Random Forest
 
+___
 <br>
 # Linear Regression <a name="linreg-title"></a>
 
@@ -544,7 +546,7 @@ For each input variable, the coefficient value we see above tells us, with *ever
 
 To provide an example of this - in the table above, we can see that the *distance_from_store* input variable has a coefficient value of -0.201.  This is saying that *loyalty_score* decreases by 0.201 (or 20% as loyalty score is a percentage, or at least a decimal value between 0 and 1) for *every additional mile* that a customer lives from the store.  This makes intuitive sense, as customers who live a long way from this store, most likely live near *another* store where they might do some of their shopping as well, whereas customers who live near this store, probably do a greater proportion of their shopping at this store...and hence have a higher loyalty score!
 
-
+___
 <br>
 # Decision Tree <a name="regtree-title"></a>
 
@@ -825,8 +827,7 @@ This is a very powerful visual, and one that can be shown to stakeholders in the
 
 One interesting thing to note is that the *very first split* appears to be using the variable *distance from store* so it would seem that this is a very important variable when it comes to predicting loyalty!
 
-
-
+___
 <br>
 # Random Forest <a name="rf-title"></a>
 
@@ -1097,6 +1098,7 @@ The overall story from both approaches is very similar, in that by far, the most
 
 There are slight differences in the order or "importance" for the remaining variables but overall they have provided similar findings.
 
+___
 <br>
 # Modelling Summary  <a name="modelling-summary"></a>
 
@@ -1171,6 +1173,7 @@ loyalty_predictions = regressor.predict(to_be_scored)
 <br>
 Just like that, we have made our *loyalty_score* predictions for these missing customers.  Due to the impressive metrics on the test set, we can be reasonably confident with these scores.  This extra customer information will ensure our client can undertake more accurate and relevant customer tracking, targeting, and comms.
 
+___
 <br>
 # Growth & Next Steps <a name="growth-next-steps"></a>
 
