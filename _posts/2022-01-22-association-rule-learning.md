@@ -127,6 +127,7 @@ For our sample data, the maximum number of unique products was 45, meaning the t
 
 The *apyori* library that we are using does not want the data in this format, it instead wants it passed in as a *list of lists* so we will need to modify it.  The code and logic for this can be found in the Data Preparation section below.
 
+___
 <br>
 # Apriori Overview  <a name="apriori-overview"></a>
 
@@ -195,6 +196,7 @@ Something to consider when assessing the results of Apriori is that, Item/Produc
 
 In other words, if we sorted all Item relationships by descending Lift score, the one that comes out on top might initially seem very impressive and it may appear that there is a very strong relationship between the two items.  Always take into account the Support metric - it could be that this relationship is only taking place by chance due to the rarity of the item set.
 
+___
 <br>
 # Data Preparation  <a name="apriori-data-prep"></a>
 
@@ -237,6 +239,7 @@ print(transactions_list[:10])
 
 As you can see from the print statement, each transaction (row) from the initial DataFrame is now contained within a list, all making up the master list.
 
+___
 <br>
 # Applying The Apriori Algorithm <a name="apriori-fit"></a>
 
@@ -307,6 +310,7 @@ A sample of this data (the first 5 product pairs - not in any order) can be seen
 <br>
 In the DataFrame we have the two products in the pair, and then the three key metrics; Support, Confidence, and Lift. 
 
+___
 <br>
 # Interpreting The Results <a name="apriori-results"></a>
 
@@ -391,6 +395,7 @@ There appears to be *some* relationship between New Zealand wines and other New 
 
 New Zealand & Australia are often grouped together, but in terms of wine this wouldn't make sense - perhaps because of the difference climates the wines are very different and thus it wouldn't make sense to group wines by geographical proximity, but by preference instead.  This is only a hypothesis for now - we will need to take this back to the client and get their category experts to help us interpret it!
 
+___
 <br>
 # Growth & Next Steps <a name="growth-next-steps"></a>
 
