@@ -45,7 +45,7 @@ Our client, a grocery retailer, wants to utilise Machine Learning to reduce mail
 - [08. Application](#modelling-application)
 - [09. Growth & Next Steps](#growth-next-steps)
 
----
+___
 
 # Project Overview  <a name="overview-main"></a>
 
@@ -123,7 +123,7 @@ While predictive accuracy was relatively high - other modelling approaches could
 From a data point of view, further variables could be collected, and further feature engineering could be undertaken to ensure that we have as much useful information available for predicting customer loyalty
 <br>
 <br>
----
+___
 
 # Data Overview  <a name="data-overview"></a>
 
@@ -598,6 +598,7 @@ Along the x-axis of the above plot we have the different classification threshol
 
 As you can see at the top of the plot, the optimal F1-Score for this model 0.78 and this is obtained at a classification threshold of 0.44.  This is higher than the F1-Score of 0.734 that we achieved at the default classification threshold of 0.50!
 
+___
 <br>
 # Decision Tree <a name="clftree-title"></a>
 
@@ -899,8 +900,7 @@ That code gives us the below plot - which visualises the results!
 <br>
 In the plot we can see that the *maximum* F1-Score on the test set is found when applying a *max_depth* value of 9 which takes our F1-Score up to 0.925
 
-
-
+___
 <br>
 # Random Forest <a name="rf-title"></a>
 
@@ -1199,7 +1199,7 @@ Surprisingly, *average_basket_size* was not as important as hypothesised.
 
 There are slight differences in the order or "importance" for the remaining variables but overall they have provided similar findings.
 
-<br>
+___
 <br>
 # K Nearest Neighbours <a name="knn-title"></a>
 
@@ -1627,6 +1627,7 @@ That code gives us the below plot - which visualises the results!
 <br>
 In the plot we can see that the *maximum* F1-Score on the test set is found when applying a k value of 5 - which is exactly what we started with, so nothing needs to change!
 
+___
 <br>
 # Modelling Summary  <a name="modelling-summary"></a>
 
@@ -1666,6 +1667,7 @@ Based upon these, the chosen the model is the Random Forest as it was a) the mos
 * KNN = 0.865
 * Logistic Regression = 0.734
 
+___
 <br>
 # Application <a name="modelling-application"></a>
 
@@ -1673,6 +1675,7 @@ We now have a model object, and a the required pre-processing steps to use this 
 
 Based upon this, we can work with the client to discuss where their budget can stretch to, and contact only the customers with a high propensity to join.  This will drastically reduce marketing costs, and result in a much improved ROI.
 
+___
 <br>
 # Growth & Next Steps <a name="growth-next-steps"></a>
 
