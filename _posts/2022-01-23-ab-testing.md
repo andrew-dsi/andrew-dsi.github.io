@@ -18,7 +18,7 @@ In this project we apply Chi-Square Test For Independence (a Hypothesis Test) to
 - [02. Data Overview & Preparation](#data-overview)
 - [03. Applying Chi-Square Test For Independence](#chi-square-application)
 - [04. Analysing The Results](#chi-square-results)
-- [05. Growth & Next Steps](#growth-next-steps)
+- [05. Discussion](#discussion)
 
 ___
 
@@ -235,7 +235,6 @@ critical_value = chi2.ppf(1 - acceptance_criteria, dof)
 print(critical_value)
 >> 3.84
 
-
 ```
 <br>
 Based upon our observed values, we can give this all some context with the sign-up rate of each group.  We get:
@@ -245,135 +244,51 @@ Based upon our observed values, we can give this all some context with the sign-
 
 From this, we can see that the higher cost mailer does lead to a higher signup rate.  The results from our Chi-Square Test will provide us more information about how confident we can be that this difference is robust, or if it might have occured by chance.
 
+We have a Chi-Square Statistic of **1.94** and a p-value of **0.16**.  The critical value for our specified Acceptance Criteria of 0.05 is **3.84**
+
 **Note** When applying the Chi-Square Test above, we use the parameter *correction = False* which means we are applying what is known as the *Yate's Correction* which is applied when your Degrees of Freedom is equal to one.  This correction helps to prevent overestimation of statistical signficance in this case.
 
 <br>
 # Analysing The Results <a name="chi-square-results"></a>
 
-At this point we have everything we need to understand the results of our Chi-Square test. 
+At this point we have everything we need to understand the results of our Chi-Square test - and just from the results above we can see that, since our resulting p-value of **0.16** is *greater* than our Acceptance Criteria of 0.05 then we will _retain_ the Null Hypothesis and conclude that there is no significant difference between the signup rates of Mailer 1 and Mailer 2.
 
-<br>
-#### Plotting The Results
+We can make the same conclusion based upon our resuling Chi-Square statistic of **1.94** being _lower_ than our Critical Value of **3.84**
 
-The *pycausalimpact* library makes plotting the results extremely easy - all done with the single line of code below:
-
-```python
-
-# plot the results
-ci.plot()
-
-```
-<br>
-The resulting plot(s) can be seen below.
-
-<br>
-![alt text](/img/posts/causal-impact-results-plot.png "Causal Impact Results Plot")
-
-<br>
-To explain what we have in the above image...
-
-The vertical dotted line down the middle of each plot is the date that the Delivery Club membership started.  Everything to the left of this dotted line is the pre-period, and everything to the right of the dotted line is the post-period.
-
-<br>
-**Chart 1:  Actual vs. Counterfactual**
-
-The top chart shows the actual data for the impacted group as a black line, in other words the *actual* average daily sales for customers who did go on to sign up to the Delivery Club.  You can also see the counterfactual, which is shown with the blue dotted line.  The purple area around the blue dotted line represent the confidence intervals around the counterfactual - in other words, the range in which the algorithm believes the prediction should fall in.  A wider confidence interval suggests that the model is less sure about it's counterfactual prediction - and this is all taken into account when we look to quantify the actual uplift.
-
-Just eyeing this first chart, it does indeed look like there is some increase in daily average spend for customers who joined the club, over-and-above what the model suggests they would have done, if the club was never in existence.  We will look at the actual numbers for this very soon.
-
-<br>
-**Chart 2:  Pointwise Effects**
-
-This second chart shows us, for each day (or data point in general) in our time-series, the *raw differences* between the actual values and the values for the counterfactual.  It is plotting the *differences* from Chart 1.  As an example, if on Day 1 the actual and the counterfactual were the same, this chart would show a value of 0.  If the actual is higher than the counterfactual then we would see a positive value on this chart, and vice versa.  It is essentially showing how far above or below the counterfactual, the actual values are.
-
-What is interesting here is that for the pre-period we see a difference surrounding zero, but in the post period we see mostly positive values mirroring what we saw in Chart 1 where the actual average spend was greater than the counterfactual.
-
-<br>
-**Chart 3:  Cumulative Effects**
-
-The bottom chart shows the cumulative uplift over time.  In other words this chart is effectively adding up the Pointwise contributions from the second chart over time.  This is very useful as it helps the viewer get a feel for what the total uplift or difference is at any point in time.
-
-As we would expect based on the other two charts, there does appear to be a cumulative uplift over time.
-
-<br>
-#### Interpreting The Numbers
-
-The *pycausalimpact* library also makes interpreting the numbers very easy.  We can get a clean results summary with the following line of code:
+To make this script more dynamic, we can create code to automatically interpret the results and explain the outcome to us...
 
 ```python
 
-# results summary
-print(ci.summary())
+# print the results (based upon p-value)
+if p_value <= acceptance_criteria:
+    print(f"As our p-value of {p_value} is lower than our acceptance_criteria of {acceptance_criteria} - we reject the null hypothesis, and conclude that: {alternate_hypothesis}")
+else:
+    print(f"As our p-value of {p_value} is higher than our acceptance_criteria of {acceptance_criteria} - we retain the null hypothesis, and conclude that: {null_hypothesis}")
 
-Posterior Inference {Causal Impact}
-                          Average            Cumulative
-Actual                    171.33             15762.67
-Prediction (s.d.)         121.42 (4.33)      11170.19 (398.51)
-95% CI                    [112.79, 129.77]   [10376.65, 11938.77]
+>> As our p-value of 0.16351 is higher than our acceptance_criteria of 0.05 - we retain the null hypothesis, and conclude that: There is no relationship between mailer type and signup rate.  They are independent
 
-Absolute effect (s.d.)    49.92 (4.33)       4592.48 (398.51)
-95% CI                    [41.56, 58.54]     [3823.9, 5386.02]
 
-Relative effect (s.d.)    41.11% (3.57%)     41.11% (3.57%)
-95% CI                    [34.23%, 48.22%]   [34.23%, 48.22%]
-
-Posterior tail-area probability p: 0.0
-Posterior prob. of a causal effect: 100.0%
-
-```
-<br>
-At the top of the results summary (above) we see that in the post-period the average actual daily sales per customer over the post-period was $171, higher than that of the counterfactual, which was $121.  This counterfactual prediction had 95% confidence intervals of $113 and $130.
-
-Below that we can see the *absolute effect* which is the difference between actual and counterfactual (so the difference between $171 and $121) - and this figure is essentially showing us the average daily *uplift* in sales over the post-period.  We also get the confidence intervals surrounding that effect, and since these do not pass through zero, we can confidently say that there *was* an uplift driven by the Delivery Club.
-
-Below that, we get these same numbers - as percentages.
-
-In the columns on the right of the summary, we see the *cumulative* values for these across the entire post-period, rather than the average per day.
-
-What is amazing about the *pycausalimpact* library is that, with an extra parameter, we can actually get all of this information provided as a written output.
-
-If we put:
-
-```python
-
-# results summary - report
-print(ci.summary(output = "report"))
-
-Analysis report {CausalImpact}
-
-During the post-intervention period, the response variable had an average value of approx. 171.33. By contrast, in the absence of an intervention, we would have expected an average response of 121.42.
-
-The 95% interval of this counterfactual prediction is [112.79, 129.77].
-
-Subtracting this prediction from the observed response yields an estimate of the causal effect the intervention had on the response variable. This effect is 49.92 with a 95% interval of [41.56, 58.54]. For a discussion of the significance of this effect, see below.
-
-Summing up the individual data points during the post-intervention period (which can only sometimes be meaningfully interpreted), the response variable had an overall value of 15762.67. By contrast, had the intervention not taken place, we would have expected a sum of 11170.19. The 95% interval of this prediction is [10376.65, 11938.77].
-
-The above results are given in terms of absolute numbers. In relative terms, the response variable showed an increase of +41.11%. The 95% interval of this percentage is [34.23%, 48.22%].
-
-This means that the positive effect observed during the intervention period is statistically significant and unlikely to be due to random fluctuations. It should be noted, however, that the question of whether this increase also bears substantive significance can only be answered by comparing the absolute effect (49.92) to the original goal
-of the underlying intervention.
-
-The probability of obtaining this effect by chance is very small (Bayesian one-sided tail-area probability p = 0.0). This means the causal effect can be considered statistically
-significant.
+# print the results (based upon p-value)
+if chi2_statistic >= critical_value:
+    print(f"As our chi-square statistic of {chi2_statistic} is higher than our critical value of {critical_value} - we reject the null hypothesis, and conclude that: {alternate_hypothesis}")
+else:
+    print(f"As our chi-square statistic of {chi2_statistic} is lower than our critical value of {critical_value} - we retain the null hypothesis, and conclude that: {null_hypothesis}")
+    
+>> As our chi-square statistic of 1.9414 is lower than our critical value of 3.841458820694124 - we retain the null hypothesis, and conclude that: There is no relationship between mailer type and signup rate.  They are independent
 
 ```
 <br>
-So, this is the same information as we saw above, but put into a written report which can go straight to the client.
-
-The high level story of this that, yes, we did see an uplift in sales for those customers that joined the Delivery Club, over and above what we believe they would have spent, had the club not been in existence.  This uplift was deemed to be significantly significant (@ 95%)
+As we can see from the outputs of these print statements, we do indeed retain the null hypothesis.  We could not find enough evidence that the signup rates for Mailer 1 and Mailer 2 were different - and thus conclude that there was no significant difference.
 
 ___
 
 <br>
-# Growth & Next Steps <a name="growth-next-steps"></a>
+# Discussion <a name="discussion"></a>
 
-It would be interesting to look at this pool of customers (both those who did and did not join the Delivery club) and investigate if there were any differences in sales in these time periods *last year* - this would help us understand if any of the uplift we are seeing here is actually the result of seasonality.
+While we saw that the higher cost Mailer 2 had a higher signup rate (37.8%) than the lower cost Mailer 1 (32.8%) it appears that this difference is not significant, at least at our Acceptance Criteria of 0.05.
 
-It would be interesting to track this uplift over time and see if:
+Without running this Hypothesis Test, the client may have concluded that they should always look to go with higher cost mailers - and from what we've seen in this test, that may not be a great decision.  It would result in them spending more, but not *necessarily* gaining any extra revenue as a result
 
-* It continues to grow
-* It flattens or returns to normal
-* We see any form of uplift pull-forward
+Our results here also do not say that there *definitely isn't a difference between the two mailers* - we are only advising that we should not make any rigid conclusions *at this point*.  
 
-It would also be interesting to analyse what it is that is making up this uplift.  Are customers increasing their spend across the same categories - or are they buying into new categories
+Running more AB Tests like this, gathering more data, and then re-running this test may provide us, and the client more insight on this!
