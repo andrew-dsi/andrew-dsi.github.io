@@ -121,6 +121,7 @@ Once we have this counterfactual, we can proceed to calculate the estimation for
 
 Here we will utilise a Python package called **pycausalimpact** to apply this algorithm to our data.  This will model the relationships, and provide very useful plots and summarises to help us understand the results.
 
+___
 <br>
 # Data Overview & Preparation  <a name="causal-impact-data-prep"></a>
 
@@ -187,6 +188,7 @@ A sample of this data (the first 5 days of data) can be seen below:
 <br>
 In the DataFrame we have the transaction data, and then a column showing the average daily sales for those who signed up (member) and those who did not (non_member).  This is the required format for applying the algorithm.
 
+___
 <br>
 # Applying The Causal Impact Algorithm <a name="causal-impact-fit"></a>
 
@@ -209,6 +211,7 @@ ci = CausalImpact(causal_impact_df, pre_period, post_period)
 <br>
 We can use the created object (called ci above) to examine & plot the results.
 
+___
 <br>
 # Analysing The Results <a name="causal-impact-results"></a>
 
@@ -323,6 +326,7 @@ So, this is the same information as we saw above, but put into a written report 
 
 The high level story of this that, yes, we did see an uplift in sales for those customers that joined the Delivery Club, over and above what we believe they would have spent, had the club not been in existence.  This uplift was deemed to be significantly significant (@ 95%)
 
+___
 <br>
 # Growth & Next Steps <a name="growth-next-steps"></a>
 
