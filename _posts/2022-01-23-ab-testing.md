@@ -36,7 +36,10 @@ The client knows that customers who were contacted, signed up for the Delivery C
 <br>
 ### Actions <a name="overview-actions"></a>
 
-xxx
+* Mailer 1 (Low Cost): **32.8%** signup rate
+* Mailer 2 (High Cost): **37.8%** signup rate
+
+From this, we can see that the higher cost mailer does lead to a higher signup rate.  The results from our Chi-Square Test will provide us more information about how confident we can be that this difference is robust, or if it might have occured by chance.
 
 <br>
 <br>
@@ -115,96 +118,139 @@ The *expected frequencies* are essentially what we would *expect* to see based o
 * The Chi-Square Test can be represented using 2x2 tables of data - meaning it can be easier to explain to stakeholders
 * The Chi-Square Test can extend out to more than 2 groups - meaning the business can have one consistent approach to measuring signficance
 
+___
+
 <br>
 # Data Overview & Preparation  <a name="data-overview"></a>
 
 In the client database, we have a *campaign_data* table which shows us which customers received each type of "Delivery Club" mailer, which customers were in the control group, and which customers joined the club as a result.
 
-Since Delivery Club membership was open to *all customers* - the control group we have in the *campaign_data* table would help us measure the impact of *contacting* customers but here, we are actually look to measure the overall impact on sales from the Delivery Club itself.  Because of this, we will instead just use customers who did not sign up as the control.  The customers who did not sign up should continue their normal shopping habits after the club went live, and this will help us create the counter-factual for the customers that did sign-up.
+For this task, we are looking to find evidence that the Delivery Club signup rate for customers that received "Mailer 1" (low cost) was different to those who received "Mailer 2" (high cost) and thus from the *campaign_data* table we will just extract customers in those two groups, and exclude customers who were in the control group.
 
 In the code below, we:
 
-* Load in the Python libraries we require
-* Import the required data from the *transactions* and *campaign_data* tables (3 months prior, 3 months post campaign)
-* Aggregate the transactions table from customer/transaction/product area level to customer/date level
-* Merge on the signup flag from the *campaign_data* table
-* Pivot & aggregate to give us aggregated daily sales by signed-up/did not sign-up groups
-* Manoeuvre the data specifically for the pycausalimpact algorithm
-* Give our groups some meaningful names, to help with interpretation
+* Load in the Python libraries we require for importing the data and performing the chi-square test (using scipy)
+* Import the required data from the *campaign_data* table
+* Exclude customers in the control group, giving us a dataset with Mailer 1 & Mailer 2 customers only
 
 <br>
 ```python
 
 # install the required python libraries
-from causalimpact import CausalImpact
 import pandas as pd
+from scipy.stats import chi2_contingency, chi2
 
-# import data tables
-transactions = ...
+# import campaign data
 campaign_data = ...
 
-# aggregate transaction data to customer, date level
-customer_daily_sales = transactions.groupby(["customer_id", "transaction_date"])["sales_cost"].sum().reset_index()
-
-# merge on the signup flag
-customer_daily_sales = pd.merge(customer_daily_sales, campaign_data, how = "inner", on = "customer_id")
-
-# pivot the data to aggregate daily sales by signup group
-causal_impact_df = customer_daily_sales.pivot_table(index = "transaction_date",
-                                                    columns = "signup_flag",
-                                                    values = "sales_cost",
-                                                    aggfunc = "mean")
-
-# provide a frequency for our DateTimeIndex (avoids a warning message)
-causal_impact_df.index.freq = "D"
-
-# ensure the impacted group is in the first column (the library expects this)
-causal_impact_df = causal_impact_df[[1,0]]
-
-# rename columns to something lear & meaningful
-causal_impact_df.columns = ["member", "non_member"]
+# remove customers who were in the control group
+campaign_data = campaign_data.loc[campaign_data["mailer_type"] != "Control"]
 
 ```
 <br>
-A sample of this data (the first 5 days of data) can be seen below:
+A sample of this data (the first 10 rows) can be seen below:
 <br>
 <br>
 
-| **transaction_date** | **member** | **non_member** |
-|---|---|---|
-| 01/04/2020 | 194.49 | 74.46 |
-| 02/04/2020 | 185.16 | 75.56 |
-| 03/04/2020 | 118.12 | 74.39 |
-| 04/04/2020 | 198.53 | 63.00 |
-| 05/04/2020 | 145.46 | 72.44 |
+| **customer_id** | **campaign_name** | **mailer_type** | **signup_flag** |
+|---|---|---|---|
+| 74 | delivery_club | Mailer1 | 1 |
+| 524 | delivery_club | Mailer1 | 1 |
+| 607 | delivery_club | Mailer2 | 1 |
+| 343 | delivery_club | Mailer1 | 0 |
+| 322 | delivery_club | Mailer2 | 1 |
+| 115 | delivery_club | Mailer2 | 0 |
+| 1 | delivery_club | Mailer2 | 1 |
+| 120 | delivery_club | Mailer1 | 1 |
+| 52 | delivery_club | Mailer1 | 1 |
+| 405 | delivery_club | Mailer1 | 0 |
+| 435 | delivery_club | Mailer2 | 0 |
 
 <br>
-In the DataFrame we have the transaction data, and then a column showing the average daily sales for those who signed up (member) and those who did not (non_member).  This is the required format for applying the algorithm.
+In the DataFrame we have:
+
+* customer_id
+* campaign name
+* mailer_type (either Mailer1 or Mailer2)
+* signup_flag (either 1 or 0)
+
+___
 
 <br>
 # Applying Chi-Square Test For Independence <a name="chi-square-application"></a>
 
-In the code below, we specify the start and end dates of the "pre-period" and the start and end dates of the "post-period". We then apply the algorithm by passing in the DataFrame and the specified pre and post period time windows.
+<br>
+#### State Hypotheses & Acceptance Criteria For Test
 
-The algorithm will model the relationship between members & non-members in the pre-period - and it will use this to create the counterfactual, in other words what it believes would happen to the average daily spend for members in the post-period if no event was to have taken place!
+The very first thing we need to do in any form of Hypothesis Test is state our Null Hypothesis, our Alternate Hypothesis, and the Acceptance Criteria (more details on these in the section above)
 
-The difference between this counterfactual and the actual data in the post-period will be our "causal impact"
+In the code below we code these in explcitly & clearly so we can utilise them later to explain the results.  We specify the common Acceptance Criteria value of 0.05.
 
 ```python
 
-# specify the pre & post periods
-pre_period = ["2020-04-01","2020-06-30"]
-post_period = ["2020-07-01","2020-09-30"]
+# specify hypotheses & acceptance criteria for test
+null_hypothesis = "There is no relationship between mailer type and signup rate.  They are independent"
+alternate_hypothesis = "There is a relationship between mailer type and signup rate.  They are not independent"
+acceptance_criteria = 0.05
 
-# apply the algorithm
-ci = CausalImpact(causal_impact_df, pre_period, post_period)
+```
+
+<br>
+#### Calculate Observed Frequencies & Expected Frequencies
+
+As mentioned in the section above, in a Chi-Square Test For Independence, the *observed frequencies* are the true values that we’ve seen, in other words the actual rates per group in the data itself.  The *expected frequencies* are what we would *expect* to see based on *all* of the data combined.
+
+The below code:
+
+* Summarises our dataset to a 2x2 matrix for *signup_flag* by *mailer_type*
+* Based on this, calculates the:
+    * Chi-Square Statistic
+    * p-value
+    * Degrees of Freedom
+    * Expected Values
+* Prints out the Chi-Square Statistic & p-value from the test
+* Calculates the Critical Value based upon our Acceptance Criteria & the Degrees Of Freedom
+* Prints out the Critical Value
+
+```python
+
+# aggregate our data to get observed values
+observed_values = pd.crosstab(campaign_data["mailer_type"], campaign_data["signup_flag"]).values
+
+# run the chi-square test
+chi2_statistic, p_value, dof, expected_values = chi2_contingency(observed_values, correction = False)
+
+# print chi-square statistic
+print(chi2_statistic)
+>> 1.94
+
+# print p-value
+print(p_value)
+>> 0.16
+
+# find the critical value for our test
+critical_value = chi2.ppf(1 - acceptance_criteria, dof)
+
+# print critical value
+print(critical_value)
+>> 3.84
+
 
 ```
 <br>
-We can use the created object (called ci above) to examine & plot the results.
+Based upon our observed values, we can give this all some context with the sign-up rate of each group.  We get:
+
+* Mailer 1 (Low Cost): **32.8%** signup rate
+* Mailer 2 (High Cost): **37.8%** signup rate
+
+From this, we can see that the higher cost mailer does lead to a higher signup rate.  The results from our Chi-Square Test will provide us more information about how confident we can be that this difference is robust, or if it might have occured by chance.
+
+**Note** When applying the Chi-Square Test above, we use the parameter *correction = False* which means we are applying what is known as the *Yate's Correction* which is applied when your Degrees of Freedom is equal to one.  This correction helps to prevent overestimation of statistical signficance in this case.
 
 <br>
 # Analysing The Results <a name="chi-square-results"></a>
+
+At this point we have everything we need to understand the results of our Chi-Square test. 
 
 <br>
 #### Plotting The Results
@@ -316,6 +362,8 @@ significant.
 So, this is the same information as we saw above, but put into a written report which can go straight to the client.
 
 The high level story of this that, yes, we did see an uplift in sales for those customers that joined the Delivery Club, over and above what we believe they would have spent, had the club not been in existence.  This uplift was deemed to be significantly significant (@ 95%)
+
+___
 
 <br>
 # Growth & Next Steps <a name="growth-next-steps"></a>
