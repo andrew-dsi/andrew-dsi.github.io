@@ -12,8 +12,7 @@ In this project we apply Chi-Square Test For Independence (a Hypothesis Test) to
 - [00. Project Overview](#overview-main)
     - [Context](#overview-context)
     - [Actions](#overview-actions)
-    - [Results](#overview-results)
-    - [Growth/Next Steps](#overview-growth)
+    - [Results & Discussion](#overview-results)
 - [01. Concept Overview](#concept-overview)
 - [02. Data Overview & Preparation](#data-overview)
 - [03. Applying Chi-Square Test For Independence](#chi-square-application)
@@ -36,23 +35,50 @@ The client knows that customers who were contacted, signed up for the Delivery C
 <br>
 ### Actions <a name="overview-actions"></a>
 
+For this test, as it is focused on comparing the *rates* of two groups - we applied the Chi-Square Test For Independence.  Full details of this test can be found in the dedicated section below.
+
+**Note:** Another option when comparing "rates" is a test known as the *Z-Test For Proportions*.  While, we could absolutely use this test here, we have chosen the Chi-Square Test For Independence because:
+
+* The resulting test statistic for both tests will be the same
+* The Chi-Square Test can be represented using 2x2 tables of data - meaning it can be easier to explain to stakeholders
+* The Chi-Square Test can extend out to more than 2 groups - meaning the client can have one consistent approach to measuring signficance
+
+From the *campaign_data* table in the client database, we isolated customers that received "Mailer 1" (low cost) and "Mailer 2" (high cost) for this campaign, and excluded customers who were in the control group.
+
+We set out our hypotheses and Acceptance Criteria for the test, as follows:
+
+**Null Hypothesis:** There is no relationship between mailer type and signup rate. They are independent.
+**Alternate Hypothesis:** There is a relationship between mailer type and signup rate. They are not independent.
+**Acceptance Criteria:** 0.05
+
+As a requirement of the Chi-Square Test For Independence, we aggregated this data down to a 2x2 matrix for *signup_flag* by *mailer_type* and fed this into the algorithm (using the *scipy* library) to calculate the Chi-Square Statistic, p-value, Degrees of Freedom, and expected values
+
+<br>
+<br>
+
+### Results & Discussion <a name="overview-results"></a>
+
+Based upon our observed values, we can give this all some context with the sign-up rate of each group.  We get:
+
 * Mailer 1 (Low Cost): **32.8%** signup rate
 * Mailer 2 (High Cost): **37.8%** signup rate
 
-From this, we can see that the higher cost mailer does lead to a higher signup rate.  The results from our Chi-Square Test will provide us more information about how confident we can be that this difference is robust, or if it might have occured by chance.
+However, the Chi-Square Test gives us the following statistics:
 
-<br>
-<br>
+* Chi-Square Statistic: **1.94**
+* p-value: **0.16**
 
-### Results <a name="overview-results"></a>
+The Critical Value for our specified Acceptance Criteria of 0.05 is **3.84**
 
-xxx
+Based upon these statistics, we retain the null hypothesis, and conclude that there is no relationship between mailer type and signup rate.
 
-<br>
-<br>
-### Growth/Next Steps <a name="overview-growth"></a>
+In other words - while we saw that the higher cost Mailer 2 had a higher signup rate (37.8%) than the lower cost Mailer 1 (32.8%) it appears that this difference is not significant, at least at our Acceptance Criteria of 0.05.
 
-xxx
+Without running this Hypothesis Test, the client may have concluded that they should always look to go with higher cost mailers - and from what we've seen in this test, that may not be a great decision.  It would result in them spending more, but not *necessarily* gaining any extra revenue as a result
+
+Our results here also do not say that there *definitely isn't a difference between the two mailers* - we are only advising that we should not make any rigid conclusions *at this point*.  
+
+Running more A/B Tests like this, gathering more data, and then re-running this test may provide us, and the client more insight!
 
 <br>
 <br>
@@ -248,12 +274,14 @@ We have a Chi-Square Statistic of **1.94** and a p-value of **0.16**.  The criti
 
 **Note** When applying the Chi-Square Test above, we use the parameter *correction = False* which means we are applying what is known as the *Yate's Correction* which is applied when your Degrees of Freedom is equal to one.  This correction helps to prevent overestimation of statistical signficance in this case.
 
+___
+
 <br>
 # Analysing The Results <a name="chi-square-results"></a>
 
 At this point we have everything we need to understand the results of our Chi-Square test - and just from the results above we can see that, since our resulting p-value of **0.16** is *greater* than our Acceptance Criteria of 0.05 then we will _retain_ the Null Hypothesis and conclude that there is no significant difference between the signup rates of Mailer 1 and Mailer 2.
 
-We can make the same conclusion based upon our resuling Chi-Square statistic of **1.94** being _lower_ than our Critical Value of **3.84**
+We can make the same conclusion based upon our resulting Chi-Square statistic of **1.94** being _lower_ than our Critical Value of **3.84**
 
 To make this script more dynamic, we can create code to automatically interpret the results and explain the outcome to us...
 
