@@ -291,4 +291,4 @@ Without running this Hypothesis Test, the client may have concluded that they sh
 
 Our results here also do not say that there *definitely isn't a difference between the two mailers* - we are only advising that we should not make any rigid conclusions *at this point*.  
 
-Running more AB Tests like this, gathering more data, and then re-running this test may provide us, and the client more insight on this!
+Running more A/B Tests like this, gathering more data, and then re-running this test may provide us, and the client more insight!
