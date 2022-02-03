@@ -26,46 +26,36 @@ ___
 
 ### Context <a name="overview-context"></a>
 
-Earlier in the year, our client, a grocery retailer, ran a campaign to promote their new "Delivery Club" - an initiative that costs a customer $100 per year for membership, but offers free grocery deliveries rather than the normal cost of $10 per delivery.
+Our client had an interesting proposal put forward to them, and requested our help to assess whether it was viable.
 
-They want to understand if customers who did join the club have increased their spend in the three months following.  The hypothesis is that, if customers are not paying for deliveries, they will be tempted to shop more frequently, and hopefully purchase more each time.
+At a recent tech conference, they spoke to a contact from a robotics company that creates robotic solutions that help other businesses scale and optimise their operations.
 
-The aim of this work is to understand and quantify the uplift in sales for customers that joined the club, over and above what they *would* have spent had the club not come into existence!
+Their representative mentioned that they had built a prototype for a robotic sorting arm that could be used to pick up and move products off a platform.  It would use a camera to "see" the product, and could be programmed to move that particular product into a designated bin, for further processing.
+
+The only thing they hadn't figured out was how to actually identify each product using the camera, so that the robotic arm could move it to the right place.
+
+We were asked to put forward a proof of concept on this - and were given some sample images of fruits from their processing platform.
+
+If this was successful and put into place on a larger scale, the client would be able to enhance their sorting & delivery processes.
 
 <br>
 <br>
 ### Actions <a name="overview-actions"></a>
 
-We applied Causal Impact Analysis (see full details below) using the *pycausalimpact* library.
-
-In the client database, we have a *campaign_data* table which shows us which customers received each type of "Delivery Club" mailer, which customers were in the control group, and which customers joined the club as a result.
-
-Since Delivery Club membership was open to *all customers* - the control group we have in the *campaign_data* table would help us measure the impact of *contacting* customers but here, we are actually look to measure the overall impact on sales from the Delivery Club itself.  Because of this, we instead used customers who did not sign up as the control.  The hypothesis was that customers who did not sign up should continue their normal shopping habits after the club went live, and this will help us create the counter-factual for the customers that did sign-up.
-
-Sales data was from the *transactions* table and was aggregated from a customer/transaction/product area level to customer/date level as per the requirements of the algorithm.
-
-We used a 3 months pre-period for the algorithm to model, 3 months post-period for the counterfactual.
+xxx
 
 <br>
 <br>
 
 ### Results <a name="overview-results"></a>
 
-We saw a 41.1% uplift in sales for those customers that joined the Delivery Club, over and above what we believe they would have spent, had the club not been in existence.  This was across the three month post-period, and the uplift was deemed to be significantly significant (@ 95%).
+xxx
 
 <br>
 <br>
 ### Growth/Next Steps <a name="overview-growth"></a>
 
-It would be interesting to look at this pool of customers (both those who did and did not join the Delivery club) and investigate if there were any differences in sales in these time periods *last year* - this would help us understand if any of the uplift we are seeing here is actually the result of seasonality.
-
-It would be interesting to track this uplift over time and see if:
-
-* It continues to grow
-* It flattens or returns to normal
-* We see any form of uplift pull-forward
-
-It would also be interesting to analyse what it is that is making up this uplift.  Are customers increasing their spend across the same categories - or are they buying into new categories
+xxx
 
 <br>
 <br>
