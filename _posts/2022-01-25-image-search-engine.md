@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Creating An Image Search Engine Using Deep Learning
-image: "/posts/deep-learning-brain.jpg"
+image: "/posts/dl-search-engine-title-img.png"
 tags: [Deep Learning, CNN, Data Science, Computer Vision, Python]
 ---
 
