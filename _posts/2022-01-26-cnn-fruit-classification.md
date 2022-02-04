@@ -78,7 +78,7 @@ xxx
 
 Next Steps:  Showcase to client, discuss what made the network more robust, get more data/classes
 
-Growth: Try other networks for transfer learning, more epochs etc
+Growth: Try other networks for transfer learning, more epochs, different batch sizes etc
 
 <br>
 <br>
@@ -87,8 +87,17 @@ ___
 
 # Data Overview  <a name="data-overview"></a>
 
-xxxx
-xxxx
+To build out this proof of concept, the client have provided us some sample data. This is made up of images of six different types of fruit, sitting on the landing platform in the warehouse.
+
+We randomly split the images for each fruit into training (60%), validation (30%) and test (10%) sets.
+
+Examples of four images of each fruit class can be seen in the image below:
+
+<br>
+![alt text](/img/posts/cnn-image-examples.png "CNN Fruit Classification Samples")
+
+<br>
+xxx 
 
 IMAGE
 
