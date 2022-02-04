@@ -97,99 +97,85 @@ Examples of four images of each fruit class can be seen in the image below:
 ![alt text](/img/posts/cnn-image-examples.png "CNN Fruit Classification Samples")
 
 <br>
-xxx 
+For ease of use in Keras, our folder structure first splits into training, validation, and test directories, and within each of those is split again into directories based upon the six fruit classes.
 
-IMAGE
+All images are of size 300 x 200 pixels.
 
 ___
 <br>
 # Data Pipeline  <a name="data-pipeline"></a>
 
-In the client database, we have a *campaign_data* table which shows us which customers received each type of "Delivery Club" mailer, which customers were in the control group, and which customers joined the club as a result.
-
-Since Delivery Club membership was open to *all customers* - the control group we have in the *campaign_data* table would help us measure the impact of *contacting* customers but here, we are actually look to measure the overall impact on sales from the Delivery Club itself.  Because of this, we will instead just use customers who did not sign up as the control.  The customers who did not sign up should continue their normal shopping habits after the club went live, and this will help us create the counter-factual for the customers that did sign-up.
+Before we get to building the network architecture, & subsequently training & testing it - we need to set up a pipeline for our images to flow through, from our local hard-drive where they are located, to, and through our network.
 
 In the code below, we:
 
-* Load in the Python libraries we require
-* Import the required data from the *transactions* and *campaign_data* tables (3 months prior, 3 months post campaign)
-* Aggregate the transactions table from customer/transaction/product area level to customer/date level
-* Merge on the signup flag from the *campaign_data* table
-* Pivot & aggregate to give us aggregated daily sales by signed-up/did not sign-up groups
-* Manoeuvre the data specifically for the pycausalimpact algorithm
-* Give our groups some meaningful names, to help with interpretation
+* Import the required packages
+* Set up the parameters for our pipeline
+* Set up our image generators to process the images as they come in
+* Set up our generator flow - specifying what we want to pass in for each iteration of training
 
 <br>
 ```python
 
-# install the required python libraries
-from causalimpact import CausalImpact
-import pandas as pd
+# import the required python libraries
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Activation, Flatten, Dense
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.callbacks import ModelCheckpoint
 
-# import data tables
-transactions = ...
-campaign_data = ...
+# data flow parameters
+training_data_dir = 'data/training'
+validation_data_dir = 'data/validation'
+batch_size = 32
+img_width = 128
+img_height = 128
+num_channels = 3
+num_classes = 6
 
-# aggregate transaction data to customer, date level
-customer_daily_sales = transactions.groupby(["customer_id", "transaction_date"])["sales_cost"].sum().reset_index()
+# image generators
+training_generator = ImageDataGenerator(rescale = 1./255)
+validation_generator = ImageDataGenerator(rescale = 1./255)
 
-# merge on the signup flag
-customer_daily_sales = pd.merge(customer_daily_sales, campaign_data, how = "inner", on = "customer_id")
+# image flows
+training_set = training_generator.flow_from_directory(directory = training_data_dir,
+                                                      target_size = (img_width, img_height),
+                                                      batch_size = batch_size,
+                                                      class_mode = 'categorical')
 
-# pivot the data to aggregate daily sales by signup group
-causal_impact_df = customer_daily_sales.pivot_table(index = "transaction_date",
-                                                    columns = "signup_flag",
-                                                    values = "sales_cost",
-                                                    aggfunc = "mean")
-
-# provide a frequency for our DateTimeIndex (avoids a warning message)
-causal_impact_df.index.freq = "D"
-
-# ensure the impacted group is in the first column (the library expects this)
-causal_impact_df = causal_impact_df[[1,0]]
-
-# rename columns to something lear & meaningful
-causal_impact_df.columns = ["member", "non_member"]
+validation_set = validation_generator.flow_from_directory(directory = validation_data_dir,
+                                                                      target_size = (img_width, img_height),
+                                                                      batch_size = batch_size,
+                                                                      class_mode = 'categorical')
 
 ```
 <br>
-A sample of this data (the first 5 days of data) can be seen below:
-<br>
-<br>
+We specify that we will resize the images down to 128 x 128 pixels, and that we will pass in 32 images at a time (known as the batch size) for training.
 
-| **transaction_date** | **member** | **non_member** |
-|---|---|---|
-| 01/04/2020 | 194.49 | 74.46 |
-| 02/04/2020 | 185.16 | 75.56 |
-| 03/04/2020 | 118.12 | 74.39 |
-| 04/04/2020 | 198.53 | 63.00 |
-| 05/04/2020 | 145.46 | 72.44 |
+To start with, we simply use the generators to rescale the raw pixel values (ranging between 0 and 255) to float values that exist between 0 and 1.  The reason we do this is mainly to help Gradient Descent find an optimal, or near optional solution each time much more efficiently - in other words, it means that the features that are learned in the depths of the network are of a similar magnitude, and the learning rate that is applied to descend down the loss or cost function across many dimensions, is somewhat proportionally similar across all dimensions - and long story short, means training time is faster as Gradient Descent can converge faster each time!
 
-<br>
-In the DataFrame we have the transaction data, and then a column showing the average daily sales for those who signed up (member) and those who did not (non_member).  This is the required format for applying the algorithm.
+We will add more logic to the training set generator to apply Image Augmentation.
+
+With this pipeline in place, our images will be extracted, in batches of 32, from our hard-drive, where they're being stored and sent into our model for training!
 
 ___
 <br>
-# Applying The Causal Impact Algorithm <a name="causal-impact-fit"></a>
+# Convolutional Neural Network Overview <a name="cnn-overview"></a>
 
-In the code below, we specify the start and end dates of the "pre-period" and the start and end dates of the "post-period". We then apply the algorithm by passing in the DataFrame and the specified pre and post period time windows.
+Convolutional Neural Networks are an adaptation of Artificial Neural Networks and are primarily used for image based tasks.
 
-The algorithm will model the relationship between members & non-members in the pre-period - and it will use this to create the counterfactual, in other words what it believes would happen to the average daily spend for members in the post-period if no event was to have taken place!
+To a computer, an image is simply made up of numbers, those being the colour intensity values for each pixel.  Colour images have values ranging between 0 and 255 for each pixel, but have three of these values, for each - one for Red, one for Green, and one for Blue, or in other words the RGB values that mix together to make up the specific colour of each pixel.
 
-The difference between this counterfactual and the actual data in the post-period will be our "causal impact"
+These pixel values are the *input* for a Convolutional Neural Network.  It needs to make sense of these values to make predictions about the image, for example, in our task here, to predict what the image is of, one of the six possible fruit classes.
 
-```python
+The pixel values themselves don't hold much useful information on their own - so the network needs to turn them into *features* much like we do as humans.
 
-# specify the pre & post periods
-pre_period = ["2020-04-01","2020-06-30"]
-post_period = ["2020-07-01","2020-09-30"]
+A big part of this process is called **Convolution** where each input image is scanned over, and compared to many different, and smaller filters, to compress the image down into something more generalised.  This process not only helps reduce the problem space, it also helps reduce the network's sensitivy to minor changes, in other words to know that two images are of the same object, even though the images are not *exactly* the same.
 
-# apply the algorithm
-ci = CausalImpact(causal_impact_df, pre_period, post_period)
+A somewhat similar process called **Pooling** is also applied to faciliate this *generalisation* even further.  Similar to Artificial Neural Networks, Activation Functions are applied to the data as it moves forward through the network, helping the network decide which neurons will fire, or in other words, helping the network understand which neurons are more or less important for different features, and ultimately which neurons are more or less important for the different output classes.
 
-```
-<br>
-We can use the created object (called ci above) to examine & plot the results.
+Over time - as a Convolutional Neural Network trains, it iteratively calculates how well it is predicting on the known classes we pass it (known as the **loss** or **cost**, then heads back through in a process known as **Back Propagation** to update the paramaters within the network, in a way that reduces the error, or in other words, improves the match between predicted outputs and actual outputs.  Over time, it learns to find a good mapping between the input data, and the output classes.
+
+There are many parameters that can be changed within the architecture of a Convolutional Neural Network, as well as clever logic that can be included, all which can affect the predictive accuracy.  We will discuss and put in place many of these below!
 
 ___
 <br>
