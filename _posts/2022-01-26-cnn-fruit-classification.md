@@ -14,11 +14,16 @@ In this project we build & optimise a Convolutional Neural Network to classify i
     - [Actions](#overview-actions)
     - [Results](#overview-results)
     - [Growth/Next Steps](#overview-growth)
-- [01. Causal Impact Analysis Overview](#causal-impact-overview)
-- [02. Data Overview & Preparation](#causal-impact-data-prep)
-- [03. Applying Causal Impact Analysis](#causal-impact-fit)
-- [04. Analysing The Results](#causal-impact-results)
-- [05. Growth & Next Steps](#growth-next-steps)
+- [01. Data Overview](#data-overview)
+- [02. Data Pipeline](#data-pipeline)
+- [03. CNN Overview](#cnn-overview)
+- [04. Baseline Network](#cnn-baseline)
+- [05. Tackling Overfitting With Dropout](#cnn-dropout)
+- [06. Image Augmentation](#cnn-augmentation)
+- [07. Transfer Learning](#cnn-transfer-learning)
+- [08. Hyper-Parameter Tuning](#cnn-tuning)
+- [09. Overall Results Discussion](#cnn-results)
+- [10. Next Steps & Growth](#growth-next-steps)
 
 ___
 
@@ -42,7 +47,19 @@ If this was successful and put into place on a larger scale, the client would be
 <br>
 ### Actions <a name="overview-actions"></a>
 
-xxx
+We utilise the *Keras* Deep Learning library for this task.
+
+We start by creating our pipeline for feeding training & validation images in batches, from our local directory, into the network.
+
+Our baseline network is simple, but gives us a starting point to refine from.  This network contains **2 Convolutional Layers**, each with **32 filters** and subsequent **Max Pooling** Layers.  We have a **single Dense (Fully Connected) layer** following flattening with **32 neurons** followed by our output layer.  We apply the **relu** activation function on all layers, and use the **adam** optimizer.
+
+Our first refinement is to add **Dropout** to tackle the issue of overfitting which is prevalent in the baseline network performance.  We use a **dropout rate of 0.5**.
+
+We then add in **Image Augmentation** to our data pipeline to increase the variation of input images for the network to learn from, resulting in a more robust results as well as also address overfitting.
+
+With these additions in place, we utlise *keras-tuner* to optimise our network architecture & tune the hyperparameters.  The best network from this testing contains **3 Convolutional Layers**, each followed by **Max Pooling** Layers.  The first Convolutional Layer has **96 filters**, the second & third have **64 filters**.  The output of this third layer is flattened and passed to a **single Dense (Fully Connected) layer** with **160 neurons**.  The Dense Layer has **Dropout** applied with a **dropout rate of 0.5**.  The output from this is passed to the output layer.  Again, we apply the **relu** activation function on all layers, and use the **adam** optimizer.
+
+Finally, we utilise *Transfer Learning* to compare our network's results against that of the pre-trained VGG16 network.
 
 <br>
 <br>
@@ -50,19 +67,25 @@ xxx
 ### Results <a name="overview-results"></a>
 
 xxx
+xxx
+xxx
+xxx
+xxx
 
 <br>
 <br>
 ### Growth/Next Steps <a name="overview-growth"></a>
 
-xxx
+Next Steps:  Showcase to client, discuss what made the network more robust, get more data/classes
+
+Growth: Try other networks for transfer learning, more epochs etc
 
 <br>
 <br>
 
 ___
 
-# Causal Impact Analysis Overview  <a name="causal-impact-overview"></a>
+# Data Overview  <a name="data-overview"></a>
 
 <br>
 #### Context
