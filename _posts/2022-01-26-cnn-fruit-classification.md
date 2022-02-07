@@ -254,50 +254,196 @@ Trainable params: 1,058,950
 Non-trainable params: 0
 _________________________________________________________________
 
-
 ```
 
 <br>
 #### Training The Network
 
-xxx
+With the pipeline, and architecture in place - we are now ready to train the baseline network!
+
+In the below code we:
+
+* Specify the number of epochs for training
+* Set a location for the trained network to be saved (architecture & parameters)
+* Set a *ModelCheckPoint* callback to save the best network at any point during training (based upon validation accuracy)
+* Train the network and save the results to an object called *history*
 
 ```python
 
-# xxx
-xxx
+# training parameters
+num_epochs = 50
+model_filename = 'models/fruits_cnn_v01.h5'
+
+# callbacks
+save_best_model = ModelCheckpoint(filepath = model_filename,
+                                  monitor = 'val_accuracy',
+                                  mode = 'max',
+                                  verbose = 1,
+                                  save_best_only = True)
+
+# train the network
+history = model.fit(x = training_set,
+                    validation_data = validation_set,
+                    batch_size = batch_size,
+                    epochs = num_epochs,
+                    callbacks = [save_best_model])
 
 ```
 <br>
-xxx
+The ModelCheckpoint callback that has been put in place means that we do not just save the *final* network at epoch 50, but instead we save the *best* network, in terms of validation set performance - from *any point* during training.  In other words, at the end of each of the 50 epochs, Keras will assess the performance on the validation set and if is has not seen any improvement in performance it will do nothing.  If it does see an improvement however, it will update the network file that is saved on our hard-drive.
 
 <br>
 #### Analysis Of Training Results
 
-xxx
+As we saved our training process to the *history* object, we can now analyse the performance (classification accuracy, and loss) of the network epoch by epoch.
 
 ```python
 
-# xxx
-xxx
+import matplotlib.pyplot as plt
+
+# plot validation results
+fig, ax = plt.subplots(2, 1, figsize=(15,15))
+ax[0].set_title('Loss')
+ax[0].plot(history.epoch, history.history["loss"], label="Training Loss")
+ax[0].plot(history.epoch, history.history["val_loss"], label="Validation Loss")
+ax[1].set_title('Accuracy')
+ax[1].plot(history.epoch, history.history["accuracy"], label="Training Accuracy")
+ax[1].plot(history.epoch, history.history["val_accuracy"], label="Validation Accuracy")
+ax[0].legend()
+ax[1].legend()
+plt.show()
+
+# get best epoch performance for validation accuracy
+max(history.history['val_accuracy'])
 
 ```
 <br>
-xxx
+The below image contains two plots, the first showing the epoch by epoch **loss** for both the training set (blue) and the validation set (orange) & the second show the epoch by epoch **classification accuracy** again, for both the training set (blue) and the validation set (orange).
+
+<br>
+![alt text](/img/posts/cnn-baseline-accuracy-plot.png "CNN Baseline Accuracy Plot")
+
+<br>
+There are two key learnings from above plots. The first is that, with this baseline architecture & the parameters we set for training, we are reaching our best performance in around 10-20 epochs - after that, not much improvement is seen.  This isn't to say that 50 epochs is wrong, especially if we change our network - but is interesting to note at this point.
+
+The second thing to notice is *very important* and that is the significant gap between orange and blue lines on the plot, in other words between our validation performance and our training performance.
+
+This gap is over-fitting.
+
+Focusing on the lower plot above (Classification Accuracy) - it appears that our network is learning the features of the training data *so well* that after about 20 or so epochs it is *perfectly* predicting those images - but on the validation set, it never passes approximately 83% classification accuracy.
+
+We do not want over-fitting! It means that we're risking our predictive performance on new data.  The network is not learning to generalise, meaning that if something slightly 
+different comes along then it's going to really, really struggle to predict well, or at least predict reliably!
+
+We will look to address this with some clever concepts, and you will see those in the next sections.
 
 <br>
 #### Performance On The Test Set
 
-xxx
+Above, we assessed our models performance on both the training set and the validation set - both of which were being passed in during training.
+
+Here, we will get a view of how well our network performs when predict on data that was *no part* of the training process whatsoever - our test set.
+
+A test set can be extremely useful when looking to assess many different iterations of a network we build.  Where the validation set might be sent through the model in slightly different orders during training in order to assess the epoch by epoch performance, our test set is a *static set* of images.  Because of this, it makes for a really good baseline for testing the first iteration of our network versus any subsequent versions that we create, perhaps after we refine the architecture, or add any other clever bits of
+logic that we think might help the network perform better in the real world.
+
+In the below code we run this in isolation from training.  We:
+
+* Import the required packages for importing & manipulating our test set images
+* Set up the parameters for the predictions
+* Load in the saved network file from training
+* Create a function for preprocessing our test set images in the same way that training & validation images were
+* Create a function for making predictions, returning both predicted class label, and predicted class probability
+* Iterate through our test set images, preprocessing each and passing to the network for prediction
+* Create a Pandas DataFrame to hold all prediction data
+* Calculate overall Test Set classification accuracy
+* Create a confusion matrix for predictions across all classes
 
 ```python
 
-# xxx
-xxx
+# import required packages
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
+import numpy as np
+import pandas as pd
+from os import listdir
+
+# parameters for prediction
+model_filename = 'models/fruits_cnn_v01.h5'
+img_width = 128
+img_height = 128
+labels_list = ['apple', 'avocado', 'banana', 'kiwi', 'lemon', 'orange']
+
+# load model
+model = load_model(model_filename)
+
+# image pre-processing function
+def preprocess_image(filepath):
+    
+    image = load_img(filepath, target_size = (img_width, img_height))
+    image = img_to_array(image)
+    image = np.expand_dims(image, axis = 0)
+    image = image * (1./255)
+    
+    return image
+
+# image prediction function
+def make_prediction(image):
+    
+    class_probs = model.predict(image)
+    predicted_class = np.argmax(class_probs)
+    predicted_label = labels_list[predicted_class]
+    predicted_prob = class_probs[0][predicted_class]
+    
+    return predicted_label, predicted_prob
+
+# loop through test data
+source_dir = 'data/test/'
+folder_names = ['apple', 'avocado', 'banana', 'kiwi', 'lemon', 'orange']
+actual_labels = []
+predicted_labels = []
+predicted_probabilities = []
+filenames = []
+
+for folder in folder_names:
+    
+    images = listdir(source_dir + '/' + folder)
+    
+    for image in images:
+        
+        processed_image = preprocess_image(source_dir + '/' + folder + '/' + image)
+        predicted_label, predicted_probability = make_prediction(processed_image)
+        
+        actual_labels.append(folder)
+        predicted_labels.append(predicted_label)
+        predicted_probabilities.append(predicted_probability)
+        filenames.append(image)
+        
+# create dataframe to analyse
+predictions_df = pd.DataFrame({"actual_label" : actual_labels,
+                               "predicted_label" : predicted_labels,
+                               "predicted_probability" : predicted_probabilities,
+                               "filename" : filenames})
+
+predictions_df['correct'] = np.where(predictions_df['actual_label'] == predictions_df['predicted_label'], 1, 0)
+
+# overall test set accuracy
+test_set_accuracy = predictions_df['correct'].sum() / len(predictions_df)
+print(test_set_accuracy)
+
+# confusion matrix (raw numbers)
+confusion_matrix = pd.crosstab(predictions_df['predicted_label'], predictions_df['actual_label'])
+print(confusion_matrix)
+
+# confusion matrix (percentages)
+confusion_matrix = pd.crosstab(predictions_df['predicted_label'], predictions_df['actual_label'], normalize = 'columns')
+print(confusion_matrix)
 
 ```
 <br>
-xxx
+After running the code above, we end up with a Pandas DataFrame containing prediction data for each test set image. A sample of this can be seen below:
+
+
 
 ___
 <br>
