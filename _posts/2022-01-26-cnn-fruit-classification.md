@@ -356,8 +356,6 @@ In the below code we run this in isolation from training.  We:
 * Create a function for making predictions, returning both predicted class label, and predicted class probability
 * Iterate through our test set images, preprocessing each and passing to the network for prediction
 * Create a Pandas DataFrame to hold all prediction data
-* Calculate overall Test Set classification accuracy
-* Create a confusion matrix for predictions across all classes
 
 ```python
 
@@ -427,13 +425,57 @@ predictions_df = pd.DataFrame({"actual_label" : actual_labels,
 
 predictions_df['correct'] = np.where(predictions_df['actual_label'] == predictions_df['predicted_label'], 1, 0)
 
+```
+<br>
+After running the code above, we end up with a Pandas DataFrame containing prediction data for each test set image. A random sample of this can be seen in the table below:
+
+<br>
+<br>
+
+| **actual_label** | **predicted_label** | **predicted_probability** | **filename** | **correct** |
+|---|---|---|---|---|
+| apple | lemon | 0.700764 | apple_0034.jpg | 0 |
+| avocado | avocado | 0.99292046 | avocado_0074.jpg | 1 |
+| orange | orange | 0.94840413 | orange_0004.jpg | 1 |
+| banana | lemon | 0.87131584 | banana_0024.jpg | 0 |
+| kiwi | kiwi | 0.66800004 | kiwi_0094.jpg | 1 |
+| lemon | lemon | 0.8490372 | lemon_0084.jpg | 1 |
+
+<br>
+In our data we have:
+
+* Actual Label: The true label for that image
+* Prediction Label: The predicted label for the image (from the network)
+* Predicted Probability: The network's perceived probability for the predicted label
+* Filename: The test set image on our local drive (for reference)
+* Correct: A flag showing whether the predicted label is the same as the actual label
+
+This dataset is extremely useful as we can not only calculate our classification accuracy, but we can also deep-dive into images where the network was struggling to predict and try to assess why - leading to us improving our network, and potentially our input data!
+
+<br>
+#### Test Set Classification Accuracy
+
+Using our DataFrame, we can calculate our overall Test Set classification accuracy using the below code:
+
+```python
+
 # overall test set accuracy
 test_set_accuracy = predictions_df['correct'].sum() / len(predictions_df)
 print(test_set_accuracy)
 
-# confusion matrix (raw numbers)
-confusion_matrix = pd.crosstab(predictions_df['predicted_label'], predictions_df['actual_label'])
-print(confusion_matrix)
+```
+<br>
+Our baseline network acheives a **75% Classification Accuracy** on the Test Set.  It will be interesting to see how much improvement we can this with additions & refinements to our network.
+
+#### Test Set Confusion Matrix
+
+Overall Classification Accuracy is very useful, but it can hide what is really going on with the network's predictions!
+
+As we saw above, our Classification Accuracy for the whole test set was 75%, but it might be that our network is predicting extremely well on apples, but struggling with Lemons as for some reason it is regularly confusing them with Oranges.  A Confusion Matrix can help us uncover insights like this!
+
+We can create a Confusion Matrix with the below code:
+
+```python
 
 # confusion matrix (percentages)
 confusion_matrix = pd.crosstab(predictions_df['predicted_label'], predictions_df['actual_label'], normalize = 'columns')
@@ -441,9 +483,35 @@ print(confusion_matrix)
 
 ```
 <br>
-After running the code above, we end up with a Pandas DataFrame containing prediction data for each test set image. A sample of this can be seen below:
+This results in the following output:
 
+```
 
+actual_label     apple  avocado  banana  kiwi  lemon  orange
+predicted_label                                             
+apple              0.8      0.0     0.0   0.1    0.0     0.1
+avocado            0.0      1.0     0.0   0.0    0.0     0.0
+banana             0.0      0.0     0.2   0.1    0.0     0.0
+kiwi               0.0      0.0     0.1   0.7    0.0     0.0
+lemon              0.2      0.0     0.7   0.0    1.0     0.1
+orange             0.0      0.0     0.0   0.1    0.0     0.8
+
+```
+<br>
+Along the top are our *actual* classes and down the side are our *predicted* classes - so counting *down* the columns we can get the Classification Accuracy (%) for each class, and we can see where it is getting confused.
+
+So, while overall our test set accuracy was 75% - for each individual class we see:
+
+* Apple: 80%
+* Avocado: 100%
+* Banana: 20%
+* Kiwi: 70%
+* Lemon: 100%
+* Orange: 80%
+
+This is very powerful - we now can see what exactly is driving our *overall* Classification Accuracy.
+
+The standout insight here is for Bananas - with a 20% Classification Accuracy, and even more interestingly we can see where it is getting confused. The network predicted 70% of Banana images to be of the class Lemon!
 
 ___
 <br>
