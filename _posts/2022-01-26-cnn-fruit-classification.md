@@ -430,8 +430,6 @@ predictions_df['correct'] = np.where(predictions_df['actual_label'] == predictio
 After running the code above, we end up with a Pandas DataFrame containing prediction data for each test set image. A random sample of this can be seen in the table below:
 
 <br>
-<br>
-
 | **actual_label** | **predicted_label** | **predicted_probability** | **filename** | **correct** |
 |---|---|---|---|---|
 | apple | lemon | 0.700764 | apple_0034.jpg | 0 |
@@ -467,6 +465,7 @@ print(test_set_accuracy)
 <br>
 Our baseline network acheives a **75% Classification Accuracy** on the Test Set.  It will be interesting to see how much improvement we can this with additions & refinements to our network.
 
+<br>
 #### Test Set Confusion Matrix
 
 Overall Classification Accuracy is very useful, but it can hide what is really going on with the network's predictions!
