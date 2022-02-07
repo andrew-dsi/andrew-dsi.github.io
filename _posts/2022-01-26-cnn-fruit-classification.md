@@ -598,65 +598,42 @@ We run the exact same code as we did for the baseline network, with the only cha
 <br>
 #### Test Set Classification Accuracy
 
-Using our DataFrame, we can calculate our overall Test Set classification accuracy using the below code:
-
-```python
-
-# overall test set accuracy
-test_set_accuracy = predictions_df['correct'].sum() / len(predictions_df)
-print(test_set_accuracy)
-
-```
-<br>
-Our baseline network acheives a **75% Classification Accuracy** on the Test Set.  It will be interesting to see how much improvement we can this with additions & refinements to our network.
+Our baseline network acheived a **75% Classification Accuracy** on the test set.  With the addition of Dropout we saw both a reduction in overfitting, and an increased *validation set* accuracy.  On the test set, we again see an increase vs. the baseline, with an **85% Classification Accuracy**. 
 
 <br>
 #### Test Set Confusion Matrix
 
-Overall Classification Accuracy is very useful, but it can hide what is really going on with the network's predictions!
+As mentioned above, while overall Classification Accuracy is very useful, but it can hide what is really going on with the network's predictions!
 
-As we saw above, our Classification Accuracy for the whole test set was 75%, but it might be that our network is predicting extremely well on apples, but struggling with Lemons as for some reason it is regularly confusing them with Oranges.  A Confusion Matrix can help us uncover insights like this!
+The standout insight for the baseline network was that Bananas has only a 20% Classification Accuracy, very frequently being confused with Lemons.  It will be interesting to see if the extra *generalisation* forced upon the network with the application of Dropout helps this.
 
-We can create a Confusion Matrix with the below code:
-
-```python
-
-# confusion matrix (percentages)
-confusion_matrix = pd.crosstab(predictions_df['predicted_label'], predictions_df['actual_label'], normalize = 'columns')
-print(confusion_matrix)
-
-```
-<br>
-This results in the following output:
+Running the same code from the baseline section on results for our updated network, we get the following output:
 
 ```
 
 actual_label     apple  avocado  banana  kiwi  lemon  orange
 predicted_label                                             
-apple              0.8      0.0     0.0   0.1    0.0     0.1
-avocado            0.0      1.0     0.0   0.0    0.0     0.0
-banana             0.0      0.0     0.2   0.1    0.0     0.0
-kiwi               0.0      0.0     0.1   0.7    0.0     0.0
-lemon              0.2      0.0     0.7   0.0    1.0     0.1
-orange             0.0      0.0     0.0   0.1    0.0     0.8
+apple              0.8      0.0     0.0   0.0    0.0     0.0
+avocado            0.0      1.0     0.1   0.2    0.0     0.0
+banana             0.0      0.0     0.7   0.0    0.0     0.0
+kiwi               0.2      0.0     0.0   0.7    0.0     0.1
+lemon              0.0      0.0     0.2   0.0    1.0     0.0
+orange             0.0      0.0     0.0   0.1    0.0     0.9
 
 ```
 <br>
 Along the top are our *actual* classes and down the side are our *predicted* classes - so counting *down* the columns we can get the Classification Accuracy (%) for each class, and we can see where it is getting confused.
 
-So, while overall our test set accuracy was 75% - for each individual class we see:
+So, while overall our test set accuracy was 85% - for each individual class we see:
 
 * Apple: 80%
 * Avocado: 100%
-* Banana: 20%
+* Banana: 70%
 * Kiwi: 70%
 * Lemon: 100%
-* Orange: 80%
+* Orange: 90%
 
-This is very powerful - we now can see what exactly is driving our *overall* Classification Accuracy.
-
-The standout insight here is for Bananas - with a 20% Classification Accuracy, and even more interestingly we can see where it is getting confused. The network predicted 70% of Banana images to be of the class Lemon!
-
+All classes here are being predicted *at least* as good as with the baseline network - and Bananas which had only a 20% Classification Accuracy last time, are now being classified correctly 70% of the time.  Still the lowest of all classes, but a significant improvement over the baseline network!
 
 ___
 <br>
