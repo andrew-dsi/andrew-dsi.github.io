@@ -186,16 +186,76 @@ ___
 <br>
 #### Network Architecture
 
-xxx
+Our baseline network is simple, but gives us a starting point to refine from.  This network contains **2 Convolutional Layers**, each with **32 filters** and subsequent **Max Pooling** Layers.  We have a **single Dense (Fully Connected) layer** following flattening with **32 neurons** followed by our output layer.  We apply the **relu** activation function on all layers, and use the **adam** optimizer.
 
 ```python
 
-# xxx
-xxx
+# network architecture
+model = Sequential()
+
+model.add(Conv2D(filters = 32, kernel_size = (3, 3), padding = 'same', input_shape = (img_width, img_height, num_channels)))
+model.add(Activation('relu'))
+model.add(MaxPooling2D())
+
+model.add(Conv2D(filters = 32, kernel_size = (3, 3), padding = 'same'))
+model.add(Activation('relu'))
+model.add(MaxPooling2D())
+
+model.add(Flatten())
+
+model.add(Dense(32))
+model.add(Activation('relu'))
+
+model.add(Dense(num_classes))
+model.add(Activation('softmax'))
+
+# compile network
+model.compile(loss = 'categorical_crossentropy',
+              optimizer = 'adam',
+              metrics = ['accuracy'])
+
+# view network architecture
+model.summary()
 
 ```
 <br>
-xxx
+The below shows us more clearly our baseline architecture:
+
+```
+
+Model: "sequential"
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+conv2d (Conv2D)              (None, 128, 128, 32)      896       
+_________________________________________________________________
+activation (Activation)      (None, 128, 128, 32)      0         
+_________________________________________________________________
+max_pooling2d (MaxPooling2D) (None, 64, 64, 32)        0         
+_________________________________________________________________
+conv2d_1 (Conv2D)            (None, 64, 64, 32)        9248      
+_________________________________________________________________
+activation_1 (Activation)    (None, 64, 64, 32)        0         
+_________________________________________________________________
+max_pooling2d_1 (MaxPooling2 (None, 32, 32, 32)        0         
+_________________________________________________________________
+flatten (Flatten)            (None, 32768)             0         
+_________________________________________________________________
+dense (Dense)                (None, 32)                1048608   
+_________________________________________________________________
+activation_2 (Activation)    (None, 32)                0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 6)                 198       
+_________________________________________________________________
+activation_3 (Activation)    (None, 6)                 0         
+=================================================================
+Total params: 1,058,950
+Trainable params: 1,058,950
+Non-trainable params: 0
+_________________________________________________________________
+
+
+```
 
 <br>
 #### Training The Network
