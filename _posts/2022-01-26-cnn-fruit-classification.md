@@ -295,7 +295,7 @@ The ModelCheckpoint callback that has been put in place means that we do not jus
 <br>
 #### Analysis Of Training Results
 
-As we saved our training process to the *history* object, we can now analyse the performance (classification accuracy, and loss) of the network epoch by epoch.
+As we saved our training process to the *history* object, we can now analyse the performance (Classification Accuracy, and Loss) of the network epoch by epoch.
 
 ```python
 
@@ -318,7 +318,7 @@ max(history.history['val_accuracy'])
 
 ```
 <br>
-The below image contains two plots, the first showing the epoch by epoch **loss** for both the training set (blue) and the validation set (orange) & the second show the epoch by epoch **classification accuracy** again, for both the training set (blue) and the validation set (orange).
+The below image contains two plots, the first showing the epoch by epoch **Loss** for both the training set (blue) and the validation set (orange) & the second show the epoch by epoch **Classification Accuracy** again, for both the training set (blue) and the validation set (orange).
 
 <br>
 ![alt text](/img/posts/cnn-baseline-accuracy-plot.png "CNN Baseline Accuracy Plot")
@@ -330,7 +330,7 @@ The second thing to notice is *very important* and that is the significant gap b
 
 This gap is over-fitting.
 
-Focusing on the lower plot above (Classification Accuracy) - it appears that our network is learning the features of the training data *so well* that after about 20 or so epochs it is *perfectly* predicting those images - but on the validation set, it never passes approximately 83% classification accuracy.
+Focusing on the lower plot above (Classification Accuracy) - it appears that our network is learning the features of the training data *so well* that after about 20 or so epochs it is *perfectly* predicting those images - but on the validation set, it never passes approximately **83% Classification Accuracy**.
 
 We do not want over-fitting! It means that we're risking our predictive performance on new data.  The network is not learning to generalise, meaning that if something slightly 
 different comes along then it's going to really, really struggle to predict well, or at least predict reliably!
@@ -519,64 +519,143 @@ ___
 <br>
 #### Dropout Overview
 
-xxx
-xxx
+Dropout is a technique used in Deep Learning primarily to reduce the effects of over-fitting. Over-fitting is where the network learns the patterns of the training data so specifically, that it runs the risk of not generalising well, and being very unreliable when used to predict on new, unseen data.
+
+Dropout works in a way where, for each batch of observations that is sent forwards through the network, a pre-specified proportion of the neurons in a hidden layer are essentially ignored or deactivated.  This can be applied to any number of the hidden layers.
+
+When we apply Dropout, the deactivated neurons are completely taken out of the picture - they take no part in the passing of information through the network.
+
+All the math is the same, the network will process everything as it always would (so taking the sum of the inputs multiplied by the weights, and adding a bias term, applying activation functions, and updating the network’s parameters using Back Propagation) - it’s just that in this scenario where we are disregarding some of the neurons, we’re essentially pretending that they’re not there.
+
+In a full network (i.e. where Dropout is not being applied) each of the combinations of neurons becomes quite specific at what it represents, at least in terms of predicting the output.  At a high level, if we were classifying pictures of cats and dogs, there might be some linked combination of neurons that fires when it sees pointy ears and a long tongue.  This combination of neurons becomes very tuned into its role in prediction, and it becomes very good at what it does - but as is the definition of overfitting, it becomes too good - it becomes too rigidly aligned with the training data.
+
+If we *drop out* neurons during training, *other* neurons need to jump in fill in for this particular role of detecting those features.  They essentially have to come in at late notice and cover the ignored neurons job, dealing with that particular representation that is so useful for prediction.
+
+Over time, with different combinations of neurons being ignored for each mini-batch of data - the network becomes more adept at generalising and thus is less likely to overfit to the training data.  Since no particular neuron can rely on the presence of other neurons, and the features with which they represent - the network learns more robust features, and are less susceptible to noise.
+
+In a Convolutional Neural Network, such as in our task here - it is generally best practice to only apply Dropout to the Dense (Fully Connected) layer or layers, rather than to the Convolutional Layers.  
+
 
 <br>
-#### Network Architecture
+#### Updated Network Architecture
 
-xxx
+In our task here, we only have one Dense Layer, so we apply Dropout to that layer only.  A common proportion to apply (i.e. the proportion of neurons in the layer to be deactivated randomly each pass) is 0.5 or 50%.  We will apply this here.
 
 ```python
 
-# xxx
-xxx
+model = Sequential()
+
+model.add(Conv2D(filters = 32, kernel_size = (3, 3), padding = 'same', input_shape = (img_width, img_height, num_channels)))
+model.add(Activation('relu'))
+model.add(MaxPooling2D())
+
+model.add(Conv2D(filters = 32, kernel_size = (3, 3), padding = 'same'))
+model.add(Activation('relu'))
+model.add(MaxPooling2D())
+
+model.add(Flatten())
+
+model.add(Dense(32))
+model.add(Activation('relu'))
+model.add(Dropout(0.5))
+
+model.add(Dense(num_classes))
+model.add(Activation('softmax'))
 
 ```
-<br>
-xxx
 
 <br>
-#### Training The Network
+#### Training The Updated Network
 
-xxx
-
-```python
-
-# xxx
-xxx
-
-```
-<br>
-xxx
+We run the exact same code to train this updated network as we did for the baseline network (50 epochs) - the only change is that we modify the filename for the saved network to ensure we have all network files for comparison.
 
 <br>
 #### Analysis Of Training Results
 
-xxx
+As we again saved our training process to the *history* object, we can now analyse & plot the performance (Classification Accuracy, and Loss) of the updated network epoch by epoch.
 
-```python
+With the baseline network we saw very strong overfitting in action - it will be interesting to see if the addition of Dropout has helped!
 
-# xxx
-xxx
+The below image shows the same two plots we analysed for the updated network, the first showing the epoch by epoch **Loss** for both the training set (blue) and the validation set (orange) & the second show the epoch by epoch **Classification Accuracy** again, for both the training set (blue) and the validation set (orange).
 
-```
 <br>
-xxx
+![alt text](/img/posts/cnn-dropout-accuracy-plot.png "CNN Dropout Accuracy Plot")
+
+<br>
+Firstly, we can see a peak Classification Accuracy on the validation set of around **89%** which is higher than the **83%** we saw for the baseline network.
+
+Secondly, and what we were really looking to see, is that gap between the Classification Accuracy on the training set, and the validation set has been mostly eliminated. The two lines are trending up at more or less the same rate across all epochs of training - and the accuracy on the training set also never reach 100% as it did before meaning that we are indeed seeing this *generalisation* that we want!
+
+The addition of Dropout does appear to have remedied the overfitting that we saw in the baseline network.  This is because, while some neurons are turned off during each mini-batch iteration of training - all will have their turn, many times, to be updated - just in a way where no neuron, or combination of neurons will become so hard-wired to certain features found in the training data!
 
 <br>
 #### Performance On The Test Set
 
-xxx
+During training, we assessed our updated networks performance on both the training set and the validation set.  Here, like we did for the baseline network, we will get a view of how well our network performs when predict on data that was *no part* of the training process whatsoever - our test set.
+
+We run the exact same code as we did for the baseline network, with the only change being to ensure we are loading in network file for the updated network
+
+<br>
+#### Test Set Classification Accuracy
+
+Using our DataFrame, we can calculate our overall Test Set classification accuracy using the below code:
 
 ```python
 
-# xxx
-xxx
+# overall test set accuracy
+test_set_accuracy = predictions_df['correct'].sum() / len(predictions_df)
+print(test_set_accuracy)
 
 ```
 <br>
-xxx
+Our baseline network acheives a **75% Classification Accuracy** on the Test Set.  It will be interesting to see how much improvement we can this with additions & refinements to our network.
+
+<br>
+#### Test Set Confusion Matrix
+
+Overall Classification Accuracy is very useful, but it can hide what is really going on with the network's predictions!
+
+As we saw above, our Classification Accuracy for the whole test set was 75%, but it might be that our network is predicting extremely well on apples, but struggling with Lemons as for some reason it is regularly confusing them with Oranges.  A Confusion Matrix can help us uncover insights like this!
+
+We can create a Confusion Matrix with the below code:
+
+```python
+
+# confusion matrix (percentages)
+confusion_matrix = pd.crosstab(predictions_df['predicted_label'], predictions_df['actual_label'], normalize = 'columns')
+print(confusion_matrix)
+
+```
+<br>
+This results in the following output:
+
+```
+
+actual_label     apple  avocado  banana  kiwi  lemon  orange
+predicted_label                                             
+apple              0.8      0.0     0.0   0.1    0.0     0.1
+avocado            0.0      1.0     0.0   0.0    0.0     0.0
+banana             0.0      0.0     0.2   0.1    0.0     0.0
+kiwi               0.0      0.0     0.1   0.7    0.0     0.0
+lemon              0.2      0.0     0.7   0.0    1.0     0.1
+orange             0.0      0.0     0.0   0.1    0.0     0.8
+
+```
+<br>
+Along the top are our *actual* classes and down the side are our *predicted* classes - so counting *down* the columns we can get the Classification Accuracy (%) for each class, and we can see where it is getting confused.
+
+So, while overall our test set accuracy was 75% - for each individual class we see:
+
+* Apple: 80%
+* Avocado: 100%
+* Banana: 20%
+* Kiwi: 70%
+* Lemon: 100%
+* Orange: 80%
+
+This is very powerful - we now can see what exactly is driving our *overall* Classification Accuracy.
+
+The standout insight here is for Bananas - with a 20% Classification Accuracy, and even more interestingly we can see where it is getting confused. The network predicted 70% of Banana images to be of the class Lemon!
 
 
 ___
