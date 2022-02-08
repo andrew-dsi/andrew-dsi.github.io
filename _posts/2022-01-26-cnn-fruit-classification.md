@@ -744,7 +744,7 @@ Our baseline network achieved a **75% Classification Accuracy** on the test set,
 
 As mentioned above, while overall Classification Accuracy is very useful, but it can hide what is really going on with the network's predictions!
 
-The standout insight for the baseline network was that Bananas has only a 20% Classification Accuracy, very frequently being confused with Lemons.  It will be interesting to see if the extra *generalisation* forced upon the network with the application of Dropout helps this.
+The standout insight for the baseline network was that Bananas has only a 20% Classification Accuracy, very frequently being confused with Lemons.  Dropout, through the additional *generalisation* forced upon the network, helped a lot - let's see how our network with Image Augmentation fares!
 
 Running the same code from the baseline section on results for our updated network, we get the following output:
 
@@ -752,27 +752,29 @@ Running the same code from the baseline section on results for our updated netwo
 
 actual_label     apple  avocado  banana  kiwi  lemon  orange
 predicted_label                                             
-apple              0.8      0.0     0.0   0.0    0.0     0.0
-avocado            0.0      1.0     0.1   0.2    0.0     0.0
-banana             0.0      0.0     0.7   0.0    0.0     0.0
-kiwi               0.2      0.0     0.0   0.7    0.0     0.1
+apple              0.9      0.0     0.0   0.0    0.0     0.0
+avocado            0.0      1.0     0.0   0.0    0.0     0.0
+banana             0.1      0.0     0.8   0.0    0.0     0.0
+kiwi               0.0      0.0     0.0   0.9    0.0     0.0
 lemon              0.0      0.0     0.2   0.0    1.0     0.0
-orange             0.0      0.0     0.0   0.1    0.0     0.9
+orange             0.0      0.0     0.0   0.1    0.0     1.0
 
 ```
 <br>
 Along the top are our *actual* classes and down the side are our *predicted* classes - so counting *down* the columns we can get the Classification Accuracy (%) for each class, and we can see where it is getting confused.
 
-So, while overall our test set accuracy was 85% - for each individual class we see:
+So, while overall our test set accuracy was 93% - for each individual class we see:
 
-* Apple: 80%
+* Apple: 90%
 * Avocado: 100%
-* Banana: 70%
-* Kiwi: 70%
+* Banana: 80%
+* Kiwi: 90%
 * Lemon: 100%
-* Orange: 90%
+* Orange: 100%
 
-All classes here are being predicted *at least* as good as with the baseline network - and Bananas which had only a 20% Classification Accuracy last time, are now being classified correctly 70% of the time.  Still the lowest of all classes, but a significant improvement over the baseline network!
+All classes here are being predicted *more accurately* when compared to the baseline network, and *at least as accurate or better* when compared to the network with Dropout added.
+
+Utilising Image Augmentation *and* applying Dropout will be a powerful combination!
 
 ___
 <br>
@@ -785,7 +787,7 @@ xxx
 xxx
 
 <br>
-#### Network Architecture
+#### Application Of Keras Tuner
 
 xxx
 
@@ -799,7 +801,7 @@ xxx
 xxx
 
 <br>
-#### Training The Network
+#### Updated Network Architecture
 
 xxx
 
@@ -811,34 +813,79 @@ xxx
 ```
 <br>
 xxx
+
+<br>
+#### Training The Updated Network
+
+We run the exact same code to train this updated network as we did for the baseline network (50 epochs) - the only change is that we modify the filename for the saved network to ensure we have all network files for comparison.
 
 <br>
 #### Analysis Of Training Results
 
-xxx
+As we again saved our training process to the *history* object, we can now analyse & plot the performance (Classification Accuracy, and Loss) of the updated network epoch by epoch.
 
-```python
+With the baseline network we saw very strong overfitting in action - it will be interesting to see if the addition of Image Augmentation helps in the same way that Dropout did!
 
-# xxx
-xxx
+The below image shows the same two plots we analysed for the updated network, the first showing the epoch by epoch **Loss** for both the training set (blue) and the validation set (orange) & the second show the epoch by epoch **Classification Accuracy** again, for both the training set (blue) and the validation set (orange).
 
-```
 <br>
-xxx
+![alt text](/img/posts/cnn-augmentation-accuracy-plot.png "CNN Dropout Accuracy Plot")
+
+<br>
+Firstly, we can see a peak Classification Accuracy on the validation set of around **97%** which is higher than the **83%** we saw for the baseline network, and higher than the **89%** we saw for the network with Dropout added.
+
+Secondly, and what we were again really looking to see, is that gap between the Classification Accuracy on the training set, and the validation set has been mostly eliminated. The two lines are trending up at more or less the same rate across all epochs of training - and the accuracy on the training set also never reach 100% as it did before meaning that Image Augmentation is also giving the network this *generalisation* that we want!
+
+The reason for this is that the network is getting a slightly different version of each image each epoch during training, meaning that while it's learning features, it can't cling to a *single version* of those features!
 
 <br>
 #### Performance On The Test Set
 
-xxx
+During training, we assessed our updated networks performance on both the training set and the validation set.  Here, like we did for the baseline & Dropout networks, we will get a view of how well our network performs when predict on data that was *no part* of the training process whatsoever - our test set.
 
-```python
+We run the exact same code as we did for the earlier networks, with the only change being to ensure we are loading in network file for the updated network
 
-# xxx
-xxx
+<br>
+#### Test Set Classification Accuracy
+
+Our baseline network achieved a **75% Classification Accuracy** on the test set, and our network with Dropout applied achieved **85%**.  With the addition of Image Augmentation we saw both a reduction in overfitting, and an increased *validation set* accuracy.  On the test set, we again see an increase vs. the baseline & Dropout, with a **93% Classification Accuracy**. 
+
+<br>
+#### Test Set Confusion Matrix
+
+As mentioned above, while overall Classification Accuracy is very useful, but it can hide what is really going on with the network's predictions!
+
+The standout insight for the baseline network was that Bananas has only a 20% Classification Accuracy, very frequently being confused with Lemons.  Dropout, through the additional *generalisation* forced upon the network, helped a lot - let's see how our network with Image Augmentation fares!
+
+Running the same code from the baseline section on results for our updated network, we get the following output:
+
+```
+
+actual_label     apple  avocado  banana  kiwi  lemon  orange
+predicted_label                                             
+apple              0.9      0.0     0.0   0.0    0.0     0.0
+avocado            0.0      1.0     0.0   0.0    0.0     0.0
+banana             0.1      0.0     0.8   0.0    0.0     0.0
+kiwi               0.0      0.0     0.0   0.9    0.0     0.0
+lemon              0.0      0.0     0.2   0.0    1.0     0.0
+orange             0.0      0.0     0.0   0.1    0.0     1.0
 
 ```
 <br>
-xxx
+Along the top are our *actual* classes and down the side are our *predicted* classes - so counting *down* the columns we can get the Classification Accuracy (%) for each class, and we can see where it is getting confused.
+
+So, while overall our test set accuracy was 93% - for each individual class we see:
+
+* Apple: 90%
+* Avocado: 100%
+* Banana: 80%
+* Kiwi: 90%
+* Lemon: 100%
+* Orange: 100%
+
+All classes here are being predicted *more accurately* when compared to the baseline network, and *at least as accurate or better* when compared to the network with Dropout added.
+
+Utilising Image Augmentation *and* applying Dropout will be a powerful combination!
 
 
 ___
