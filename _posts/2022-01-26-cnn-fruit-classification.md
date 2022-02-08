@@ -49,7 +49,7 @@ If this was successful and put into place on a larger scale, the client would be
 
 We utilise the *Keras* Deep Learning library for this task.
 
-We start by creating our pipeline for feeding training & validation images in batches, from our local directory, into the network.
+We start by creating our pipeline for feeding training & validation images in batches, from our local directory, into the network.  We investigate & quantify predictive performance epoch by epoch on the validation set, and then also on a held-back test set.
 
 Our baseline network is simple, but gives us a starting point to refine from.  This network contains **2 Convolutional Layers**, each with **32 filters** and subsequent **Max Pooling** Layers.  We have a **single Dense (Fully Connected) layer** following flattening with **32 neurons** followed by our output layer.  We apply the **relu** activation function on all layers, and use the **adam** optimizer.
 
@@ -66,19 +66,29 @@ Finally, we utilise **Transfer Learning** to compare our network's results again
 
 ### Results <a name="overview-results"></a>
 
-xxx
-xxx
-xxx
-xxx
-xxx
+We have made some huge strides in terms of making our network's predictions more accurate, and more reliable on new data.
+
+Our baseline network suffered badly from overfitting - the addition of both Dropout & Image Augmentation elimited this almost entirely.
+
+In terms of Classification Accuracy on the Test Set, we saw:
+
+* Baseline Network: **75%**
+* Baseline + Dropout: **85%**
+* Baseline + Image Augmentation: **93%**
+* Optimised Architecture + Dropout + Image Augmentation: **95%**
+* Transfer Learning Using VGG16: **98%**
+
+Tuning the networks architecture with Keras-Tuner gave us a great boost, but was also very time intensive - however if this time investment results in improved accuracy then it is time well spent.
+
+The use of Transfer Learning with the VGG16 architecture was also a great success, in only 10 epochs we were able to beat the performance of our smaller, custom networks which were training over 50 epochs.  From a business point of view we also need to consider the overheads of (a) storing the much larger VGG16 network file, and (b) any increased latency on inference.
 
 <br>
 <br>
 ### Growth/Next Steps <a name="overview-growth"></a>
 
-Next Steps:  Showcase to client, discuss what made the network more robust, get more data/classes
+The proof of concept was successful, we have shown that we can get very accurate predictions albeit on a small number of classes.  We need to showcase this to the client, discuss what it is that makes the network more robust, and then look to test our best networks on a larger array of classes.
 
-Growth: Try other networks for transfer learning, more epochs, different batch sizes etc
+Transfer Learning has been a big success, and was the best performing network in terms of classification accuracy on the Test Set - however we still only trained for a small number of epochs so we can push this even further.  It would be worthwhile testing other available pre-trained networks such as ResNet, Inception, and the DenseNet networks.
 
 <br>
 <br>
@@ -1109,8 +1119,8 @@ For our Fruit Classification task we will be utilising a famous network known as
 
 <br>
 ![alt text](/img/posts/vgg16-architecture.png "VGG16 Architecture")
-<br>
 
+<br>
 The VGG16 network won the 2014 ImageNet competition, meaning that it predicted more accurately than any other model on that set of images (although this has now been surpassed).
 
 If we can get our hands on the fully trained VGG16 model object, built to differentiate between all of those one thousand different image classes, the features that are contained in the layer prior to flattening will be very rich, and could be very useful for predicting all sorts of other images too without having to (a) re-train this entire architecture, which would be computationally, very expensive or (b) having to come up with our very own complex architecture, which we know can take a lot of trial and error to get right!
@@ -1353,5 +1363,6 @@ ___
 <br>
 # Growth & Next Steps <a name="growth-next-steps"></a>
 
-xxx
-xxx
+The proof of concept was successful, we have shown that we can get very accurate predictions albeit on a small number of classes.  We need to showcase this to the client, discuss what it is that makes the network more robust, and then look to test our best networks on a larger array of classes.
+
+Transfer Learning has been a big success, and was the best performing network in terms of classification accuracy on the Test Set - however we still only trained for a small number of epochs so we can push this even further.  It would be worthwhile testing other available pre-trained networks such as ResNet, Inception, and the DenseNet networks.
