@@ -842,8 +842,6 @@ validation_set = validation_generator.flow_from_directory(directory = validation
                                                                       class_mode = 'categorical')
 
 ```
-<br>
-xxx
 
 <br>
 #### Application Of Keras Tuner
@@ -1057,14 +1055,14 @@ We run the exact same code as we did for the earlier networks, with the only cha
 <br>
 #### Test Set Classification Accuracy
 
-Our baseline network achieved a **75% Classification Accuracy** on the test set, and our network with Dropout applied achieved **85%**.  With the addition of Image Augmentation we saw both a reduction in overfitting, and an increased *validation set* accuracy.  On the test set, we again see an increase vs. the baseline & Dropout, with a **93% Classification Accuracy**. 
+Our optimised network, with both Dropout & Image Augmentation in place, scored **95%** on the Test Set, again marginally higher than what we had seen from the other networks so far.
 
 <br>
 #### Test Set Confusion Matrix
 
-As mentioned above, while overall Classification Accuracy is very useful, but it can hide what is really going on with the network's predictions!
+As mentioned each time, while overall Classification Accuracy is very useful, but it can hide what is really going on with the network's predictions!
 
-The standout insight for the baseline network was that Bananas has only a 20% Classification Accuracy, very frequently being confused with Lemons.  Dropout, through the additional *generalisation* forced upon the network, helped a lot - let's see how our network with Image Augmentation fares!
+Our 95% Test Set accuracy at an *overall* level tells us that we don't have too much to worry about here, but let's take a look anyway and see if anything interesting pops up.
 
 Running the same code from the baseline section on results for our updated network, we get the following output:
 
@@ -1074,28 +1072,25 @@ actual_label     apple  avocado  banana  kiwi  lemon  orange
 predicted_label                                             
 apple              0.9      0.0     0.0   0.0    0.0     0.0
 avocado            0.0      1.0     0.0   0.0    0.0     0.0
-banana             0.1      0.0     0.8   0.0    0.0     0.0
+banana             0.0      0.0     0.9   0.0    0.0     0.0
 kiwi               0.0      0.0     0.0   0.9    0.0     0.0
-lemon              0.0      0.0     0.2   0.0    1.0     0.0
+lemon              0.0      0.0     0.0   0.0    1.0     0.0
 orange             0.0      0.0     0.0   0.1    0.0     1.0
 
 ```
 <br>
 Along the top are our *actual* classes and down the side are our *predicted* classes - so counting *down* the columns we can get the Classification Accuracy (%) for each class, and we can see where it is getting confused.
 
-So, while overall our test set accuracy was 93% - for each individual class we see:
+So, while overall our test set accuracy was 95% - for each individual class we see:
 
 * Apple: 90%
 * Avocado: 100%
-* Banana: 80%
+* Banana: 90%
 * Kiwi: 90%
 * Lemon: 100%
 * Orange: 100%
 
-All classes here are being predicted *more accurately* when compared to the baseline network, and *at least as accurate or better* when compared to the network with Dropout added.
-
-Utilising Image Augmentation *and* applying Dropout will be a powerful combination!
-
+All classes here are being predicted *at least as accurate or better* when compared to the best network so far - so our optimised architecture does appear to have helped!
 
 ___
 <br>
@@ -1104,71 +1099,255 @@ ___
 <br>
 #### Transfer Learning Overview
 
-xxx
-xxx
+Transfer Learning is an extremely powerful way for us to utilise pre-built, and pre-trained networks, and apply these in a clever way to solve *our* specific Deep Learning based tasks.  It consists of taking features learned on one problem, and leveraging them on a new, similar problem!
+
+For image based tasks this often means using all the the *pre-learned* features from a large network, so all of the convolutional filter values and feature maps, and instead of using it to predict what the network was originally designed for, piggybacking it, and training just the last part for some other task.
+
+The hope is, that the features which have already been learned will be good enough to differentiate between our new classes, and we’ll save a whole lot of training time (and be able to utilise a network architecture that has potentially already been optimised).
+
+For our Fruit Classification task we will be utilising a famous network known as **VGG16**.  This was designed back in 2014, but even by todays standards is a fairly heft network.  It was trained on the famous *ImageNet* dataset, with over a million images across one thousand different image classes. Everything from goldfish to cauliflowers to bottles of wine, to scuba divers!
+
+<br>
+![alt text](/img/posts/vgg16-architecture.png "VGG16 Architecture")
+<br>
+
+The VGG16 network won the 2014 ImageNet competition, meaning that it predicted more accurately than any other model on that set of images (although this has now been surpassed).
+
+If we can get our hands on the fully trained VGG16 model object, built to differentiate between all of those one thousand different image classes, the features that are contained in the layer prior to flattening will be very rich, and could be very useful for predicting all sorts of other images too without having to (a) re-train this entire architecture, which would be computationally, very expensive or (b) having to come up with our very own complex architecture, which we know can take a lot of trial and error to get right!
+
+All the hard work has been done, we just want to "transfer" those "learnings" to our own problem space.
+
+<br>
+#### Updated Data Pipeline
+
+Our data pipeline will remain *mostly* the same as it was when applying our own custom built networks - but there are some subtle changes.  In the code below we need to import VGG16 and the custom preprocessing logic that it uses.  We also need to send our images in with the size 224 x 224 pixels as this is what VGG16 expects.  Otherwise, the logic stays as is.
+
+```python
+
+# import the required python libraries
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Activation, Flatten, Dense, Dropout
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
+
+# data flow parameters
+training_data_dir = 'data/training'
+validation_data_dir = 'data/validation'
+batch_size = 32
+img_width = 224
+img_height = 224
+num_channels = 3
+num_classes = 6
+
+# image generators
+training_generator = ImageDataGenerator(preprocessing_function = preprocess_input,
+                                        rotation_range = 20,
+                                        width_shift_range = 0.2,
+                                        height_shift_range = 0.2,
+                                        zoom_range = 0.1,
+                                        horizontal_flip = True,
+                                        brightness_range = (0.5,1.5),
+                                        fill_mode = 'nearest')
+                                        
+validation_generator = ImageDataGenerator(rescale = 1./255)
+
+# image flows
+training_set = training_generator.flow_from_directory(directory = training_data_dir,
+                                                      target_size = (img_width, img_height),
+                                                      batch_size = batch_size,
+                                                      class_mode = 'categorical')
+
+validation_set = validation_generator.flow_from_directory(directory = validation_data_dir,
+                                                                      target_size = (img_width, img_height),
+                                                                      batch_size = batch_size,
+                                                                      class_mode = 'categorical')
+
+```
 
 <br>
 #### Network Architecture
 
-xxx
+Keras makes the use of VGG16 very easy. We will download the *bottom* of the VGG16 network (everything up to the Dense Layers) and add in what we need to apply the *top* of the model to our fruit classes.
+
+We then need to specify that we *do not* want the imported layers to be re-trained, we want their parameters values to be frozen.
+
+The original VGG16 network architecture contains two massive Dense Layers near the end, each with 4096 neurons.  Since our task of classiying 6 types of fruit is more simplistic than the original 1000 ImageNet classes, we reduce this down and instead implement two Dense Layers with 128 neurons each, followed by our output layer.
 
 ```python
 
-# xxx
-xxx
+# network architecture
+vgg = VGG16(input_shape = (img_width, img_height, num_channels), include_top = False)
+
+# freeze all layers (they won't be updated during training)
+for layer in vgg.layers:
+    layer.trainable = False
+
+flatten = Flatten()(vgg.output)
+
+dense1 = Dense(128, activation = 'relu')(flatten)
+dense2 = Dense(128, activation = 'relu')(dense1)
+
+output = Dense(num_classes, activation = 'softmax')(dense2)
+
+model = Model(inputs = vgg.inputs, outputs = output)
+
+# compile network
+model.compile(loss = 'categorical_crossentropy',
+              optimizer = 'adam',
+              metrics = ['accuracy'])
+
+# view network architecture
+model.summary()
 
 ```
 <br>
-xxx
+The below shows us our final architecture:
+
+```
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+input_1 (InputLayer)         [(None, 224, 224, 3)]     0         
+_________________________________________________________________
+block1_conv1 (Conv2D)        (None, 224, 224, 64)      1792      
+_________________________________________________________________
+block1_conv2 (Conv2D)        (None, 224, 224, 64)      36928     
+_________________________________________________________________
+block1_pool (MaxPooling2D)   (None, 112, 112, 64)      0         
+_________________________________________________________________
+block2_conv1 (Conv2D)        (None, 112, 112, 128)     73856     
+_________________________________________________________________
+block2_conv2 (Conv2D)        (None, 112, 112, 128)     147584    
+_________________________________________________________________
+block2_pool (MaxPooling2D)   (None, 56, 56, 128)       0         
+_________________________________________________________________
+block3_conv1 (Conv2D)        (None, 56, 56, 256)       295168    
+_________________________________________________________________
+block3_conv2 (Conv2D)        (None, 56, 56, 256)       590080    
+_________________________________________________________________
+block3_conv3 (Conv2D)        (None, 56, 56, 256)       590080    
+_________________________________________________________________
+block3_pool (MaxPooling2D)   (None, 28, 28, 256)       0         
+_________________________________________________________________
+block4_conv1 (Conv2D)        (None, 28, 28, 512)       1180160   
+_________________________________________________________________
+block4_conv2 (Conv2D)        (None, 28, 28, 512)       2359808   
+_________________________________________________________________
+block4_conv3 (Conv2D)        (None, 28, 28, 512)       2359808   
+_________________________________________________________________
+block4_pool (MaxPooling2D)   (None, 14, 14, 512)       0         
+_________________________________________________________________
+block5_conv1 (Conv2D)        (None, 14, 14, 512)       2359808   
+_________________________________________________________________
+block5_conv2 (Conv2D)        (None, 14, 14, 512)       2359808   
+_________________________________________________________________
+block5_conv3 (Conv2D)        (None, 14, 14, 512)       2359808   
+_________________________________________________________________
+block5_pool (MaxPooling2D)   (None, 7, 7, 512)         0         
+_________________________________________________________________
+flatten_7 (Flatten)          (None, 25088)             0         
+_________________________________________________________________
+dense_14 (Dense)             (None, 128)               3211392   
+_________________________________________________________________
+dense_15 (Dense)             (None, 128)               16512     
+_________________________________________________________________
+dense_16 (Dense)             (None, 6)                 774       
+=================================================================
+Total params: 17,943,366
+Trainable params: 3,228,678
+Non-trainable params: 14,714,688
+_________________________________________________________________
+
+```
+
+<br>
+Our VGG16 architecture has a total of 17.9 million parameters, much bigger than what we have built so far.  Of this, 14.7 million parameters are frozen, and 3.2 million parameters will be updated during each iteration of back-propagation, and these are going to be figuring out exactly how to use those frozen parameters that were learned from the ImageNet dataset, to predict our classes of fruit!
 
 <br>
 #### Training The Network
 
-xxx
-
-```python
-
-# xxx
-xxx
-
-```
-<br>
-xxx
+We run the exact same code to train this updated network as we did for the baseline network, although to start with for only 10 epochs as it is a much more computationally expensive training process.
 
 <br>
 #### Analysis Of Training Results
 
-xxx
+As we again saved our training process to the *history* object, we can now analyse & plot the performance (Classification Accuracy, and Loss) of the updated network epoch by epoch.
 
-```python
+The below image shows the same two plots we analysed for the tuned network, the first showing the epoch by epoch **Loss** for both the training set (blue) and the validation set (orange) & the second show the epoch by epoch **Classification Accuracy** again, for both the training set (blue) and the validation set (orange).
 
-# xxx
-xxx
-
-```
 <br>
-xxx
+![alt text](/img/posts/cnn-vgg16-accuracy-plot.png "VGG16 Accuracy Plot")
+
+<br>
+Firstly, we can see a peak Classification Accuracy on the validation set of around **98%** which is equal to the highest we have seen from all networks so far, but what is impressive is that it achieved this in only 10 epochs!
 
 <br>
 #### Performance On The Test Set
 
-xxx
+During training, we assessed our updated networks performance on both the training set and the validation set.  Here, like we did for all other networks, we will get a view of how well our network performs when predict on data that was *no part* of the training process whatsoever - our test set.
 
-```python
+We run the exact same code as we did for the earlier networks, with the only change being to ensure we are loading in network file for the updated network
 
-# xxx
-xxx
+<br>
+#### Test Set Classification Accuracy
+
+Our VGG16 network scored **98%** on the Test Set, higher than that of our best custom network.
+
+<br>
+#### Test Set Confusion Matrix
+
+As mentioned each time, while overall Classification Accuracy is very useful, but it can hide what is really going on with the network's predictions!
+
+Our 98% Test Set accuracy at an *overall* level tells us that we don't have too much to worry about here, but for comparisons sake let's take a look!
+
+Running the same code from the baseline section on results for our updated network, we get the following output:
+
+```
+
+actual_label     apple  avocado  banana  kiwi  lemon  orange
+predicted_label                                             
+apple              1.0      0.0     0.0   0.0    0.0     0.0
+avocado            0.0      1.0     0.0   0.0    0.0     0.0
+banana             0.0      0.0     1.0   0.0    0.0     0.0
+kiwi               0.0      0.0     0.0   1.0    0.0     0.0
+lemon              0.0      0.0     0.0   0.0    0.9     0.0
+orange             0.0      0.0     0.0   0.0    0.1     1.0
 
 ```
 <br>
-xxx
+Along the top are our *actual* classes and down the side are our *predicted* classes - so counting *down* the columns we can get the Classification Accuracy (%) for each class, and we can see where it is getting confused.
+
+So, while overall our test set accuracy was 98% - for each individual class we see:
+
+* Apple: 100%
+* Avocado: 100%
+* Banana: 100%
+* Kiwi: 100%
+* Lemon: 90%
+* Orange: 100%
+
+All classes here are being predicted *at least as accurate or better* when compared to the best custom network!
 
 ___
 <br>
 # Overall Results Discussion <a name="cnn-results"></a>
 
-xxx
-xxx
+We have made some huge strides in terms of making our network's predictions more accurate, and more reliable on new data.
+
+Our baseline network suffered badly from overfitting - the addition of both Dropout & Image Augmentation elimited this almost entirely.
+
+In terms of Classification Accuracy on the Test Set, we saw:
+
+* Baseline Network: **75%**
+* Baseline + Dropout: **85%**
+* Baseline + Image Augmentation: **93%**
+* Optimised Architecture + Dropout + Image Augmentation: **95%**
+* Transfer Learning Using VGG16: **98%**
+
+Tuning the networks architecture with Keras-Tuner gave us a great boost, but was also very time intensive - however if this time investment results in improved accuracy then it is time well spent.
+
+The use of Transfer Learning with the VGG16 architecture was also a great success, in only 10 epochs we were able to beat the performance of our smaller, custom networks which were training over 50 epochs.  From a business point of view we also need to consider the overheads of (a) storing the much larger VGG16 network file, and (b) any increased latency on inference.
 
 ___
 <br>
