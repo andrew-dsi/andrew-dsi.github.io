@@ -430,6 +430,7 @@ predictions_df['correct'] = np.where(predictions_df['actual_label'] == predictio
 After running the code above, we end up with a Pandas DataFrame containing prediction data for each test set image. A random sample of this can be seen in the table below:
 
 <br>
+
 | **actual_label** | **predicted_label** | **predicted_probability** | **filename** | **correct** |
 |---|---|---|---|---|
 | apple | lemon | 0.700764 | apple_0034.jpg | 0 |
