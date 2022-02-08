@@ -941,25 +941,91 @@ tuner.search(x = training_set,
 
 ```
 <br>
-With
-
-
-
-We could of course continue to testing everything, but we must remember that this would mean that the number of possible combinations of parameters will grow and grow and grow to some unmangeable number that would take forever to test for
+Depending on how many configurations are to be tested, how many epochs are required for each, and the speed of processing - this can take a long time, but the results will most definitely guide us towards a more optimal architecture!
 
 <br>
 #### Updated Network Architecture
 
-xxx
+Based upon the tested network architectures, the best in terms of validation accuracy was one that contains **3 Convolutional Layers**. The first has **96 filters** and the subsequent two each **64 filters**.  Each of these layers have an accompanying MaxPooling Layer (this wasn't tested). The network then has **1 Dense (Fully Connected) Layer** following flattening with **160 neurons** with **Dropout applied** - followed by our output layer. The chosen optimizer was **Adam**.
 
 ```python
 
-# xxx
-xxx
+# network architecture
+model = Sequential()
+
+model.add(Conv2D(filters = 96, kernel_size = (3, 3), padding = 'same', input_shape = (img_width, img_height, num_channels)))
+model.add(Activation('relu'))
+model.add(MaxPooling2D())
+
+model.add(Conv2D(filters = 64, kernel_size = (3, 3), padding = 'same'))
+model.add(Activation('relu'))
+model.add(MaxPooling2D())
+
+model.add(Conv2D(filters = 64, kernel_size = (3, 3), padding = 'same'))
+model.add(Activation('relu'))
+model.add(MaxPooling2D())
+
+model.add(Flatten())
+
+model.add(Dense(160))
+model.add(Activation('relu'))
+model.add(Dropout(0.5))
+
+model.add(Dense(num_classes))
+model.add(Activation('softmax'))
+
+# compile network
+model.compile(loss = 'categorical_crossentropy',
+              optimizer = 'adam',
+              metrics = ['accuracy'])
 
 ```
 <br>
-xxx
+The below shows us more clearly our optimised architecture:
+
+```
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+conv2d_10 (Conv2D)           (None, 128, 128, 96)      2688      
+_________________________________________________________________
+activation_20 (Activation)   (None, 128, 128, 96)      0         
+_________________________________________________________________
+max_pooling2d_10 (MaxPooling (None, 64, 64, 96)        0         
+_________________________________________________________________
+conv2d_11 (Conv2D)           (None, 64, 64, 64)        55360     
+_________________________________________________________________
+activation_21 (Activation)   (None, 64, 64, 64)        0         
+_________________________________________________________________
+max_pooling2d_11 (MaxPooling (None, 32, 32, 64)        0         
+_________________________________________________________________
+conv2d_12 (Conv2D)           (None, 32, 32, 64)        36928     
+_________________________________________________________________
+activation_22 (Activation)   (None, 32, 32, 64)        0         
+_________________________________________________________________
+max_pooling2d_12 (MaxPooling (None, 16, 16, 64)        0         
+_________________________________________________________________
+flatten_5 (Flatten)          (None, 16384)             0         
+_________________________________________________________________
+dense_10 (Dense)             (None, 160)               2621600   
+_________________________________________________________________
+activation_23 (Activation)   (None, 160)               0         
+_________________________________________________________________
+dropout_3 (Dropout)          (None, 160)               0         
+_________________________________________________________________
+dense_11 (Dense)             (None, 6)                 966       
+_________________________________________________________________
+activation_24 (Activation)   (None, 6)                 0         
+=================================================================
+Total params: 2,717,542
+Trainable params: 2,717,542
+Non-trainable params: 0
+_________________________________________________________________
+
+```
+
+<br>
+Our optimised architecture has a total of 2.7 million parameters, a step up from 1.1 million in the baseline architecture.
 
 <br>
 #### Training The Updated Network
@@ -971,19 +1037,15 @@ We run the exact same code to train this updated network as we did for the basel
 
 As we again saved our training process to the *history* object, we can now analyse & plot the performance (Classification Accuracy, and Loss) of the updated network epoch by epoch.
 
-With the baseline network we saw very strong overfitting in action - it will be interesting to see if the addition of Image Augmentation helps in the same way that Dropout did!
-
-The below image shows the same two plots we analysed for the updated network, the first showing the epoch by epoch **Loss** for both the training set (blue) and the validation set (orange) & the second show the epoch by epoch **Classification Accuracy** again, for both the training set (blue) and the validation set (orange).
+The below image shows the same two plots we analysed for the tuned network, the first showing the epoch by epoch **Loss** for both the training set (blue) and the validation set (orange) & the second show the epoch by epoch **Classification Accuracy** again, for both the training set (blue) and the validation set (orange).
 
 <br>
-![alt text](/img/posts/cnn-augmentation-accuracy-plot.png "CNN Dropout Accuracy Plot")
+![alt text](/img/posts/cnn-tuned-accuracy-plot.png "CNN Tuned Accuracy Plot")
 
 <br>
-Firstly, we can see a peak Classification Accuracy on the validation set of around **97%** which is higher than the **83%** we saw for the baseline network, and higher than the **89%** we saw for the network with Dropout added.
+Firstly, we can see a peak Classification Accuracy on the validation set of around **98%** which is the highest we have seen from all networks so far, just higher than the 97% we saw for the addition of Image Augmentation to our baseline network.
 
-Secondly, and what we were again really looking to see, is that gap between the Classification Accuracy on the training set, and the validation set has been mostly eliminated. The two lines are trending up at more or less the same rate across all epochs of training - and the accuracy on the training set also never reach 100% as it did before meaning that Image Augmentation is also giving the network this *generalisation* that we want!
-
-The reason for this is that the network is getting a slightly different version of each image each epoch during training, meaning that while it's learning features, it can't cling to a *single version* of those features!
+As Dropout & Image Augmentation are in place here, we again see the elimination of overfitting.
 
 <br>
 #### Performance On The Test Set
