@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Finding Prime Numbers with Python
+title: Finding All Prime Numbers Under 1,000,000 Using Python
 image: "/posts/finding-primes-title-img.png"
 tags: [Python, Primes]
 ---
