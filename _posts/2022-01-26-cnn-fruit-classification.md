@@ -463,7 +463,7 @@ print(test_set_accuracy)
 
 ```
 <br>
-Our baseline network acheives a **75% Classification Accuracy** on the Test Set.  It will be interesting to see how much improvement we can this with additions & refinements to our network.
+Our baseline network achieves a **75% Classification Accuracy** on the Test Set.  It will be interesting to see how much improvement we can this with additions & refinements to our network.
 
 <br>
 #### Test Set Confusion Matrix
@@ -598,7 +598,7 @@ We run the exact same code as we did for the baseline network, with the only cha
 <br>
 #### Test Set Classification Accuracy
 
-Our baseline network acheived a **75% Classification Accuracy** on the test set.  With the addition of Dropout we saw both a reduction in overfitting, and an increased *validation set* accuracy.  On the test set, we again see an increase vs. the baseline, with an **85% Classification Accuracy**. 
+Our baseline network achieved a **75% Classification Accuracy** on the test set.  With the addition of Dropout we saw both a reduction in overfitting, and an increased *validation set* accuracy.  On the test set, we again see an increase vs. the baseline, with an **85% Classification Accuracy**. 
 
 <br>
 #### Test Set Confusion Matrix
@@ -642,64 +642,137 @@ ___
 <br>
 #### Image Augmentation Overview
 
-xxx
-xxx
+Image Augmentation is a concept in Deep Learning that aims to not only increase predictive performance, but also to increase the robustness of the network through regularisation.
+
+Instead of passing in each of the training set images as it stands, with Image Augmentation we pass in many transformed *versions* of each image.  This results in increased variation within our training data (without having to explicitly collect more images) meaning the network has a greater chance to understand and learn the objects we’re looking to classify, in a variety of scenarios.
+
+Common transformation techniques are:
+
+* Rotation
+* Horizontal/Vertical Shift
+* Shearing
+* Zoom
+* Horizontal/Vertical Flipping
+* Brightness Alteration
+
+When applying Image Augmentation using Keras' ImageDataGenerator class, we do this "on-the-fly" meaning the network does not actually train on the *original* training set image, but instead on the generated/transformed *versions* of the image - and this version changes each epoch.  In other words - for each epoch that the network is trained, each image will be called upon, and then randomly transformed based upon the specified parameters - and because of this variation, the network learns to generalise a lot better for many different scenarios.
 
 <br>
-#### Network Architecture
+#### Implementing Image Augmentation
 
-xxx
+We apply the Image Augmentation logic into the ImageDataGenerator class that exists within our Data Pipeline.
+
+It is important to note is that we only ever do this for our training data, we don't apply any transformation on our validation or test sets.  The reason for this is that we want our validation & test data be static, and serve us better for measuring our performance over time.  If the images in these set kept changing because of transformations it would be really hard to understand if our network was actually improving, or if it was just a lucky set of validation set transformations that made it appear that is was performing better!
+
+When setting up and training the baseline & Dropout networks - we used the ImageGenerator class for only one thing, to rescale the pixel values. Now we will add in the Image Augmentation parameters as well, meaning that as images flow into our network for training the transformations will be applied.
+
+In the code below, we add these transformations in and specify the magnitudes that we want each applied:
 
 ```python
 
-# xxx
-xxx
+# image generators
+training_generator = ImageDataGenerator(rescale = 1./255,
+                                        rotation_range = 20,
+                                        width_shift_range = 0.2,
+                                        height_shift_range = 0.2,
+                                        zoom_range = 0.1,
+                                        horizontal_flip = True,
+                                        brightness_range = (0.5,1.5),
+                                        fill_mode = 'nearest')
+
+validation_generator = ImageDataGenerator(rescale = 1./255)
 
 ```
 <br>
-xxx
+We apply a **rotation_range** of 20.  This is the *degrees* of rotation, and it dictates the *maximum* amount of rotation that we want.  In other words, a rotation value will be randomly selected for each image, each epoch, between negative and positive 20 degrees, and whatever is selected, is what will be applied.
+
+We apply a **width_shift_range** and a **height_shift_range** of 0.2.  These represent the fraction of the total width and height that we are happy to shift - in other words we're allowing Keras to shift our image *up to* 20% both vertically and horizonally.
+
+We apply a **zoom_range** of 0.1, meaning a maximum of 10% inward or outward zoom.
+
+We specify **horizontal_flip** to be True, meaning that each time an image flows in, there is a 50/50 chance of it being flipped.
+
+We specify a **brightness_range** between 0.5 and 1.5 meaning our images can become brighter or darker.
+
+Finally, we have **fill_mode** set to "nearest" which will mean that when images are shifted and/or rotated, we'll just use the *nearest pixel* to fill in any new pixels that are required - and it means our images still resemble the scene, generally speaking!
+
+Again, it is important to note that these transformations are applied *only* to the training set, and not the validation set.
 
 <br>
-#### Training The Network
+#### Updated Network Architecture
 
-xxx
+Our network will be the same as the baseline network.  We will not apply Dropout here to ensure we can understand the true impact of Image Augmentation for our task.
 
-```python
-
-# xxx
-xxx
-
-```
 <br>
-xxx
+#### Training The Updated Network
+
+We run the exact same code to train this updated network as we did for the baseline network (50 epochs) - the only change is that we modify the filename for the saved network to ensure we have all network files for comparison.
 
 <br>
 #### Analysis Of Training Results
 
-xxx
+As we again saved our training process to the *history* object, we can now analyse & plot the performance (Classification Accuracy, and Loss) of the updated network epoch by epoch.
 
-```python
+With the baseline network we saw very strong overfitting in action - it will be interesting to see if the addition of Image Augmentation helps in the same way that Dropout did!
 
-# xxx
-xxx
+The below image shows the same two plots we analysed for the updated network, the first showing the epoch by epoch **Loss** for both the training set (blue) and the validation set (orange) & the second show the epoch by epoch **Classification Accuracy** again, for both the training set (blue) and the validation set (orange).
 
-```
 <br>
-xxx
+![alt text](/img/posts/cnn-augmentation-accuracy-plot.png "CNN Dropout Accuracy Plot")
+
+<br>
+Firstly, we can see a peak Classification Accuracy on the validation set of around **97%** which is higher than the **83%** we saw for the baseline network, and higher than the **89%** we saw for the network with Dropout added.
+
+Secondly, and what we were again really looking to see, is that gap between the Classification Accuracy on the training set, and the validation set has been mostly eliminated. The two lines are trending up at more or less the same rate across all epochs of training - and the accuracy on the training set also never reach 100% as it did before meaning that Image Augmentation is also giving the network this *generalisation* that we want!
+
+The reason for this is that the network is getting a slightly different version of each image each epoch during training, meaning that while it's learning features, it can't cling to a *single version* of those features!
 
 <br>
 #### Performance On The Test Set
 
-xxx
+During training, we assessed our updated networks performance on both the training set and the validation set.  Here, like we did for the baseline & Dropout networks, we will get a view of how well our network performs when predict on data that was *no part* of the training process whatsoever - our test set.
 
-```python
+We run the exact same code as we did for the earlier networks, with the only change being to ensure we are loading in network file for the updated network
 
-# xxx
-xxx
+<br>
+#### Test Set Classification Accuracy
+
+Our baseline network achieved a **75% Classification Accuracy** on the test set, and our network with Dropout applied achieved **85%**.  With the addition of Image Augmentation we saw both a reduction in overfitting, and an increased *validation set* accuracy.  On the test set, we again see an increase vs. the baseline & Dropout, with a **93% Classification Accuracy**. 
+
+<br>
+#### Test Set Confusion Matrix
+
+As mentioned above, while overall Classification Accuracy is very useful, but it can hide what is really going on with the network's predictions!
+
+The standout insight for the baseline network was that Bananas has only a 20% Classification Accuracy, very frequently being confused with Lemons.  It will be interesting to see if the extra *generalisation* forced upon the network with the application of Dropout helps this.
+
+Running the same code from the baseline section on results for our updated network, we get the following output:
+
+```
+
+actual_label     apple  avocado  banana  kiwi  lemon  orange
+predicted_label                                             
+apple              0.8      0.0     0.0   0.0    0.0     0.0
+avocado            0.0      1.0     0.1   0.2    0.0     0.0
+banana             0.0      0.0     0.7   0.0    0.0     0.0
+kiwi               0.2      0.0     0.0   0.7    0.0     0.1
+lemon              0.0      0.0     0.2   0.0    1.0     0.0
+orange             0.0      0.0     0.0   0.1    0.0     0.9
 
 ```
 <br>
-xxx
+Along the top are our *actual* classes and down the side are our *predicted* classes - so counting *down* the columns we can get the Classification Accuracy (%) for each class, and we can see where it is getting confused.
+
+So, while overall our test set accuracy was 85% - for each individual class we see:
+
+* Apple: 80%
+* Avocado: 100%
+* Banana: 70%
+* Kiwi: 70%
+* Lemon: 100%
+* Orange: 90%
+
+All classes here are being predicted *at least* as good as with the baseline network - and Bananas which had only a 20% Classification Accuracy last time, are now being classified correctly 70% of the time.  Still the lowest of all classes, but a significant improvement over the baseline network!
 
 ___
 <br>
