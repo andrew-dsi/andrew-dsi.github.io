@@ -784,22 +784,168 @@ ___
 <br>
 #### Keras Tuner Overview
 
-xxx
+So far, with our Fruit Classification task, we have:
+
+* Started with a baseline model
+* Added Dropout to help with overfitting
+* Utilised Image Augmentation
+
+The addition of Dropout, and Image Augmentation boosted both performance and robustness - but there is one thing we've not tinkered with yet, and something that *could* have a big impact on how well the network learns to find and utilise important features for classifying our fruits - and that is the network *architecture*!
+
+So far, we've just used 2 convolutional layers, each with 32 filters, and we've used a single Dense layer, also, just by coincidence, with 32 neurons - and we admitted that this was just a place to start, our baseline.
+
+One way for us to figure out if there are *better* architectures, would be to just try different things. Maybe we just double our number of filters to 64, or maybe we keep the first convolutional layer at 32, but we increase the second to 64.Perhaps we put a whole lot of neurons in our hidden layer, and then, what about things like our use of Adam as an optimizer, is this the best one for our particular problem, or should we use something else?
+
+As you can imagine, we could start testing all of these things, and noting down performances, but that would be quite messy.
+
+Here we will instead utlise *Keras Tuner* which will make this a whole lot easier for us!
+
+At a high level, with Keras Tuner, we will ask it to test, a whole host of different architecture and parameter options, based upon some specifications that we put in place.  It will go off and run some tests, and return us all sorts of interesting summary statistics, and of course information about what worked best.
+
+Once we have this, we can then create that particular architecture, train the network just as we've always done - and analyse the performance against our original networks.
+
+Our data pipeline will remain the same as it was when applying Image Augmentation.  The code below shows this, as well as the extra packages we need to load for Keras-Tuner.
+
+```python
+
+# import the required python libraries
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Activation, Flatten, Dense, Dropout
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.callbacks import ModelCheckpoint
+from keras_tuner.tuners import RandomSearch
+from keras_tuner.engine.hyperparameters import HyperParameters
+import os
+
+# data flow parameters
+training_data_dir = 'data/training'
+validation_data_dir = 'data/validation'
+batch_size = 32
+img_width = 128
+img_height = 128
+num_channels = 3
+num_classes = 6
+
+# image generators
+training_generator = ImageDataGenerator(rescale = 1./255)
+validation_generator = ImageDataGenerator(rescale = 1./255)
+
+# image flows
+training_set = training_generator.flow_from_directory(directory = training_data_dir,
+                                                      target_size = (img_width, img_height),
+                                                      batch_size = batch_size,
+                                                      class_mode = 'categorical')
+
+validation_set = validation_generator.flow_from_directory(directory = validation_data_dir,
+                                                                      target_size = (img_width, img_height),
+                                                                      batch_size = batch_size,
+                                                                      class_mode = 'categorical')
+
+```
+<br>
 xxx
 
 <br>
 #### Application Of Keras Tuner
 
-xxx
+Here we specify what we want Keras Tuner to test, and how we want it to test it!
+
+We put our network architecture into a *function* with a single parameter called *hp* (hyperparameter)
+
+We then make use of several in-build bits of logic to specify what we want to test.  In the code below we test for:
+
+* Convolutional Layer Count - Between 1 & 4
+* Convolutional Layer Filter Count - Between 32 & 256 (Step Size 32)
+* Dense Layer Count - Between 1 & 4
+* Dense Layer Neuron Count - Between 32 & 256 (Step Size 32)
+* Application Of Dropout - Yes or No
+* Optimizer - Adam or RMSProp
 
 ```python
 
-# xxx
-xxx
+# network architecture
+def build_model(hp):
+    model = Sequential()
+    
+    model.add(Conv2D(filters = hp.Int("Input_Conv_Filters", min_value = 32, max_value = 256, step = 32), kernel_size = (3, 3), padding = 'same', input_shape = (img_width, img_height, num_channels)))
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D())
+    
+    for i in range(hp.Int("n_Conv_Layers", min_value = 1, max_value = 3, step = 1)):
+    
+        model.add(Conv2D(filters = hp.Int(f"Conv_{i}_Filters", min_value = 32, max_value = 256, step = 32), kernel_size = (3, 3), padding = 'same'))
+        model.add(Activation('relu'))
+        model.add(MaxPooling2D())
+    
+    model.add(Flatten())
+    
+    for j in range(hp.Int("n_Dense_Layers", min_value = 1, max_value = 4, step = 1)):
+    
+        model.add(Dense(hp.Int(f"Dense_{j}_Neurons", min_value = 32, max_value = 256, step = 32)))
+        model.add(Activation('relu'))
+        
+        if hp.Boolean("Dropout"):
+            model.add(Dropout(0.5))
+    
+    model.add(Dense(num_classes))
+    model.add(Activation('softmax'))
+    
+    # compile network
+    
+    model.compile(loss = 'categorical_crossentropy',
+                  optimizer = hp.Choice("Optimizer", values = ['adam', 'RMSProp']),
+                  metrics = ['accuracy'])
+    
+    return model
 
 ```
 <br>
-xxx
+Once we have the testing logic in place - we use want to put in place the specifications for the search!
+
+In the code below, we set parameters to:
+
+* Point to the network *function* with the testing logic (hypermodel)
+* Set the metric to optimise for (objective)
+* Set the number of random network configurations to test (max_trials)
+* Set the number of times to try each tested configuration (executions_per_trial)
+* Set the details for the output of logging & results
+
+```python
+
+# search parameters
+tuner = RandomSearch(hypermodel = build_model,
+                     objective = 'val_accuracy',
+                     max_trials = 30,
+                     executions_per_trial = 2,
+                     directory = os.path.normpath('C:/'),
+                     project_name = 'fruit-cnn',
+                     overwrite = True)
+
+```
+<br>
+With the search parameters in place, we now want to put this into action.
+
+In the below code, we:
+
+* Specify the training & validation flows
+* Specify the number of epochs for each tested configuration
+* Specify the batch size for training
+
+```python
+
+# execute search
+tuner.search(x = training_set,
+             validation_data = validation_set,
+             epochs = 40,
+             batch_size = 32)
+
+```
+<br>
+With
+
+
+
+We could of course continue to testing everything, but we must remember that this would mean that the number of possible combinations of parameters will grow and grow and grow to some unmangeable number that would take forever to test for
 
 <br>
 #### Updated Network Architecture
