@@ -638,7 +638,7 @@ All classes here are being predicted *at least* as good as with the baseline net
 
 ___
 <br>
-# Image Augmentation <a name="cnn-augmentation)"></a>
+# Image Augmentation <a name="cnn-augmentation"></a>
 
 <br>
 #### Image Augmentation Overview
@@ -779,7 +779,7 @@ Utilising Image Augmentation *and* applying Dropout will be a powerful combinati
 
 ___
 <br>
-# Hyper-Parameter Tuning <a name="cnn-tuning))"></a>
+# Hyper-Parameter Tuning <a name="cnn-tuning"></a>
 
 <br>
 #### Keras Tuner Overview
@@ -891,7 +891,7 @@ Utilising Image Augmentation *and* applying Dropout will be a powerful combinati
 
 ___
 <br>
-# Transfer Learning With VGG16 <a name="cnn-transfer-learning))"></a>
+# Transfer Learning With VGG16 <a name="cnn-transfer-learning"></a>
 
 <br>
 #### Transfer Learning Overview
