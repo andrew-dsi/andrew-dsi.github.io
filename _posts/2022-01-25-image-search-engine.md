@@ -427,20 +427,24 @@ plt.show()
 <br>
 The search image, and search results are below:
 
+**Search Image**
 <br>
 ![alt text](/img/posts/search-engine-search1.jpg "Search 1: Search Image")
 <br>
+**Search Results**
 ![alt text](/img/posts/search-engine-search1-results.png "Search 1: Search Results")
 
 <br>
 Very impressive results!  From the 300 base-set images, these are the eight that have been deemed to be *most similar*!
 
 <br>
-To ensure it wasn't a complete fluke, let's take a look at a second search image.
+Let's take a look at a second search image...
 
+**Search Image**
 <br>
 ![alt text](/img/posts/search-engine-search2.jpg "Search 2: Search Image")
 <br>
+**Search Results**
 ![alt text](/img/posts/search-engine-search2-results.png "Search 2: Search Results")
 
 <br>
@@ -450,4 +454,10 @@ ___
 <br>
 # Discussion,Growth & Next Steps <a name="growth-next-steps"></a>
 
-xxx
+More products, more categories.  Further analysis of results.  Other distance metrics?
+
+Ways to quantify results?  Customer feedback?  Recommendation Engine metrics...?
+
+Considerations around how it will be implemented (some examples perhaps from the DE/DS section?)
+
+Other pre-trained networks (copy from CNN project)
