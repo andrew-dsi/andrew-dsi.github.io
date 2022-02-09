@@ -316,11 +316,6 @@ ___
 
 With the base-set featurised, we can now run a search on a new image from a customer!
 
-* Load in our VGG16 model
-* Load in our filename store & feature vector store
-* Receive a search image
-* Featurise the search image
-
 <br>
 #### Setup
 
