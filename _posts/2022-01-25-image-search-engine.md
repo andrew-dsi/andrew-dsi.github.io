@@ -38,35 +38,40 @@ Based upon our work for them using a Convolutional Neural Network, they want to 
 <br>
 ### Actions <a name="overview-actions"></a>
 
-Transfer Learning VGG16
-Nearest Neighbours - Cosine Similarity
+Here we implement the pre-trained VGG16 network. Instead of the final MaxPooling layer, we we add in a **Global Average Pooling Layer** at the end of the VGG16 architecture meaning the output of the network will be a single vector of numeric information rather than many arrays.  We use "feature vector" to compare image similarity.
 
-Use sections of this table of contents to run through each stage
+We pre-process our 300 base-set images, and then pass them through the VGG16 network to extract their feature vectors.  We store these in an object for use when a search image is fed in.
+
+We pass in a search image, apply the same preprocessing steps and again extract the feature vector.
+
+We use Cosine Similarity to compare the search feature vector with all base-set feature vectors, returned the N smallest values.  These represent our "most similar" images - the ones that would be returned to the customer.
 
 <br>
 <br>
 
 ### Results <a name="overview-results"></a>
 
-xxx
-xxx
-Put an image in here...
+We test two different images, and plot the search results along with the cosine similarity scores.  You can see these in the dedicated section below.
 
 <br>
 <br>
-### Growth/Next Steps <a name="overview-growth"></a>
+### Discussion, Growth & Next Steps <a name="overview-growth"></a>
 
-xxx
-xxx
+The way we have coded this up is very much for the "proof of concept".  In practice we would definitely have the last section of the code (where we submit a search) isolated, and running from all of the saved objects that we need - we wouldn't include it in a single script like we have here.
 
-More products, more categories.  Further analysis of results.  Other distance metrics?
+Also, rather than having to fit the Nearest Neighbours to our *feature_vector_store* each time a search is submitted, we could store that object as well.
 
-Ways to quantify results?  Customer feedback?  Recommendation Engine metrics...?
+When applying this in production, we also may want to code up a script that easily adds or removes images from the feature store.  The products that are available in the clients store would be changing all the time, so we'd want a nice easy way to add new feature vectors to the feature_vector_store object - and also potentially a way to remove search results coming back if that product was out of stock, or no longer part of the suite of products that were sold.
 
-Considerations around how it will be implemented (some examples perhaps from the DE/DS section?)
+Most likely, in production, this would just return a list of filepaths that the client's website could then pull forward as required - the matplotlib code is just for us to see it in action manually!
 
-Other pre-trained networks (copy from CNN project)
+This was tested only in one category, we would want to test on a broader array of categories - most likely having a saved network for each to avoid irrelevant predictions.
 
+We only looked at Cosine Similarity here, it would be interesting to investigate other distance metrics.
+
+It would be beneficial to come up with a way to quantify the quality of the search results.  This could come from customer feedback, or from click-through rates on the site.
+
+Here we utilised VGG16. It would be worthwhile testing other available pre-trained networks such as ResNet, Inception, and the DenseNet networks.
 
 <br>
 <br>
@@ -426,6 +431,7 @@ The search image, and search results are below:
 <br>
 ![alt text](/img/posts/search-engine-search1.jpg "Search 1: Search Image")
 <br>
+<br>
 **Search Results**
 ![alt text](/img/posts/search-engine-search1-results.png "Search 1: Search Results")
 
@@ -439,6 +445,7 @@ Let's take a look at a second search image...
 <br>
 ![alt text](/img/posts/search-engine-search2.jpg "Search 2: Search Image")
 <br>
+<br>
 **Search Results**
 ![alt text](/img/posts/search-engine-search2-results.png "Search 2: Search Results")
 
@@ -447,12 +454,20 @@ Again, these have come out really well - the features from VGG16 combined with C
 
 ___
 <br>
-# Discussion,Growth & Next Steps <a name="growth-next-steps"></a>
+# Discussion, Growth & Next Steps <a name="growth-next-steps"></a>
 
-More products, more categories.  Further analysis of results.  Other distance metrics?
+The way we have coded this up is very much for the "proof of concept".  In practice we would definitely have the last section of the code (where we submit a search) isolated, and running from all of the saved objects that we need - we wouldn't include it in a single script like we have here.
 
-Ways to quantify results?  Customer feedback?  Recommendation Engine metrics...?
+Also, rather than having to fit the Nearest Neighbours to our *feature_vector_store* each time a search is submitted, we could store that object as well.
 
-Considerations around how it will be implemented (some examples perhaps from the DE/DS section?)
+When applying this in production, we also may want to code up a script that easily adds or removes images from the feature store.  The products that are available in the clients store would be changing all the time, so we'd want a nice easy way to add new feature vectors to the feature_vector_store object - and also potentially a way to remove search results coming back if that product was out of stock, or no longer part of the suite of products that were sold.
 
-Other pre-trained networks (copy from CNN project)
+Most likely, in production, this would just return a list of filepaths that the client's website could then pull forward as required - the matplotlib code is just for us to see it in action manually!
+
+This was tested only in one category, we would want to test on a broader array of categories - most likely having a saved network for each to avoid irrelevant predictions.
+
+We only looked at Cosine Similarity here, it would be interesting to investigate other distance metrics.
+
+It would be beneficial to come up with a way to quantify the quality of the search results.  This could come from customer feedback, or from click-through rates on the site.
+
+Here we utilised VGG16. It would be worthwhile testing other available pre-trained networks such as ResNet, Inception, and the DenseNet networks.
