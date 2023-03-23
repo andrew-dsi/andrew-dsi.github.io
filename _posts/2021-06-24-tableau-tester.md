@@ -5,5 +5,5 @@ image: "/posts/coffee_python.jpg"
 tags: [Tableau, Data Viz]
 ---
 
-<iframe seamless frameborder="0" src="https://public.tableau.com/views/DSIEarthquakeDashboard/DSIEarthquakeTracker?:embed=yes&:display_count=yes&:showVizHome=no" width = '1920' height = '1080'></iframe> 
+<iframe seamless frameborder="0" src="https://public.tableau.com/views/DSIEarthquakeDashboard/DSIEarthquakeTracker?:embed=yes&:display_count=yes&:showVizHome=no" width = '1080' height = '600'></iframe> 
 
