@@ -1,7 +1,7 @@
 ---
 layout: post
-title: Tableau Tester
-image: "/posts/coffee_python.jpg"
+title: Earthquake Tracking Dashboard Using Tableau
+image: "/posts/tableau-map-image.png"
 tags: [Tableau, Data Viz]
 ---
 
