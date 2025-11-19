@@ -7,7 +7,7 @@ tags: [GenAI, RAG, LLMs, Python, LangChain]
 
 In this project we build a real, production-style AI assistant for **ABC Grocery**, capable of answering customer help-desk questions using **Retrieval Augmented Generation (RAG)**.  
 
-We begin by building a *core RAG system* that loads internal documents, chunks them intelligently, embeds them into a vector database, retrieves relevant content, and generates grounded answers.  
+We begin by building a core RAG system that loads internal documents, chunks them intelligently, embeds them into a vector database, retrieves relevant content, and generates grounded answers.  
 
 We then extend the assistant by **adding conversational memory**, allowing the model to maintain a short-term personalised dialogue while still respecting strict grounding rules.
 
@@ -31,7 +31,8 @@ We then extend the assistant by **adding conversational memory**, allowing the m
     - [Full RAG Pipeline](#rag-pipeline)
 - [04. Enhancing the Assistant With Memory](#rag-memory)
 - [05. Application & Examples](#rag-application)
-- [06. Growth & Next Steps](#growth-next-steps)
+- [06. Inspecting the Retrieved Context](#rag-inspection)
+- [07. Growth & Next Steps](#growth-next-steps)
 
 ___
 
@@ -39,9 +40,9 @@ ___
 
 ### Context <a name="overview-context"></a>
 
-ABC Grocery operates a busy customer help-desk, answering queries around store hours, product availability, delivery services, loyalty cards, payments, and general store operations.
+Our client, a grocery retailers, operates a busy customer help-desk, answering queries around store hours, product availability, delivery services, loyalty cards, payments, and general store operations.
 
-The client wants an **AI assistant** that can answer these questions accurately, consistently, and safely, using only approved internal information.
+They need an **AI assistant** that can answer these questions accurately, consistently, and safely, using only approved internal information.
 
 ### Actions <a name="overview-actions"></a>
 
@@ -112,8 +113,7 @@ ___
 
 # 02. RAG Overview <a name="rag-overview"></a>
 
-Large Language Models are powerful, but they have a key limitation:  
-**their knowledge is fixed at training time**, and they cannot reliably retrieve up-to-date, organisation-specific, or policy-specific information.
+Large Language Models are powerful, but they have a key limitation, **their knowledge is fixed at training time**, and they cannot reliably retrieve up-to-date, organisation-specific, or policy-specific information.
 
 A naive solution would be to simply **feed the entire help-desk document into the model on every query**, but this has major drawbacks:
 
@@ -138,14 +138,10 @@ ___
 
 # 03. Building the Core RAG System <a name="rag-core"></a>
 
-Each subsection below explains both the code *and the concept behind it*.
-
----
-
+<br>
 ## Secure API Handling <a name="rag-api"></a>
 
-We load API keys from a `.env` file.  
-This prevents credentials from being hard-coded directly in the script.
+We load API keys from a **.env** file. This prevents credentials from being hard-coded directly in the script.
 
 ```python
 from dotenv import load_dotenv
@@ -153,6 +149,7 @@ load_dotenv()
 ```
 
 ---
+
 
 ## Document Loading <a name="rag-docs"></a>
 
@@ -167,8 +164,8 @@ docs = loader.load()
 text = docs[0].page_content
 ```
 
-**Why this matters:**  
-Document loaders standardise the data into LangChain `Document` objects, which makes later steps like chunking and embedding seamless.
+<br>
+**Why this matters:**  Document loaders standardise the data into LangChain *Document* objects, which makes later steps like chunking and embedding seamless.
 
 ---
 
@@ -188,16 +185,14 @@ chunked_docs = splitter.split_text(text)
 print(len(chunked_docs), "Q/A chunks")
 ```
 
-**Why this matters:**  
-Chunking ensures retrieval focuses on the specific Q&A pair that relates to a user query.  
-Good chunking dramatically improves retrieval accuracy.
+<br>
+**Why this matters:**  Chunking ensures retrieval focuses on the specific Q&A pair that relates to a user query.  Good chunking dramatically improves retrieval accuracy.
 
 ---
 
 ## Embeddings & Vector Store <a name="rag-embeddings"></a>
 
-Embeddings convert text into **numeric vectors** that represent meaning.  
-Documents with similar meaning end up closer together in vector space.
+Embeddings convert text into **numeric vectors** that represent meaning.  Documents with similar meaning end up closer together in vector space.
 
 We embed each Q&A chunk and store the embeddings in Chroma:
 
@@ -216,7 +211,8 @@ vectorstore = Chroma.from_documents(
 )
 ```
 
-To load later:
+<br>
+To load later, instead of re-creating from scratch, we can use this code:
 
 ```python
 vectorstore = Chroma(
@@ -230,7 +226,7 @@ vectorstore = Chroma(
 
 ## LLM Setup <a name="rag-llm"></a>
 
-We instantiate the model that generates the final answer:
+We instantiate the model that will generate the final answer:
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -242,13 +238,7 @@ abc_assistant_llm = ChatOpenAI(model="gpt-5",
                                max_retries=1)
 ```
 
-**Explanation:**
-
-* **model="gpt-5"** — the LLM used for answer generation  
-* **temperature=0** — ensures deterministic, factual answers  
-* **max_tokens=None** — no manual cap on response length  
-* **timeout** and **max_retries** — make execution more robust  
-
+<br>
 A temperature of 0 is essential for help-desk systems where consistency and accuracy matter more than creativity.
 
 ---
@@ -274,9 +264,11 @@ Answer:
 )
 ```
 
+<br>
 **Why this matters:**  
-Prompt templates are the “instructions” that govern how the LLM behaves.  
-They ensure the assistant is safe, grounded, and consistent.
+Prompt templates are the *instructions* that govern how the LLM behaves.  They ensure the assistant is safe, grounded, and consistent.
+
+We have kept this simple here, but have included one important instruction for the LLM: that if the answer is not in the context, to say that it doesn't have this information and to encourage the customer to email human@abc-grocery.com
 
 ---
 
@@ -291,23 +283,22 @@ retriever = vectorstore.as_retriever(
 )
 ```
 
-**Meaning:**  
-* retrieve the top-6 most relevant chunks  
-* only return chunks above a relevance threshold  
-
+<br>
+We have set this retrieval up in a way where it will retrieve *up to* 6 documents, but only if they meet the specified relevance score threshold of 0.25. 
+<br>
 This keeps the context focused and prevents irrelevant content from confusing the LLM.
 
 ---
 
 ## Full RAG Pipeline <a name="rag-pipeline"></a>
 
-This pipeline connects all components:
+This pipeline connects all of the key components of our system, namely:
 
-1. take the user query  
-2. retrieve relevant chunks  
+1. take in the user query  
+2. retrieve in relevant chunks from the vector database  
 3. format them  
-4. inject them into the prompt  
-5. call the LLM  
+4. inject them into the prompt template, along with the system instructions and user query 
+5. pass this information to the LLM  
 6. return the answer  
 
 ```python
@@ -326,62 +317,114 @@ rag_answer_chain = (
     | abc_assistant_llm
 )
 ```
-
-This is the “brain” of the system — the end-to-end mechanism that retrieves and answers.
+<br>
+This is the *brain* of the system, the end-to-end mechanism that retrieves, processes and then answers!
 
 ___
 
 # 04. Enhancing the Assistant With Memory <a name="rag-memory"></a>
 
-In the upgraded version, we introduced **conversational memory**, allowing multi-turn dialogue while still obeying strict grounding rules.
+In the enhanced version of the RAG system, we introduced **conversational memory**, allowing multi-turn dialogue while still obeying strict grounding rules.
 
 Memory is added through:
 
 ```python
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+
+# set up the memory store (a unique session for each unique user)
+from langchain_community.chat_message_histories import ChatMessageHistory
+
+_session_store = {}
+def get_session_history(session_id: str) -> ChatMessageHistory:
+    if session_id not in _session_store:
+        _session_store[session_id] = ChatMessageHistory()
+    return _session_store[session_id]
+
+from langchain_core.runnables.history import RunnableWithMessageHistory
+
+# create an updated pipeline that feeds memory into the system prompt
+chain_with_history = RunnableWithMessageHistory(
+    runnable=rag_answer_chain,
+    get_session_history=get_session_history,
+    input_messages_key="input",
+    history_messages_key="history"
+)
 ```
 
-And by including a `history` block inside the prompt template.
-
-This keeps conversations natural (e.g., “What about weekends?”) while ensuring that no historical message overrides the authoritative document context.
+When adding memory, we also update the system prompt to include a placeholder place for it to be injected.  It is also important to include information in the system instructions about how to make use of this memory, i.e. to only use it for personalisation
 
 ___
 
 # 05. Application & Examples <a name="rag-application"></a>
 
-Here are some example queries we passed into the system:
+To pass a query into the system, and have a result returned, we use the following code:
 
 ```python
 query = "What hours are you open on Easter Sunday?"
 response = rag_answer_chain.invoke({"input": query})
 print(response)
 ```
+<br>
 
-```python
-query = "Do you offer gluten-free products?"
-```
+As an illustration, here are two example queries we passed into the system, along with the resulting response:
 
-```python
-query = "How do I update my loyalty card details?"
-```
+**Query:** What time can I come into the store today?  
+**Response:** Most locations are open 7am-10pm today.  If it's a holiday, hours may vary - please check the Store Locator for your specific store's hours  
+<br>
+**Query:** What is a baby dolphin called?  
+**Response:** I don't have that information in the provided context. Please email human@abc-grocery.com and our team can help.  
+<br>
 
-```python
-query = "Can you deliver to rural areas?"
-```
-
-```python
-query = "Are your deli items suitable for vegetarians?"
-```
-
-Below each query, I will manually insert the model’s actual response:
-
-> **[PLACEHOLDER: Insert model output here once captured]**
-
-You can repeat this for any number of examples.
+The latter question is important and shows a behaviour that we want, and that we described in the system instructions.  This was a question that was not answerable using the business-specific context documents, and thus it did not create an answer from it's own memory, it provided the default response.
 
 ___
 
-# 06. Growth & Next Steps <a name="growth-next-steps"></a>
+# 06. Inspecting the Retrieved Context <a name="rag-inspection"></a>
+
+One of the most important aspects of building safe and reliable RAG systems is the ability to **inspect exactly which documents were used** to produce an answer.  
+
+This helps us confirm that:
+
+* the system is grounding answers in the correct internal documentation  
+* no irrelevant or low-quality chunks were retrieved  
+* the model is not hallucinating content  
+* retrieval performance is behaving as expected  
+* the system is explainable and auditable  
+
+To enable this, we implemented a clever parallel chain that returns **both**:
+
+1. the final answer, and  
+2. the raw retrieved context (the documents)  
+
+Here is the code that enables this behaviour:
+
+```python
+from langchain_core.runnables import RunnableParallel
+
+# to also bring through context and user query for analysis
+rag_with_context = RunnableParallel(answer=rag_answer_chain,
+                                    context=itemgetter("input") | retriever,
+                                    input=itemgetter("input"))
+
+user_prompt = ("What time can I come into the store today?")
+
+# invoke
+response = rag_with_context.invoke({"input": user_prompt})
+print(response["answer"].content)
+```
+
+By calling *RunnableParallel* we are able to run multiple pieces of logic at once.  
+
+In this case, **answer** runs the full RAG pipeline, **context** runs the retriever on it's own (allowing us to capture the returned chunks), and **input** returns the original user query.  When we invoke this, we are returned a *dictionary* containing everything we need to inspect what drove the LLM's answer.
+
+This means a single `.invoke()` call returns a **dictionary** containing everything we need:
+
+We inspected these retrieved documents in *LangSmith* allowing us to verify that our vector store, retriever, and chunking strategy were behaving correctly.
+
+This approach is extremely important in real-world RAG systems where explainability, auditability, and debugging retrieval issues are essential.
+
+___
+
+# 07. Growth & Next Steps <a name="growth-next-steps"></a>
 
 Potential future enhancements include:
 
