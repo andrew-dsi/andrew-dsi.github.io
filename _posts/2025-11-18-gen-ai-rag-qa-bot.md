@@ -207,8 +207,7 @@ vectorstore = Chroma.from_documents(
     embedding=embeddings,
     collection_metadata={"hnsw:space": "cosine"},
     persist_directory="abc_vector_db_chroma",
-    collection_name="abc_help_qa"
-)
+    collection_name="abc_help_qa")
 ```
 
 <br>
@@ -218,8 +217,7 @@ To load later, instead of re-creating from scratch, we can use this code:
 vectorstore = Chroma(
     persist_directory="abc_vector_db_chroma",
     collection_name="abc_help_qa",
-    embedding_function=embeddings
-)
+    embedding_function=embeddings)
 ```
 
 ---
@@ -278,8 +276,7 @@ We configure how relevant chunks are selected from the vector database:
 ```python
 retriever = vectorstore.as_retriever(
     search_type="similarity_score_threshold",
-    search_kwargs={"k": 6, "score_threshold": 0.25}
-)
+    search_kwargs={"k": 6, "score_threshold": 0.25})
 ```
 
 <br>
@@ -363,7 +360,7 @@ query = "What hours are you open on Easter Sunday?"
 response = rag_answer_chain.invoke({"input": query})
 print(response)
 ```
-
+<br>
 As an illustration, here are two example queries we passed into the system, along with the resulting response:
 <br><br>
 **Query:** What time can I come into the store today?  
