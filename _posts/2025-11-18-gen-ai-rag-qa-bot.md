@@ -1,11 +1,11 @@
 ---
 layout: post
-title: Building an AI Help-Desk Assistant Using Retrieval Augmented Generation (RAG)
+title: Building an AI Help-Desk Assistant Using RAG (Retrieval Augmented Generation)
 image: "/posts/gen-ai-rag-title-img.png"
 tags: [GenAI, RAG, LLMs, Python, LangChain]
 ---
 
-In this project we build a real, production-style AI assistant for **ABC Grocery**, capable of answering customer help-desk questions using **Retrieval Augmented Generation (RAG)**.  
+In this project we build a real, production-style AI assistant for our grocery retail client, capable of answering customer help-desk questions using **Retrieval Augmented Generation (RAG)**.  
 
 We begin by building a core RAG system that loads internal documents, chunks them intelligently, embeds them into a vector database, retrieves relevant content, and generates grounded answers.  
 
