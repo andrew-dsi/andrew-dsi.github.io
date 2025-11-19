@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Building an AI Help-Desk Assistant Using Retrieval Augmented Generation (RAG)
-image: "/posts/classification-title-img.png"
+image: "/posts/gen-ai-rag-title-img.png"
 tags: [GenAI, RAG, LLMs, Python, LangChain]
 ---
 
@@ -48,12 +48,12 @@ They need an **AI assistant** that can answer these questions accurately, consis
 
 We built a full end-to-end RAG system that:
 
-* loaded internal help-desk documentation  
-* split it into meaningful chunks  
-* created dense vector embeddings  
-* stored these embeddings in a persistent vector database  
-* retrieved only the most relevant content at query time  
-* generated answers grounded strictly in this retrieved context  
+* Loaded internal help-desk documentation  
+* Split it into meaningful chunks  
+* Created dense vector embeddings  
+* Stored these embeddings in a persistent vector database  
+* Retrieved only the most relevant content at query time  
+* Generated answers grounded strictly in this retrieved context  
 
 We also extended the project with **conversational memory**, enabling more natural multi-turn interactions while ensuring the assistant never hallucinates.
 
@@ -63,21 +63,21 @@ Internally, we also added monitoring, tracing, and evaluation using LangSmith du
 
 The final assistant:
 
-* reliably answers customer help-desk questions  
-* grounds every answer in retrieved internal documentation  
-* rejects unsupported questions with a safe fallback message  
-* maintains short-term conversational history for better UX  
-* prevents hallucinations using strict grounding rules  
+* Reliably answers customer help-desk questions  
+* Grounds every answer in retrieved internal documentation  
+* Rejects unsupported questions with a safe fallback message  
+* Maintains short-term conversational history for better UX  
+* Prevents hallucinations using strict grounding rules  
 
 ### Growth/Next Steps <a name="overview-growth"></a>
 
 Potential future enhancements include:
 
-* ingestion of multiple document types (PDFs, HTML, product catalogues)  
-* adding tool use such as SQL lookups for live stock, prices, or loyalty data  
-* adding a real chat interface (frontend + backend)  
-* streaming responses for improved UX  
-* building automated daily document ingestion pipelines  
+* Ingestion of multiple document types (PDFs, product catalogues)  
+* Adding tool use such as SQL lookups for live stock, prices, or loyalty data  
+* Adding a real chat interface (frontend + backend)  
+* Streaming responses for improved UX  
+* Building automated daily document ingestion pipelines  
 
 ___
 
@@ -294,12 +294,12 @@ This keeps the context focused and prevents irrelevant content from confusing th
 
 This pipeline connects all of the key components of our system, namely:
 
-1. take in the user query  
-2. retrieve in relevant chunks from the vector database  
-3. format them  
-4. inject them into the prompt template, along with the system instructions and user query 
-5. pass this information to the LLM  
-6. return the answer  
+1. Take in the user query  
+2. Retrieve in relevant chunks from the vector database  
+3. Format them  
+4. Inject them into the prompt template, along with the system instructions and user query 
+5. Pass this information to the LLM  
+6. Return the answer  
 
 ```python
 from langchain_core.runnables import RunnableLambda
@@ -339,9 +339,10 @@ def get_session_history(session_id: str) -> ChatMessageHistory:
         _session_store[session_id] = ChatMessageHistory()
     return _session_store[session_id]
 
-from langchain_core.runnables.history import RunnableWithMessageHistory
 
 # create an updated pipeline that feeds memory into the system prompt
+from langchain_core.runnables.history import RunnableWithMessageHistory
+
 chain_with_history = RunnableWithMessageHistory(
     runnable=rag_answer_chain,
     get_session_history=get_session_history,
@@ -363,17 +364,15 @@ query = "What hours are you open on Easter Sunday?"
 response = rag_answer_chain.invoke({"input": query})
 print(response)
 ```
-<br>
 
 As an illustration, here are two example queries we passed into the system, along with the resulting response:
-
+<br>
 **Query:** What time can I come into the store today?  
 **Response:** Most locations are open 7am-10pm today.  If it's a holiday, hours may vary - please check the Store Locator for your specific store's hours  
 <br>
 **Query:** What is a baby dolphin called?  
 **Response:** I don't have that information in the provided context. Please email human@abc-grocery.com and our team can help.  
 <br>
-
 The latter question is important and shows a behaviour that we want, and that we described in the system instructions.  This was a question that was not answerable using the business-specific context documents, and thus it did not create an answer from it's own memory, it provided the default response.
 
 ___
@@ -384,18 +383,15 @@ One of the most important aspects of building safe and reliable RAG systems is t
 
 This helps us confirm that:
 
-* the system is grounding answers in the correct internal documentation  
-* no irrelevant or low-quality chunks were retrieved  
-* the model is not hallucinating content  
-* retrieval performance is behaving as expected  
-* the system is explainable and auditable  
+* The system is grounding answers in the correct internal documentation  
+* No irrelevant or low-quality chunks were retrieved  
+* The model is not hallucinating content  
+* Retrieval performance is behaving as expected  
+* The system is explainable and auditable  
 
-To enable this, we implemented a clever parallel chain that returns **both**:
+To enable this, we implemented a clever parallel chain that returns **both** the final answer, and the raw retrieved context (the documents)  
 
-1. the final answer, and  
-2. the raw retrieved context (the documents)  
-
-Here is the code that enables this behaviour:
+The code that enables this behaviour is below:
 
 ```python
 from langchain_core.runnables import RunnableParallel
@@ -411,12 +407,12 @@ user_prompt = ("What time can I come into the store today?")
 response = rag_with_context.invoke({"input": user_prompt})
 print(response["answer"].content)
 ```
-
+<br>
 By calling *RunnableParallel* we are able to run multiple pieces of logic at once.  
 
 In this case, **answer** runs the full RAG pipeline, **context** runs the retriever on it's own (allowing us to capture the returned chunks), and **input** returns the original user query.  When we invoke this, we are returned a *dictionary* containing everything we need to inspect what drove the LLM's answer.
 
-This means a single `.invoke()` call returns a **dictionary** containing everything we need:
+This means a single **.invoke()** call returns a *dictionary* containing everything we need:
 
 We inspected these retrieved documents in *LangSmith* allowing us to verify that our vector store, retriever, and chunking strategy were behaving correctly.
 
@@ -428,11 +424,11 @@ ___
 
 Potential future enhancements include:
 
-* ingestion of multiple data types (PDFs, HTML, product catalogues, CMS pages)  
-* integrating SQL tools for real-time store data, delivery slots, or loyalty information  
-* building a production web interface (React + FastAPI)  
-* automated indexing pipelines to detect new documents  
-* response streaming for real-time chat UX  
+* Ingestion of multiple data types (PDFs, product catalogues)  
+* Integrating SQL tools for real-time store data, delivery slots, or loyalty information  
+* Building a production web interface (React + FastAPI)  
+* Automated indexing pipelines to detect new documents  
+* Response streaming for real-time chat UX  
 
 This project forms a strong foundation for a scalable enterprise help-desk assistant powered by Retrieval Augmented Generation.
 
