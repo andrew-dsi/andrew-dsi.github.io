@@ -213,8 +213,8 @@ with engine.connect() as conn:
 
 Key choices:
 
-* Pool_pre_ping = True – Validates connections before use  
-* Statement_timeout = 15000 – Prevents long-running queries from hanging  
+* Pool_pre_ping = True: Validates connections before use  
+* Statement_timeout = 15000: Prevents long-running queries from hanging  
 * The *select 1* check confirms that credentials and network access are correct  
 
 ---
@@ -272,12 +272,7 @@ toolkit = SQLDatabaseToolkit(db=db, llm=sql_agent)
 tools = toolkit.get_tools()
 ```
 <br>
-These tools allow the agent to:
-
-* Inspect which tables exist  
-* Look at table info and sample rows  
-* Construct and execute SQL queries  
-* Refine or correct queries based on feedback  
+These tools allow the agent to; inspect which tables exist, look at table info and sample rows, construct and execute SQL queries, and refine or correct queries based on feedback.
 
 Rather than guessing SQL from scratch, the agent can actively *work with* the database.
 
@@ -512,8 +507,6 @@ ___
 To send a query to the agent, we use LangChain’s *HumanMessage* format:
 
 ```python
-# 09 - Run test queries through the agent and extract the response
-
 from langchain_core.messages import HumanMessage
 
 user_query = "On average, which gender lives furthest from store?"
