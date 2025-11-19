@@ -265,8 +265,7 @@ Answer:
 ```
 
 <br>
-**Why this matters:**  
-Prompt templates are the *instructions* that govern how the LLM behaves.  They ensure the assistant is safe, grounded, and consistent.
+**Why this matters:**  Prompt templates are the *instructions* that govern how the LLM behaves.  They ensure the assistant is safe, grounded, and consistent.
 
 We have kept this simple here, but have included one important instruction for the LLM: that if the answer is not in the context, to say that it doesn't have this information and to encourage the customer to email human@abc-grocery.com
 
@@ -366,7 +365,7 @@ print(response)
 ```
 
 As an illustration, here are two example queries we passed into the system, along with the resulting response:
-<br>
+<br><br>
 **Query:** What time can I come into the store today?  
 **Response:** Most locations are open 7am-10pm today.  If it's a holiday, hours may vary - please check the Store Locator for your specific store's hours  
 <br>
